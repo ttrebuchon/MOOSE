@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171010_2142' )
+env.info( 'Moose Generation Timestamp: 20171010_2157' )
 
 --- Various routines
 -- @module routines
@@ -18027,8 +18027,12 @@ SPAWN = {
 -- @extends Wrapper.Group#GROUP.Takeoff
 
 --- @field #SPAWN.Takeoff Takeoff
-SPAWN.Takeoff = GROUP.Takeoff
-
+SPAWN.Takeoff = {
+  Air = 1,
+  Runway = 2,
+  Hot = 3,
+  Cold = 4,
+}
 
 --- @type SPAWN.SpawnZoneTable
 -- @list <Core.Zone#ZONE_BASE> SpawnZone

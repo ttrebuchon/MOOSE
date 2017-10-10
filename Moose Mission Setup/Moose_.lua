@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171010_2142')
+env.info('Moose Generation Timestamp: 20171010_2157')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -8782,7 +8782,12 @@ ClassName="SPAWN",
 SpawnTemplatePrefix=nil,
 SpawnAliasPrefix=nil,
 }
-SPAWN.Takeoff=GROUP.Takeoff
+SPAWN.Takeoff={
+Air=1,
+Runway=2,
+Hot=3,
+Cold=4,
+}
 function SPAWN:New(SpawnTemplatePrefix)
 local self=BASE:Inherit(self,BASE:New())
 self:F({SpawnTemplatePrefix})
