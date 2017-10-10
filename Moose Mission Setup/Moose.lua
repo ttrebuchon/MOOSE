@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171010_1110' )
+env.info( 'Moose Generation Timestamp: 20171010_1200' )
 
 --- Various routines
 -- @module routines
@@ -44118,7 +44118,7 @@ function AI_A2A_PATROL:onafterPatrol( AIPatrol, From, Event, To )
 
   self:__Route( 1 )
   
-  self.AIPatrol:OnReSpawn(
+  AIPatrol:OnReSpawn(
     function( PatrolGroup )
       self:E( "ReSpawn" )
       self:__Reset( 1 )

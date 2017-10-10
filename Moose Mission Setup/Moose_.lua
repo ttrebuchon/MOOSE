@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171010_1110')
+env.info('Moose Generation Timestamp: 20171010_1200')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -21439,7 +21439,7 @@ function AI_A2A_PATROL:onafterPatrol(AIPatrol,From,Event,To)
 self:F2()
 self:ClearTargetDistance()
 self:__Route(1)
-self.AIPatrol:OnReSpawn(
+AIPatrol:OnReSpawn(
 function(PatrolGroup)
 self:E("ReSpawn")
 self:__Reset(1)
