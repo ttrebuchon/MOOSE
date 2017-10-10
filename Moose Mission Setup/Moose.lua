@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171008_1413' )
+env.info( 'Moose Generation Timestamp: 20171010_1110' )
 
 --- Various routines
 -- @module routines
@@ -4016,7 +4016,227 @@ end
 --  -- will be invoked and the destructor called
 --  rawset( self, '__proxy', proxy )
 --  
---end--- The REPORT class
+--end--- **Core (WIP)** -- Manage user flags.
+--
+-- ====
+-- 
+-- Management of DCS User Flags.
+-- 
+-- ====
+-- 
+-- ### Author: **Sven Van de Velde (FlightControl)**
+-- 
+-- ====
+-- 
+-- @module UserFlag
+
+do -- UserFlag
+
+  --- @type USERFLAG
+  -- @extends Core.Base#BASE
+
+
+  --- # USERFLAG class, extends @{Base#BASE}
+  -- 
+  -- Management of DCS User Flags.
+  -- 
+  -- ## 1. USERFLAG constructor
+  --   
+  --   * @{#USERFLAG.New}(): Creates a new USERFLAG object.
+  -- 
+  -- @field #USERFLAG
+  USERFLAG = {
+    ClassName = "USERFLAG",
+  }
+  
+  --- USERFLAG Constructor.
+  -- @param #USERFLAG self
+  -- @param #string UserFlagName The name of the userflag, which is a free text string.
+  -- @return #USERFLAG
+  function USERFLAG:New( UserFlagName ) --R2.3
+  
+    local self = BASE:Inherit( self, BASE:New() ) -- #USERFLAG
+
+    self.UserFlagName = UserFlagName
+
+    return self
+  end
+
+
+  --- Set the userflag to a given Number.
+  -- @param #USERFLAG self
+  -- @param #number Number The number value to be checked if it is the same as the userflag.
+  -- @return #USERFLAG The userflag instance.
+  -- @usage
+  --   local BlueVictory = USERFLAG:New( "VictoryBlue" )
+  --   BlueVictory:Set( 100 ) -- Set the UserFlag VictoryBlue to 100.
+  --   
+  function USERFLAG:Set( Number ) --R2.3
+    
+    trigger.misc.setUserFlag( self.UserFlagName )
+    
+    return self
+  end  
+
+  
+  --- Get the userflag Number.
+  -- @param #USERFLAG self
+  -- @return #number Number The number value to be checked if it is the same as the userflag.
+  -- @usage
+  --   local BlueVictory = USERFLAG:New( "VictoryBlue" )
+  --   local BlueVictoryValue = BlueVictory:Get() -- Get the UserFlag VictoryBlue value.
+  --   
+  function USERFLAG:Set( Number ) --R2.3
+    
+    return trigger.misc.getUserFlag( self.UserFlagName )
+  end  
+
+  
+  
+  --- Check if the userflag has a value of Number.
+  -- @param #USERFLAG self
+  -- @param #number Number The number value to be checked if it is the same as the userflag.
+  -- @return #boolean true if the Number is the value of the userflag.
+  -- @usage
+  --   local BlueVictory = USERFLAG:New( "VictoryBlue" )
+  --   if BlueVictory:Is( 1 ) then
+  --     return "Blue has won"
+  --   end
+  function USERFLAG:Is( Number ) --R2.3
+    
+    return trigger.misc.getUserFlag( self.UserFlagName ) == Number
+    
+  end  
+
+end--- **Core (WIP)** -- Manage user sound.
+--
+-- ====
+-- 
+-- Management of DCS User Sound.
+-- 
+-- ====
+-- 
+-- ### Author: **Sven Van de Velde (FlightControl)**
+-- 
+-- ====
+-- 
+-- @module UserSound
+
+do -- UserSound
+
+  --- @type USERSOUND
+  -- @extends Core.Base#BASE
+
+
+  --- # USERSOUND class, extends @{Base#BASE}
+  -- 
+  -- Management of DCS User Sound.
+  -- 
+  -- ## 1. USERSOUND constructor
+  --   
+  --   * @{#USERSOUND.New}(): Creates a new USERSOUND object.
+  -- 
+  -- @field #USERSOUND
+  USERSOUND = {
+    ClassName = "USERSOUND",
+  }
+  
+  --- USERSOUND Constructor.
+  -- @param #USERSOUND self
+  -- @param #string UserSoundFileName The filename of the usersound.
+  -- @return #USERSOUND
+  function USERSOUND:New( UserSoundFileName ) --R2.3
+  
+    local self = BASE:Inherit( self, BASE:New() ) -- #USERSOUND
+
+    self.UserSoundFileName = UserSoundFileName
+
+    return self
+  end
+
+
+  --- Set usersound filename.
+  -- @param #USERSOUND self
+  -- @param #string UserSoundFileName The filename of the usersound.
+  -- @return #USERSOUND The usersound instance.
+  -- @usage
+  --   local BlueVictory = USERSOUND:New( "BlueVictory.ogg" )
+  --   BlueVictory:SetFileName( "BlueVictoryLoud.ogg" ) -- Set the BlueVictory to change the file name to play a louder sound.
+  --   
+  function USERSOUND:SetFileName( UserSoundFileName ) --R2.3
+    
+    self.UserSoundFileName = UserSoundFileName
+
+    return self
+  end  
+
+  
+
+
+  --- Play the usersound to all players.
+  -- @param #USERSOUND self
+  -- @return #USERSOUND The usersound instance.
+  -- @usage
+  --   local BlueVictory = USERSOUND:New( "BlueVictory.ogg" )
+  --   BlueVictory:ToAll() -- Play the sound that Blue has won.
+  --   
+  function USERSOUND:ToAll() --R2.3
+    
+    trigger.action.outSound( self.UserSoundFileName )
+    
+    return self
+  end  
+
+  
+  --- Play the usersound to the given coalition.
+  -- @param #USERSOUND self
+  -- @param Dcs.DCScoalition#coalition Coalition The coalition to play the usersound to.
+  -- @return #USERSOUND The usersound instance.
+  -- @usage
+  --   local BlueVictory = USERSOUND:New( "BlueVictory.ogg" )
+  --   BlueVictory:ToCoalition( coalition.side.BLUE ) -- Play the sound that Blue has won to the blue coalition.
+  --   
+  function USERSOUND:ToCoalition( Coalition ) --R2.3
+    
+    trigger.action.outSoundForCoalition(Coalition, self.UserSoundFileName )
+    
+    return self
+  end  
+
+
+  --- Play the usersound to the given country.
+  -- @param #USERSOUND self
+  -- @param Dcs.DCScountry#country Country The country to play the usersound to.
+  -- @return #USERSOUND The usersound instance.
+  -- @usage
+  --   local BlueVictory = USERSOUND:New( "BlueVictory.ogg" )
+  --   BlueVictory:ToCountry( country.id.USA ) -- Play the sound that Blue has won to the USA country.
+  --   
+  function USERSOUND:ToCountry( Country ) --R2.3
+    
+    trigger.action.outSoundForCountry( Country, self.UserSoundFileName )
+    
+    return self
+  end  
+
+
+  --- Play the usersound to the given @{Group}.
+  -- @param #USERSOUND self
+  -- @param Wrapper.Group#GROUP Group The @{Group} to play the usersound to.
+  -- @return #USERSOUND The usersound instance.
+  -- @usage
+  --   local BlueVictory = USERSOUND:New( "BlueVictory.ogg" )
+  --   local PlayerGroup = GROUP:FindByName( "PlayerGroup" ) -- Search for the active group named "PlayerGroup", that contains a human player.
+  --   BlueVictory:ToGroup( PlayerGroup ) -- Play the sound that Blue has won to the player group.
+  --   
+  function USERSOUND:ToGroup( Group ) --R2.3
+    
+    trigger.action.outSoundForGroup( Group:GetID(), self.UserSoundFileName )
+    
+    return self
+  end  
+
+end--- The REPORT class
 -- @type REPORT
 -- @extends Core.Base#BASE
 REPORT = {
@@ -7987,8 +8207,31 @@ function ZONE_RADIUS:CountScannedCoalitions()
 end
 
 
+--- Get Coalitions of the units in the Zone, or Check if there are units of the given Coalition in the Zone.
+-- Returns nil if there are none ot two Coalitions in the zone!
+-- Returns one Coalition if there are only Units of one Coalition in the Zone.
+-- Returns the Coalition for the given Coalition if there are units of the Coalition in the Zone
+-- @param #ZONE_RADIUS self
+-- @return #table
 function ZONE_RADIUS:GetScannedCoalition( Coalition )
-  return self.ScanData.Coalitions[Coalition]
+
+  if Coalition then
+    return self.ScanData.Coalitions[Coalition]
+  else
+    local Count = 0
+    local ReturnCoalition = nil
+    
+    for CoalitionID, Coalition in pairs( self.ScanData.Coalitions ) do
+      Count = Count + 1
+      ReturnCoalition = CoalitionID
+    end
+    
+    if Count ~= 1 then
+      ReturnCoalition = nil
+    end
+    
+    return ReturnCoalition
+  end
 end
 
 
@@ -8052,26 +8295,6 @@ function ZONE_RADIUS:IsNoneInZone()
 end
 
 
---- Get the Zone Coalitions.
--- Returns nil if there are none ot two coalitions in the zone!
--- @param #ZONE_RADIUS self
--- @return Coalitions
-function ZONE_RADIUS:GetCoalition()
-
-  local Count = 0
-  local ReturnCoalition = nil
-  
-  for CoalitionID, Coalition in pairs( self.Coalitions ) do
-    Count = Count + 1
-    ReturnCoalition = CoalitionID
-  end
-  
-  if Count ~= 1 then
-    ReturnCoalition = nil
-  end
-  
-  return ReturnCoalition
-end
 
 
 --- Searches the zone
@@ -9990,6 +10213,38 @@ function SET_BASE:GetSet()
 	
   return self.Set
 end
+
+--- Gets a list of the Names of the Objects in the Set.
+-- @param #SET_BASE self
+-- @return #SET_BASE self
+function SET_BASE:GetSetNames()  -- R2.3
+  self:F2()
+  
+  local Names = {}
+  
+  for Name, Object in pairs( self.Set ) do
+    table.insert( Names, Name )
+  end
+  
+  return Names
+end
+
+
+--- Gets a list of the Objects in the Set.
+-- @param #SET_BASE self
+-- @return #SET_BASE self
+function SET_BASE:GetSetObjects()  -- R2.3
+  self:F2()
+  
+  local Objects = {}
+  
+  for Name, Object in pairs( self.Set ) do
+    table.insert( Objects, Object )
+  end
+  
+  return Objects
+end
+
 
 --- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using a given ObjectName as the index.
 -- @param #SET_BASE self
@@ -15606,7 +15861,7 @@ function MESSAGE:ToCoalition( CoalitionSide, Settings )
 	if CoalitionSide then
     if self.MessageDuration ~= 0 then
   		self:T( self.MessageCategory .. self.MessageText:gsub("\n$",""):gsub("\n$","") .. " / " .. self.MessageDuration )
-  		trigger.action.outTextForCoalition( CoalitionSide, self.MessageCategory .. self.MessageText:gsub("\n$",""):gsub("\n$",""), self.MessageDuration )
+  		trigger.action.outTextForCoalition( CoalitionSide, self.MessageText:gsub("\n$",""):gsub("\n$",""), self.MessageDuration )
     end
 	end
 	
@@ -17594,6 +17849,33 @@ function SPAWNSTATIC:NewFromType( SpawnTypeName, SpawnShapeName, SpawnCategory, 
   return self
 end
 
+--- Creates a new @{Static} at the original position.
+-- @param #SPAWNSTATIC self
+-- @param #number Heading The heading of the static, which is a number in degrees from 0 to 360.
+-- @param #string (optional) The name of the new static.
+-- @return #SPAWNSTATIC
+function SPAWNSTATIC:Spawn( Heading, NewName ) --R2.3
+  self:F( { Heading, NewName  } )
+  
+  local CountryName = _DATABASE.COUNTRY_NAME[self.CountryID]
+  
+  local StaticTemplate = _DATABASE:GetStaticUnitTemplate( self.SpawnTemplatePrefix )
+  
+  StaticTemplate.name = NewName or string.format("%s#%05d", self.SpawnTemplatePrefix, self.SpawnIndex )
+  StaticTemplate.heading = ( Heading / 180 ) * math.pi
+  
+  StaticTemplate.CountryID = nil
+  StaticTemplate.CoalitionID = nil
+  StaticTemplate.CategoryID = nil
+  
+  local Static = coalition.addStaticObject( self.CountryID, StaticTemplate )
+  
+  self.SpawnIndex = self.SpawnIndex + 1
+
+  return Static
+end
+
+
 
 --- Creates a new @{Static} from a POINT_VEC2.
 -- @param #SPAWNSTATIC self
@@ -18272,7 +18554,8 @@ end
 function CARGO:IsNear( PointVec2, NearRadius )
   self:F( { PointVec2, NearRadius } )
 
-  local Distance = PointVec2:DistanceFromPointVec2( self.CargoObject:GetPointVec2() )
+  --local Distance = PointVec2:DistanceFromPointVec2( self.CargoObject:GetPointVec2() )
+  local Distance = PointVec2:Get2DDistance( self.CargoObject:GetPointVec2() )
   self:T( Distance )
   
   if Distance <= NearRadius then
@@ -18655,9 +18938,9 @@ function CARGO_UNIT:onenterUnLoaded( From, Event, To, ToPointVec2 )
     local StartPointVec2 = self.CargoCarrier:GetPointVec2()
     local CargoCarrierHeading = self.CargoCarrier:GetHeading() -- Get Heading of object in degrees.
     local CargoDeployHeading = ( ( CargoCarrierHeading + Angle ) >= 360 ) and ( CargoCarrierHeading + Angle - 360 ) or ( CargoCarrierHeading + Angle )
-    local CargoDeployPointVec2 = StartPointVec2:Translate( Distance, CargoDeployHeading )
+    local CargoDeployCoord = StartPointVec2:Translate( Distance, CargoDeployHeading )
 
-    ToPointVec2 = ToPointVec2 or POINT_VEC2:New( CargoDeployPointVec2:GetX(), CargoDeployPointVec2:GetY() )
+    ToPointVec2 = ToPointVec2 or POINT_VEC2:New( CargoDeployCoord.x, CargoDeployCoord.z )
 
     -- Respawn the group...
     if self.CargoObject then
@@ -20398,7 +20681,7 @@ function POSITIONABLE:GetMessageText( Message, Name ) --R2.1 added
 
   local DCSObject = self:GetDCSObject()
   if DCSObject then
-    Name = Name and ( " => " .. Name ) or ""
+    Name = Name and ( " (" .. Name .. ")" ) or ""
     local Callsign = string.format( "%s", self:GetCallsign() ~= "" and self:GetCallsign() or self:GetName() )
     local MessageText = string.format("[%s%s]: %s", Callsign, Name, Message )
     return MessageText
@@ -20472,12 +20755,6 @@ function POSITIONABLE:MessageToCoalition( Message, Duration, MessageCoalition )
   
   local DCSObject = self:GetDCSObject()
   if DCSObject then
-    if MessageCoalition == coalition.side.BLUE then
-      Name = "Blue coalition"
-    end
-    if MessageCoalition == coalition.side.RED then
-      Name = "Red coalition"
-    end
     self:GetMessage( Message, Duration, Name ):ToCoalition( MessageCoalition )
   end
 
@@ -20498,12 +20775,6 @@ function POSITIONABLE:MessageTypeToCoalition( Message, MessageType, MessageCoali
   
   local DCSObject = self:GetDCSObject()
   if DCSObject then
-    if MessageCoalition == coalition.side.BLUE then
-      Name = "Blue coalition"
-    end
-    if MessageCoalition == coalition.side.RED then
-      Name = "Red coalition"
-    end
     self:GetMessageType( Message, MessageType, Name ):ToCoalition( MessageCoalition )
   end
 
@@ -26775,7 +27046,9 @@ end
 -- A mission has goals and achievements. The scoring system provides an API to set additional scores when a goal or achievement event happens.
 -- Use the method @{#SCORING.AddGoalScore}() to add a score for a Player at any time in your mission.
 -- 
--- ## 1.5) Configure fratricide level.
+-- ## 1.5) (Decommissioned) Configure fratricide level.
+-- 
+-- **This functionality is decomissioned until the DCS bug concerning Unit:destroy() not being functional in multi player for player units has been fixed by ED**.
 -- 
 -- When a player commits too much damage to friendlies, his penalty score will reach a certain level.
 -- Use the method @{#SCORING.SetFratricide}() to define the level when a player gets kicked.  
@@ -26931,7 +27204,7 @@ function SCORING:New( GameName )
 
   -- Configure Messages
   self:SetMessagesToAll()
-  self:SetMessagesHit( true )
+  self:SetMessagesHit( false )
   self:SetMessagesDestroy( true )
   self:SetMessagesScore( true )
   self:SetMessagesZone( true )
@@ -27289,6 +27562,7 @@ function SCORING:_AddPlayerFromUnit( UnitData )
           UnitName, _SCORINGCoalition[UnitCoalition], _SCORINGCategory[UnitCategory], UnitData:GetTypeName() )
       end
     end
+    
     self.Players[PlayerName].UnitName = UnitName
     self.Players[PlayerName].UnitCoalition = UnitCoalition
     self.Players[PlayerName].UnitCategory = UnitCategory
@@ -27297,6 +27571,8 @@ function SCORING:_AddPlayerFromUnit( UnitData )
     self.Players[PlayerName].ThreatLevel = UnitThreatLevel
     self.Players[PlayerName].ThreatType = UnitThreatType
 
+    -- TODO: DCS bug concerning Units with skill level client don't get destroyed in multi player. This logic is deactivated until this bug gets fixed.
+    --[[
     if self.Players[PlayerName].Penalty > self.Fratricide * 0.50 then
       if self.Players[PlayerName].PenaltyWarning < 1 then
         MESSAGE:NewType( self.DisplayMessagePrefix .. "Player '" .. PlayerName .. "': WARNING! If you continue to commit FRATRICIDE and have a PENALTY score higher than " .. self.Fratricide .. ", you will be COURT MARTIALED and DISMISSED from this mission! \nYour total penalty is: " .. self.Players[PlayerName].Penalty,
@@ -27312,9 +27588,40 @@ function SCORING:_AddPlayerFromUnit( UnitData )
       ):ToAll()
       UnitData:GetGroup():Destroy()
     end
+    --]]
 
   end
 end
+
+
+--- Add a goal score for a player.
+-- The method takes the Player name for which the Goal score needs to be set.
+-- The GoalTag is a string or identifier that is taken into the CSV file scoring log to identify the goal.
+-- A free text can be given that is shown to the players.
+-- The Score can be both positive and negative.
+-- @param #SCORING self
+-- @param #string PlayerName The name of the Player.
+-- @param #string GoalTag The string or identifier that is used in the CSV file to identify the goal (sort or group later in Excel).
+-- @param #string Text A free text that is shown to the players.
+-- @param #number Score The score can be both positive or negative ( Penalty ).
+function SCORING:AddGoalScorePlayer( PlayerName, GoalTag, Text, Score )
+
+  self:E( { PlayerName, PlayerName, GoalTag, Text, Score } )
+
+  -- PlayerName can be nil, if the Unit with the player crashed or due to another reason.
+  if PlayerName then 
+    local PlayerData = self.Players[PlayerName]
+
+    PlayerData.Goals[GoalTag] = PlayerData.Goals[GoalTag] or { Score = 0 }
+    PlayerData.Goals[GoalTag].Score = PlayerData.Goals[GoalTag].Score + Score  
+    PlayerData.Score = PlayerData.Score + Score
+  
+    MESSAGE:NewType( self.DisplayMessagePrefix .. Text, MESSAGE.Type.Information ):ToAll()
+  
+    self:ScoreCSV( PlayerName, "", "GOAL_" .. string.upper( GoalTag ), 1, Score, nil )
+  end
+end
+
 
 
 --- Add a goal score for a player.
@@ -38609,6 +38916,9 @@ end
 -- @field #table departure_zones Array containing the names of the departure zones.
 -- @field #table departure_ports Array containing the names of the destination airports.
 -- @field #table destination_ports Array containing the names of the destination airports.
+-- @field #table excluded_ports Array containing the names of explicitly excluded airports.
+-- @field Core.Zone#ZONE departure_Azone Zone containing the departure airports.
+-- @field Core.Zone#ZONE destination_Azone Zone containing the destination airports.
 -- @field #table ratcraft Array with the spawned RAT aircraft.
 -- @field #number Tinactive Time in seconds after which inactive units will be destroyed. Default is 300 seconds.
 -- @field #boolean reportstatus Aircraft report status.
@@ -38805,6 +39115,8 @@ RAT={
   departure_ports={},       -- Array containing the names of the departure airports.
   destination_ports={},     -- Array containing the names of the destination airports.
   excluded_ports={},        -- Array containing the names of explicitly excluded airports.
+  departure_Azone=nil,      -- Zone containing the departure airports.
+  destination_Azone=nil,    -- Zone containing the destination airports.
   ratcraft={},              -- Array with the spawned RAT aircraft.
   Tinactive=300,            -- Time in seconds after which inactive units will be destroyed. Default is 300 seconds.
   reportstatus=false,       -- Aircraft report status.
@@ -39019,6 +39331,16 @@ function RAT:Spawn(naircraft)
     self.SubMenuName=self.alias
   end
 
+  -- Get all departure airports inside a Moose zone.  
+  if self.departure_Azone~=nil then
+    self.departure_ports=self:_GetAirportsInZone(self.departure_Azone)
+  end
+  
+  -- Get all destination airports inside a Moose zone.  
+  if self.destination_Azone~=nil then
+    self.destination_ports=self:_GetAirportsInZone(self.destination_Azone)
+  end
+  
   -- debug message
   local text=string.format("\n******************************************************\n")
   text=text..string.format("Spawning %i aircraft from template %s of type %s.\n", self.ngroups, self.SpawnTemplatePrefix, self.aircraft.type)
@@ -39128,7 +39450,7 @@ end
 --- Set country of RAT group. This overrules the coalition settings.
 -- @param #RAT self
 -- @param #number id DCS country enumerator ID. For example country.id.USA or country.id.RUSSIA.
-function RAT:SetCoalition2(id)
+function RAT:SetCountry(id)
   self.country=id
 end
 
@@ -39239,6 +39561,28 @@ function RAT:SetDestination(names)
   end
 
 end
+
+--- Include all airports which lie in a zone as possible destinations.
+-- @param #RAT self
+-- @param Core.Zone#ZONE zone Zone in which the airports lie.
+function RAT:SetDestinationsFromZone(zone)
+
+  -- Random departure is deactivated now that user specified departure ports.
+  self.random_destination=false
+  
+  self.destination_Azone=zone
+end
+
+--- Include all airports which lie in a zone as possible destinations.
+-- @param #RAT self
+-- @param Core.Zone#ZONE zone Zone in which the airports lie.
+function RAT:SetDeparturesFromZone(zone)
+  -- Random departure is deactivated now that user specified departure ports.
+  self.random_departure=false
+
+  self.departure_Azone=zone
+end
+
 
 --- Airports, FARPs and ships explicitly excluded as departures and destinations.
 -- @param #RAT self
@@ -40076,7 +40420,7 @@ function RAT:_PickDeparture(takeoff)
       
       -- All airports specified by user  
       for _,name in pairs(self.departure_ports) do
-        if not self:_Excluded(name) then
+        if self:_IsFriendly(name) and not self:_Excluded(name) then
           table.insert(departures, AIRBASE:FindByName(name))
         end
       end
@@ -40112,23 +40456,6 @@ end
 -- @param #boolean _random (Optional) Switch to activate a random selection of airports.
 -- @return Wrapper.Airbase#AIRBASE Destination airport.
 function RAT:_PickDestination(destinations, _random)
-
-  --[[
-  -- Take destinations from user input.   
-  if not (self.random_destination or _random) then
-  
-    destinations=nil
-    destinations={}
-    
-    -- All airports specified by user.
-    for _,name in pairs(self.destination_ports) do
-      if not self:_Excluded(name) then
-        table.insert(destinations, AIRBASE:FindByName(name))
-      end
-    end
-    
-  end
-  ]]
   
   -- Randomly select one possible destination.
   local destination=nil
@@ -40221,6 +40548,23 @@ function RAT:_GetDestinations(departure, q, minrange, maxrange)
   -- Return table with destination airports.
   return possible_destinations
   
+end
+
+--- Find airports within a zone.
+-- @param #RAT self
+-- @param Core.Zone#ZONE zone
+-- @return #list Table with airport names that lie within the zone.
+function RAT:_GetAirportsInZone(zone)
+  local airports={}
+  for _,airport in pairs(self.airports) do
+    local name=airport:GetName()
+    local coord=airport:GetCoordinate()
+    
+    if zone:IsPointVec3InZone(coord) then
+      table.insert(airports, name)
+    end
+  end
+  return airports
 end
 
 --- Check if airport is excluded from possible departures and destinations.
@@ -42314,11 +42658,11 @@ do -- ZoneGoal
     end
     
     if self.Coalition == coalition.side.BLUE then
-      self.MarkBlue = Coord:MarkToCoalitionBlue( "Guard Zone: " .. ZoneName .. "\nStatus: " .. State )  
-      self.MarkRed = Coord:MarkToCoalitionRed( "Capture Zone: " .. ZoneName .. "\nStatus: " .. State )  
+      self.MarkBlue = Coord:MarkToCoalitionBlue( "Coalition: Blue\nGuard Zone: " .. ZoneName .. "\nStatus: " .. State )  
+      self.MarkRed = Coord:MarkToCoalitionRed( "Coalition: Blue\nCapture Zone: " .. ZoneName .. "\nStatus: " .. State )
     else
-      self.MarkRed = Coord:MarkToCoalitionRed( "Guard Zone: " .. ZoneName .. "\nStatus: " .. State )  
-      self.MarkBlue = Coord:MarkToCoalitionBlue( "Capture Zone: " .. ZoneName .. "\nStatus: " .. State )  
+      self.MarkRed = Coord:MarkToCoalitionRed( "Coalition: Red\nGuard Zone: " .. ZoneName .. "\nStatus: " .. State )  
+      self.MarkBlue = Coord:MarkToCoalitionBlue( "Coalition: Red\nCapture Zone: " .. ZoneName .. "\nStatus: " .. State )  
     end
   end
 
@@ -42342,7 +42686,7 @@ do -- ZoneGoal
   
     --self:GetParent( self ):onenterCaptured()
 
-    local NewCoalition = self.Zone:GetCoalition()
+    local NewCoalition = self.Zone:GetScannedCoalition()
     self:E( { NewCoalition = NewCoalition } )
     self:SetCoalition( NewCoalition )
   

@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171008_1413')
+env.info('Moose Generation Timestamp: 20171010_1110')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -2430,6 +2430,56 @@ end
 env.info(string.format("%6d(%6d)/%1s:%20s%05d.%s(%s)",LineCurrent,LineFrom,"E",self.ClassName,self.ClassID,Function,routines.utils.oneLineSerialize(Arguments)))
 end
 end
+do
+USERFLAG={
+ClassName="USERFLAG",
+}
+function USERFLAG:New(UserFlagName)
+local self=BASE:Inherit(self,BASE:New())
+self.UserFlagName=UserFlagName
+return self
+end
+function USERFLAG:Set(Number)
+trigger.misc.setUserFlag(self.UserFlagName)
+return self
+end
+function USERFLAG:Set(Number)
+return trigger.misc.getUserFlag(self.UserFlagName)
+end
+function USERFLAG:Is(Number)
+return trigger.misc.getUserFlag(self.UserFlagName)==Number
+end
+end
+do
+USERSOUND={
+ClassName="USERSOUND",
+}
+function USERSOUND:New(UserSoundFileName)
+local self=BASE:Inherit(self,BASE:New())
+self.UserSoundFileName=UserSoundFileName
+return self
+end
+function USERSOUND:SetFileName(UserSoundFileName)
+self.UserSoundFileName=UserSoundFileName
+return self
+end
+function USERSOUND:ToAll()
+trigger.action.outSound(self.UserSoundFileName)
+return self
+end
+function USERSOUND:ToCoalition(Coalition)
+trigger.action.outSoundForCoalition(Coalition,self.UserSoundFileName)
+return self
+end
+function USERSOUND:ToCountry(Country)
+trigger.action.outSoundForCountry(Country,self.UserSoundFileName)
+return self
+end
+function USERSOUND:ToGroup(Group)
+trigger.action.outSoundForGroup(Group:GetID(),self.UserSoundFileName)
+return self
+end
+end
 REPORT={
 ClassName="REPORT",
 Title="",
@@ -4257,7 +4307,20 @@ end
 return Count
 end
 function ZONE_RADIUS:GetScannedCoalition(Coalition)
+if Coalition then
 return self.ScanData.Coalitions[Coalition]
+else
+local Count=0
+local ReturnCoalition=nil
+for CoalitionID,Coalition in pairs(self.ScanData.Coalitions)do
+Count=Count+1
+ReturnCoalition=CoalitionID
+end
+if Count~=1 then
+ReturnCoalition=nil
+end
+return ReturnCoalition
+end
 end
 function ZONE_RADIUS:GetScannedSceneryType(SceneryType)
 return self.ScanData.Scenery[SceneryType]
@@ -4280,18 +4343,6 @@ return self:GetScannedCoalition(Coalition)==nil
 end
 function ZONE_RADIUS:IsNoneInZone()
 return self:CountScannedCoalitions()==0
-end
-function ZONE_RADIUS:GetCoalition()
-local Count=0
-local ReturnCoalition=nil
-for CoalitionID,Coalition in pairs(self.Coalitions)do
-Count=Count+1
-ReturnCoalition=CoalitionID
-end
-if Count~=1 then
-ReturnCoalition=nil
-end
-return ReturnCoalition
 end
 function ZONE_RADIUS:SearchZone(EvaluateFunction,ObjectCategories)
 local SearchZoneResult=true
@@ -5276,6 +5327,22 @@ end
 function SET_BASE:GetSet()
 self:F2()
 return self.Set
+end
+function SET_BASE:GetSetNames()
+self:F2()
+local Names={}
+for Name,Object in pairs(self.Set)do
+table.insert(Names,Name)
+end
+return Names
+end
+function SET_BASE:GetSetObjects()
+self:F2()
+local Objects={}
+for Name,Object in pairs(self.Set)do
+table.insert(Objects,Object)
+end
+return Objects
 end
 function SET_BASE:Add(ObjectName,Object)
 self:F(ObjectName)
@@ -7931,7 +7998,7 @@ end
 if CoalitionSide then
 if self.MessageDuration~=0 then
 self:T(self.MessageCategory..self.MessageText:gsub("\n$",""):gsub("\n$","").." / "..self.MessageDuration)
-trigger.action.outTextForCoalition(CoalitionSide,self.MessageCategory..self.MessageText:gsub("\n$",""):gsub("\n$",""),self.MessageDuration)
+trigger.action.outTextForCoalition(CoalitionSide,self.MessageText:gsub("\n$",""):gsub("\n$",""),self.MessageDuration)
 end
 end
 return self
@@ -8729,6 +8796,19 @@ self.SpawnIndex=0
 self:SetEventPriority(5)
 return self
 end
+function SPAWNSTATIC:Spawn(Heading,NewName)
+self:F({Heading,NewName})
+local CountryName=_DATABASE.COUNTRY_NAME[self.CountryID]
+local StaticTemplate=_DATABASE:GetStaticUnitTemplate(self.SpawnTemplatePrefix)
+StaticTemplate.name=NewName or string.format("%s#%05d",self.SpawnTemplatePrefix,self.SpawnIndex)
+StaticTemplate.heading=(Heading/180)*math.pi
+StaticTemplate.CountryID=nil
+StaticTemplate.CoalitionID=nil
+StaticTemplate.CategoryID=nil
+local Static=coalition.addStaticObject(self.CountryID,StaticTemplate)
+self.SpawnIndex=self.SpawnIndex+1
+return Static
+end
 function SPAWNSTATIC:SpawnFromPointVec2(PointVec2,Heading,NewName)
 self:F({PointVec2,Heading,NewName})
 local CountryName=_DATABASE.COUNTRY_NAME[self.CountryID]
@@ -8930,7 +9010,7 @@ return nil
 end
 function CARGO:IsNear(PointVec2,NearRadius)
 self:F({PointVec2,NearRadius})
-local Distance=PointVec2:DistanceFromPointVec2(self.CargoObject:GetPointVec2())
+local Distance=PointVec2:Get2DDistance(self.CargoObject:GetPointVec2())
 self:T(Distance)
 if Distance<=NearRadius then
 return true
@@ -9102,8 +9182,8 @@ if From=="Loaded"then
 local StartPointVec2=self.CargoCarrier:GetPointVec2()
 local CargoCarrierHeading=self.CargoCarrier:GetHeading()
 local CargoDeployHeading=((CargoCarrierHeading+Angle)>=360)and(CargoCarrierHeading+Angle-360)or(CargoCarrierHeading+Angle)
-local CargoDeployPointVec2=StartPointVec2:Translate(Distance,CargoDeployHeading)
-ToPointVec2=ToPointVec2 or POINT_VEC2:New(CargoDeployPointVec2:GetX(),CargoDeployPointVec2:GetY())
+local CargoDeployCoord=StartPointVec2:Translate(Distance,CargoDeployHeading)
+ToPointVec2=ToPointVec2 or POINT_VEC2:New(CargoDeployCoord.x,CargoDeployCoord.z)
 if self.CargoObject then
 self.CargoObject:ReSpawn(ToPointVec2:GetVec3(),0)
 self.CargoCarrier=nil
@@ -9890,7 +9970,7 @@ end
 function POSITIONABLE:GetMessageText(Message,Name)
 local DCSObject=self:GetDCSObject()
 if DCSObject then
-Name=Name and(" => "..Name)or""
+Name=Name and(" ("..Name..")")or""
 local Callsign=string.format("%s",self:GetCallsign()~=""and self:GetCallsign()or self:GetName())
 local MessageText=string.format("[%s%s]: %s",Callsign,Name,Message)
 return MessageText
@@ -9926,12 +10006,6 @@ self:F2({Message,Duration})
 local Name=""
 local DCSObject=self:GetDCSObject()
 if DCSObject then
-if MessageCoalition==coalition.side.BLUE then
-Name="Blue coalition"
-end
-if MessageCoalition==coalition.side.RED then
-Name="Red coalition"
-end
 self:GetMessage(Message,Duration,Name):ToCoalition(MessageCoalition)
 end
 return nil
@@ -9941,12 +10015,6 @@ self:F2({Message,MessageType})
 local Name=""
 local DCSObject=self:GetDCSObject()
 if DCSObject then
-if MessageCoalition==coalition.side.BLUE then
-Name="Blue coalition"
-end
-if MessageCoalition==coalition.side.RED then
-Name="Red coalition"
-end
 self:GetMessageType(Message,MessageType,Name):ToCoalition(MessageCoalition)
 end
 return nil
@@ -12976,7 +13044,7 @@ end
 self.ScoringObjects={}
 self.ScoringZones={}
 self:SetMessagesToAll()
-self:SetMessagesHit(true)
+self:SetMessagesHit(false)
 self:SetMessagesDestroy(true)
 self:SetMessagesScore(true)
 self:SetMessagesZone(true)
@@ -13139,20 +13207,17 @@ self.Players[PlayerName].UnitType=UnitTypeName
 self.Players[PlayerName].UNIT=UnitData
 self.Players[PlayerName].ThreatLevel=UnitThreatLevel
 self.Players[PlayerName].ThreatType=UnitThreatType
-if self.Players[PlayerName].Penalty>self.Fratricide*0.50 then
-if self.Players[PlayerName].PenaltyWarning<1 then
-MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..PlayerName.."': WARNING! If you continue to commit FRATRICIDE and have a PENALTY score higher than "..self.Fratricide..", you will be COURT MARTIALED and DISMISSED from this mission! \nYour total penalty is: "..self.Players[PlayerName].Penalty,
-MESSAGE.Type.Information
-):ToAll()
-self.Players[PlayerName].PenaltyWarning=self.Players[PlayerName].PenaltyWarning+1
 end
 end
-if self.Players[PlayerName].Penalty>self.Fratricide then
-MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..PlayerName.."' committed FRATRICIDE, he will be COURT MARTIALED and is DISMISSED from this mission!",
-MESSAGE.Type.Information
-):ToAll()
-UnitData:GetGroup():Destroy()
-end
+function SCORING:AddGoalScorePlayer(PlayerName,GoalTag,Text,Score)
+self:E({PlayerName,PlayerName,GoalTag,Text,Score})
+if PlayerName then
+local PlayerData=self.Players[PlayerName]
+PlayerData.Goals[GoalTag]=PlayerData.Goals[GoalTag]or{Score=0}
+PlayerData.Goals[GoalTag].Score=PlayerData.Goals[GoalTag].Score+Score
+PlayerData.Score=PlayerData.Score+Score
+MESSAGE:NewType(self.DisplayMessagePrefix..Text,MESSAGE.Type.Information):ToAll()
+self:ScoreCSV(PlayerName,"","GOAL_"..string.upper(GoalTag),1,Score,nil)
 end
 end
 function SCORING:AddGoalScore(PlayerUnit,GoalTag,Text,Score)
@@ -19042,6 +19107,8 @@ departure_zones={},
 departure_ports={},
 destination_ports={},
 excluded_ports={},
+departure_Azone=nil,
+destination_Azone=nil,
 ratcraft={},
 Tinactive=300,
 reportstatus=false,
@@ -19140,6 +19207,12 @@ self:_GetAirportsOfCoalition()
 if not self.SubMenuName then
 self.SubMenuName=self.alias
 end
+if self.departure_Azone~=nil then
+self.departure_ports=self:_GetAirportsInZone(self.departure_Azone)
+end
+if self.destination_Azone~=nil then
+self.destination_ports=self:_GetAirportsInZone(self.destination_Azone)
+end
 local text=string.format("\n******************************************************\n")
 text=text..string.format("Spawning %i aircraft from template %s of type %s.\n",self.ngroups,self.SpawnTemplatePrefix,self.aircraft.type)
 text=text..string.format("Alias: %s\n",self.alias)
@@ -19220,7 +19293,7 @@ elseif color:lower()=="neutral"then
 self.coalition=coalition.side.NEUTRAL
 end
 end
-function RAT:SetCoalition2(id)
+function RAT:SetCountry(id)
 self.country=id
 end
 function RAT:SetTakeoff(type)
@@ -19282,6 +19355,14 @@ end
 else
 env.error("Input parameter must be a string or a table!")
 end
+end
+function RAT:SetDestinationsFromZone(zone)
+self.random_destination=false
+self.destination_Azone=zone
+end
+function RAT:SetDeparturesFromZone(zone)
+self.random_departure=false
+self.departure_Azone=zone
 end
 function RAT:ExcludedAirports(ports)
 if type(ports)=="string"then
@@ -19744,7 +19825,7 @@ end
 end
 else
 for _,name in pairs(self.departure_ports)do
-if not self:_Excluded(name)then
+if self:_IsFriendly(name)and not self:_Excluded(name)then
 table.insert(departures,AIRBASE:FindByName(name))
 end
 end
@@ -19816,6 +19897,17 @@ env.error(RAT.id.."No possible destination airports found!")
 possible_destinations=nil
 end
 return possible_destinations
+end
+function RAT:_GetAirportsInZone(zone)
+local airports={}
+for _,airport in pairs(self.airports)do
+local name=airport:GetName()
+local coord=airport:GetCoordinate()
+if zone:IsPointVec3InZone(coord)then
+table.insert(airports,name)
+end
+end
+return airports
 end
 function RAT:_Excluded(port)
 for _,name in pairs(self.excluded_ports)do
@@ -20838,11 +20930,11 @@ Coord:RemoveMark(self.MarkRed)
 Coord:RemoveMark(self.MarkBlue)
 end
 if self.Coalition==coalition.side.BLUE then
-self.MarkBlue=Coord:MarkToCoalitionBlue("Guard Zone: "..ZoneName.."\nStatus: "..State)
-self.MarkRed=Coord:MarkToCoalitionRed("Capture Zone: "..ZoneName.."\nStatus: "..State)
+self.MarkBlue=Coord:MarkToCoalitionBlue("Coalition: Blue\nGuard Zone: "..ZoneName.."\nStatus: "..State)
+self.MarkRed=Coord:MarkToCoalitionRed("Coalition: Blue\nCapture Zone: "..ZoneName.."\nStatus: "..State)
 else
-self.MarkRed=Coord:MarkToCoalitionRed("Guard Zone: "..ZoneName.."\nStatus: "..State)
-self.MarkBlue=Coord:MarkToCoalitionBlue("Capture Zone: "..ZoneName.."\nStatus: "..State)
+self.MarkRed=Coord:MarkToCoalitionRed("Coalition: Red\nGuard Zone: "..ZoneName.."\nStatus: "..State)
+self.MarkBlue=Coord:MarkToCoalitionBlue("Coalition: Red\nCapture Zone: "..ZoneName.."\nStatus: "..State)
 end
 end
 function ZONE_CAPTURE_COALITION:onenterGuarded()
@@ -20852,7 +20944,7 @@ end
 self:Mark()
 end
 function ZONE_CAPTURE_COALITION:onenterCaptured()
-local NewCoalition=self.Zone:GetCoalition()
+local NewCoalition=self.Zone:GetScannedCoalition()
 self:E({NewCoalition=NewCoalition})
 self:SetCoalition(NewCoalition)
 self:Mark()
