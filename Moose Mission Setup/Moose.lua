@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171010_2157' )
+env.info( 'Moose Generation Timestamp: 20171011_1133' )
 
 --- Various routines
 -- @module routines
@@ -22085,7 +22085,8 @@ function OBJECT:Destroy()
   local DCSObject = self:GetDCSObject()
   
   if DCSObject then
-  
+    USERFLAG:New( self:GetGroup():GetName() ):Set( 100 )
+    --BASE:CreateEventCrash( timer.getTime(), DCSObject )
     DCSObject:destroy()
   end
 
@@ -33742,6 +33743,8 @@ function AIRBASEPOLICE_BASE:New( SetClient, Airbases )
   )
 
   self.AirbaseMonitor = SCHEDULER:New( self, self._AirbaseMonitor, {}, 0, 2, 0.05 )
+  
+  trigger.action.setUserFlag("SSB",100)
 
   return self
 end
@@ -33815,22 +33818,9 @@ function AIRBASEPOLICE_BASE:_AirbaseMonitor()
                       Client:Message( "You are speeding on the taxiway! Slow down or you will be removed from this airbase! Your current velocity is " .. string.format( "%2.0f km/h", Velocity ), 5, "Warning " .. SpeedingWarnings .. " / 3" )
                       Client:SetState( self, "Warnings", SpeedingWarnings + 1 )
                     else
-                      MESSAGE:New( "Player " .. Client:GetPlayerName() .. " is being damaged at the airbase, due to a speeding violation ...", 10, "Airbase Police" ):ToAll()
+                      MESSAGE:New( "Player " .. Client:GetPlayerName() .. " is being kicked from the airbase, due to a speeding violation ...", 10, "Airbase Police" ):ToAll()
                       --- @param Wrapper.Client#CLIENT Client
-                      local function DestroyUntilHeavilyDamaged( Client )
-                        local ClientCoord = Client:GetCoordinate()
-                        ClientCoord:Explosion( 100 )
-                        local Damage = Client:GetLife()
-                        local InitialLife = Client:GetLife0()
-                        MESSAGE:New( "Player " .. Client:GetPlayerName() .. " Damage ... " .. Damage, 5, "Airbase Police" ):ToAll()
-                        if ( Damage / InitialLife ) * 100 < 80 then
-                          Client:ScheduleStop( DestroyUntilHeavilyDamaged )
-                        end
-                      end
-                      Client:ScheduleOnce( 1, DestroyUntilHeavilyDamaged, Client )
-                      --Client:ScheduleRepeat( 1, 1, 0, nil, DestroyUntilHeavilyDamaged, Client )
-                      --Client:Destroy()
-                      trigger.action.setUserFlag( "AIRCRAFT_"..Client:GetID(), 100)
+                      Client:Destroy()
                       Client:SetState( self, "Speeding", false )
                       Client:SetState( self, "Warnings", 0 )
                     end
