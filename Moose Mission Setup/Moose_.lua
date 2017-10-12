@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171011_1133')
+env.info('Moose Generation Timestamp: 20171012_1107')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -4937,7 +4937,7 @@ self.Templates.Statics[StaticTemplateName].CategoryID=CategoryID
 self.Templates.Statics[StaticTemplateName].CoalitionID=CoalitionID
 self.Templates.Statics[StaticTemplateName].CountryID=CountryID
 TraceTable[#TraceTable+1]="Static"
-TraceTable[#TraceTable+1]=self.Templates.Statics[StaticTemplateName].GroupName
+TraceTable[#TraceTable+1]=self.Templates.Statics[StaticTemplateName].StaticName
 TraceTable[#TraceTable+1]="Coalition"
 TraceTable[#TraceTable+1]=self.Templates.Statics[StaticTemplateName].CoalitionID
 TraceTable[#TraceTable+1]="Category"
@@ -5020,6 +5020,7 @@ return self
 end
 function DATABASE:_RegisterStatics()
 local CoalitionsData={GroupsRed=coalition.getStaticObjects(coalition.side.RED),GroupsBlue=coalition.getStaticObjects(coalition.side.BLUE)}
+self:E({Statics=CoalitionsData})
 for CoalitionId,CoalitionData in pairs(CoalitionsData)do
 for DCSStaticId,DCSStatic in pairs(CoalitionData)do
 if DCSStatic:isExist()then
@@ -9767,8 +9768,11 @@ function SPAWNSTATIC:SpawnFromPointVec2(PointVec2,Heading,NewName)
 self:F({PointVec2,Heading,NewName})
 local CountryName=_DATABASE.COUNTRY_NAME[self.CountryID]
 local StaticTemplate=_DATABASE:GetStaticUnitTemplate(self.SpawnTemplatePrefix)
-StaticTemplate.x=PointVec2:GetLat()
-StaticTemplate.y=PointVec2:GetLon()
+StaticTemplate.x=PointVec2.x
+StaticTemplate.y=PointVec2.z
+StaticTemplate.units=nil
+StaticTemplate.route=nil
+StaticTemplate.groupId=nil
 StaticTemplate.name=NewName or string.format("%s#%05d",self.SpawnTemplatePrefix,self.SpawnIndex)
 StaticTemplate.heading=(Heading/180)*math.pi
 StaticTemplate.CountryID=nil
@@ -9992,6 +9996,11 @@ local self=BASE:Inherit(self,CARGO:New(Type,Name,Weight,ReportRadius,NearRadius)
 self:F({Type,Name,Weight,ReportRadius,NearRadius})
 return self
 end
+function CARGO_REPRESENTABLE:Destroy()
+self:F({CargoName=self:GetName()})
+_EVENTDISPATCHER:CreateEventDeleteCargo(self)
+return self
+end
 function CARGO_REPRESENTABLE:RouteTo(ToPointVec2,Speed)
 self:F2(ToPointVec2)
 local Points={}
@@ -10067,11 +10076,6 @@ self:T(self.ClassName)
 self:SetEventPriority(5)
 return self
 end
-function CARGO_UNIT:Destroy()
-self:F({CargoName=self:GetName()})
-_EVENTDISPATCHER:CreateEventDeleteCargo(self)
-return self
-end
 function CARGO_UNIT:onenterUnBoarding(From,Event,To,ToPointVec2,NearRadius)
 self:F({From,Event,To,ToPointVec2,NearRadius})
 NearRadius=NearRadius or 25
@@ -10137,7 +10141,7 @@ local StartPointVec2=self.CargoCarrier:GetPointVec2()
 local CargoCarrierHeading=self.CargoCarrier:GetHeading()
 local CargoDeployHeading=((CargoCarrierHeading+Angle)>=360)and(CargoCarrierHeading+Angle-360)or(CargoCarrierHeading+Angle)
 local CargoDeployCoord=StartPointVec2:Translate(Distance,CargoDeployHeading)
-ToPointVec2=ToPointVec2 or POINT_VEC2:New(CargoDeployCoord.x,CargoDeployCoord.z)
+ToPointVec2=ToPointVec2 or COORDINATE:New(CargoDeployCoord.x,CargoDeployCoord.z)
 if self.CargoObject then
 self.CargoObject:ReSpawn(ToPointVec2:GetVec3(),0)
 self.CargoCarrier=nil
@@ -10222,6 +10226,50 @@ if From=="UnLoaded"or From=="Boarding"then
 end
 end
 function CARGO_UNIT:onenterLoaded(From,Event,To,CargoCarrier)
+self:F({From,Event,To,CargoCarrier})
+self.CargoCarrier=CargoCarrier
+if self.CargoObject then
+self:T("Destroying")
+self.CargoObject:Destroy()
+end
+end
+end
+do
+CARGO_CRATE={
+ClassName="CARGO_CRATE"
+}
+function CARGO_CRATE:New(CargoCrateName,Type,Name,NearRadius)
+local self=BASE:Inherit(self,CARGO_REPRESENTABLE:New(CargoCrateName,Type,Name,nil,NearRadius))
+self:F({Type,Name,NearRadius})
+self:T(CargoCrateName)
+_DATABASE:AddStatic(CargoCrateName)
+self.CargoObject=STATIC:FindByName(CargoCrateName)
+self:T(self.ClassName)
+self:SetEventPriority(5)
+return self
+end
+function CARGO_CRATE:onenterUnLoaded(From,Event,To,ToPointVec2)
+self:F({ToPointVec2,From,Event,To})
+local Angle=180
+local Speed=10
+local Distance=10
+if From=="Loaded"then
+local StartCoordinate=self.CargoCarrier:GetCoordinate()
+local CargoCarrierHeading=self.CargoCarrier:GetHeading()
+local CargoDeployHeading=((CargoCarrierHeading+Angle)>=360)and(CargoCarrierHeading+Angle-360)or(CargoCarrierHeading+Angle)
+local CargoDeployCoord=StartCoordinate:Translate(Distance,CargoDeployHeading)
+ToPointVec2=ToPointVec2 or COORDINATE:NewFromVec2({x=CargoDeployCoord.x,y=CargoDeployCoord.z})
+if self.CargoObject then
+self.CargoObject:ReSpawn(ToPointVec2,0)
+self.CargoCarrier=nil
+end
+end
+if self.OnUnLoadedCallBack then
+self.OnUnLoadedCallBack(self,unpack(self.OnUnLoadedParameters))
+self.OnUnLoadedCallBack=nil
+end
+end
+function CARGO_CRATE:onenterLoaded(From,Event,To,CargoCarrier)
 self:F({From,Event,To,CargoCarrier})
 self.CargoCarrier=CargoCarrier
 if self.CargoObject then
@@ -10600,7 +10648,6 @@ function OBJECT:Destroy()
 self:F2(self.ObjectName)
 local DCSObject=self:GetDCSObject()
 if DCSObject then
-USERFLAG:New(self:GetGroup():GetName()):Set(100)
 DCSObject:destroy()
 end
 return nil
@@ -12519,6 +12566,7 @@ if DCSGroup then
 for Index,UnitData in pairs(DCSGroup:getUnits())do
 self:CreateEventCrash(timer.getTime(),UnitData)
 end
+USERFLAG:New(self:GetName()):Set(100)
 DCSGroup:destroy()
 DCSGroup=nil
 end
@@ -13108,6 +13156,15 @@ function UNIT:GetDCSObject()
 local DCSUnit=Unit.getByName(self.UnitName)
 if DCSUnit then
 return DCSUnit
+end
+return nil
+end
+function UNIT:Destroy()
+self:F2(self.ObjectName)
+local DCSObject=self:GetDCSObject()
+if DCSObject then
+USERFLAG:New(self:GetGroup():GetName()):Set(100)
+DCSObject:destroy()
 end
 return nil
 end
@@ -13846,6 +13903,10 @@ return nil
 end
 function STATIC:GetThreatLevel()
 return 1,"Static"
+end
+function STATIC:ReSpawn(Coordinate,Heading)
+local SpawnStatic=SPAWNSTATIC:NewFromStatic(self.StaticName,country.id.USA)
+SpawnStatic:SpawnFromPointVec2(Coordinate,Heading,self.StaticName)
 end
 AIRBASE={
 ClassName="AIRBASE",
