@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171012_1107' )
+env.info( 'Moose Generation Timestamp: 20171017_1035' )
 
 --- Various routines
 -- @module routines
@@ -4073,7 +4073,7 @@ do -- UserFlag
   --   
   function USERFLAG:Set( Number ) --R2.3
     
-    trigger.misc.setUserFlag( self.UserFlagName )
+    trigger.misc.setUserFlag( self.UserFlagName, Number )
     
     return self
   end  
