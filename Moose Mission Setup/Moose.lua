@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171017_1111' )
+env.info( 'Moose Generation Timestamp: 20171017_1148' )
 
 --- Various routines
 -- @module routines
@@ -4072,8 +4072,10 @@ do -- UserFlag
   --   BlueVictory:Set( 100 ) -- Set the UserFlag VictoryBlue to 100.
   --   
   function USERFLAG:Set( Number ) --R2.3
+  
+    self:F( { Number = Number } )
     
-    trigger.misc.setUserFlag( self.UserFlagName, Number )
+    trigger.action.setUserFlag( self.UserFlagName, Number )
     
     return self
   end  
@@ -4086,7 +4088,7 @@ do -- UserFlag
   --   local BlueVictory = USERFLAG:New( "VictoryBlue" )
   --   local BlueVictoryValue = BlueVictory:Get() -- Get the UserFlag VictoryBlue value.
   --   
-  function USERFLAG:Set( Number ) --R2.3
+  function USERFLAG:Get( Number ) --R2.3
     
     return trigger.misc.getUserFlag( self.UserFlagName )
   end  

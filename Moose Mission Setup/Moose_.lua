@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171017_1111')
+env.info('Moose Generation Timestamp: 20171017_1148')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -2440,10 +2440,11 @@ self.UserFlagName=UserFlagName
 return self
 end
 function USERFLAG:Set(Number)
-trigger.misc.setUserFlag(self.UserFlagName,Number)
+self:F({Number=Number})
+trigger.action.setUserFlag(self.UserFlagName,Number)
 return self
 end
-function USERFLAG:Set(Number)
+function USERFLAG:Get(Number)
 return trigger.misc.getUserFlag(self.UserFlagName)
 end
 function USERFLAG:Is(Number)
