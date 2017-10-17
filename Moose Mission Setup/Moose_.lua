@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171017_1035')
+env.info('Moose Generation Timestamp: 20171017_1111')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -13163,7 +13163,10 @@ function UNIT:Destroy()
 self:F2(self.ObjectName)
 local DCSObject=self:GetDCSObject()
 if DCSObject then
-USERFLAG:New(self:GetGroup():GetName()):Set(100)
+local UnitGroup=self:GetGroup()
+local UnitGroupName=UnitGroup:GetName()
+self:F({UnitGroupName=UnitGroupName})
+USERFLAG:New(UnitGroupName):Set(100)
 DCSObject:destroy()
 end
 return nil

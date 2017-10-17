@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171017_1035' )
+env.info( 'Moose Generation Timestamp: 20171017_1111' )
 
 --- Various routines
 -- @module routines
@@ -27492,7 +27492,10 @@ function UNIT:Destroy()
   local DCSObject = self:GetDCSObject()
   
   if DCSObject then
-    USERFLAG:New( self:GetGroup():GetName() ):Set( 100 )
+    local UnitGroup = self:GetGroup()
+    local UnitGroupName = UnitGroup:GetName()
+    self:F( { UnitGroupName = UnitGroupName } )
+    USERFLAG:New( UnitGroupName ):Set( 100 )
     --BASE:CreateEventCrash( timer.getTime(), DCSObject )
     DCSObject:destroy()
   end
