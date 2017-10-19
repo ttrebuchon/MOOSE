@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171018_0907' )
+env.info( 'Moose Generation Timestamp: 20171019_1759' )
 
 --- Various routines
 -- @module routines
@@ -33880,8 +33880,10 @@ function AIRBASEPOLICE_BASE:New( SetClient, Airbases )
   )
 
   self.AirbaseMonitor = SCHEDULER:New( self, self._AirbaseMonitor, {}, 0, 2, 0.05 )
-  
-  trigger.action.setUserFlag("SSB",100)
+
+  -- This is simple slot blocker is used on the server.  
+  SSB = USERFLAG:New( "SSB" )
+  SSB:Set( 100 )
 
   return self
 end

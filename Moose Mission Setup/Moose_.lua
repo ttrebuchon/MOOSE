@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171018_0907')
+env.info('Moose Generation Timestamp: 20171019_1759')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -16558,7 +16558,8 @@ Client:SetState(self,"Taxi",false)
 end
 )
 self.AirbaseMonitor=SCHEDULER:New(self,self._AirbaseMonitor,{},0,2,0.05)
-trigger.action.setUserFlag("SSB",100)
+SSB=USERFLAG:New("SSB")
+SSB:Set(100)
 return self
 end
 function AIRBASEPOLICE_BASE:Monitor(AirbaseNames)
