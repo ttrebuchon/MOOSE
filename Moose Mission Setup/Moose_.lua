@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171023_1536')
+env.info('Moose Generation Timestamp: 20171026_1119')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -14323,7 +14323,7 @@ AIRBASE.Normandy={
 function AIRBASE:Register(AirbaseName)
 local self=BASE:Inherit(self,POSITIONABLE:New(AirbaseName))
 self.AirbaseName=AirbaseName
-self.AirbaseZone=ZONE_RADIUS:New(AirbaseName,self:GetVec2(),8000)
+self.AirbaseZone=ZONE_RADIUS:New(AirbaseName,self:GetVec2(),2000)
 return self
 end
 function AIRBASE:Find(DCSAirbase)
@@ -16857,13 +16857,13 @@ end
 end
 return true
 end
-AIRBASEPOLICE_BASE={
-ClassName="AIRBASEPOLICE_BASE",
+ATC_GROUND={
+ClassName="ATC_GROUND",
 SetClient=nil,
 Airbases=nil,
 AirbaseNames=nil,
 }
-function AIRBASEPOLICE_BASE:New(Airbases,AirbaseList)
+function ATC_GROUND:New(Airbases,AirbaseList)
 local self=BASE:Inherit(self,BASE:New())
 self:E({self.ClassName,Airbases})
 self.Airbases=Airbases
@@ -16895,20 +16895,20 @@ SSB:Set(100)
 self:SetKickSpeedKmph(100)
 return self
 end
-function AIRBASEPOLICE_BASE:SmokeRunways(SmokeColor)
+function ATC_GROUND:SmokeRunways(SmokeColor)
 for AirbaseID,Airbase in pairs(self.Airbases)do
 for PointsRunwayID,PointsRunway in pairs(Airbase.PointsRunways)do
 Airbase.ZoneRunways[PointsRunwayID]:SmokeZone(SmokeColor)
 end
 end
 end
-function AIRBASEPOLICE_BASE:SetKickSpeedKmph(KickSpeed)
+function ATC_GROUND:SetKickSpeedKmph(KickSpeed)
 self.KickSpeed=UTILS.KmphToMps(KickSpeed)
 end
-function AIRBASEPOLICE_BASE:SetKickSpeedMiph(KickSpeedMiph)
+function ATC_GROUND:SetKickSpeedMiph(KickSpeedMiph)
 self.KickSpeed=UTILS.MiphToMps(KickSpeedMiph)
 end
-function AIRBASEPOLICE_BASE:_AirbaseMonitor()
+function ATC_GROUND:_AirbaseMonitor()
 self:E("In Scheduler")
 for AirbaseID,AirbaseMeta in pairs(self.Airbases)do
 if AirbaseMeta.Monitor==true then
@@ -16921,7 +16921,9 @@ local NotInRunwayZone=true
 for ZoneRunwayID,ZoneRunway in pairs(AirbaseMeta.ZoneRunways)do
 NotInRunwayZone=(Client:IsNotInZone(ZoneRunway)==true)and NotInRunwayZone or false
 end
+local IsOnGround=Client:InAir()==false
 if NotInRunwayZone then
+if IsOnGround then
 local Taxi=Client:GetState(self,"Taxi")
 self:E(Taxi)
 if Taxi==false then
@@ -16930,7 +16932,6 @@ Client:SetState(self,"Taxi",true)
 end
 local Velocity=VELOCITY_POSITIONABLE:New(Client)
 local IsAboveRunway=Client:IsAboveRunway()
-local IsOnGround=Client:InAir()==false
 self:T(IsAboveRunway,IsOnGround)
 if IsOnGround then
 if Velocity:Get()>self.KickSpeed then
@@ -16989,6 +16990,7 @@ else
 Client:SetState(self,"IsOffRunway",false)
 Client:SetState(self,"OffRunwayWarnings",0)
 end
+end
 else
 Client:SetState(self,"Speeding",false)
 Client:SetState(self,"Warnings",0)
@@ -17000,6 +17002,8 @@ Client:Message("You have progressed to the runway ... Await take-off clearance .
 Client:SetState(self,"Taxi",false)
 end
 end
+else
+Client:SetState(self,"Taxi",false)
 end
 end
 )
@@ -17007,8 +17011,8 @@ end
 end
 return true
 end
-AIRBASEPOLICE_CAUCASUS={
-ClassName="AIRBASEPOLICE_CAUCASUS",
+ATC_GROUND_CAUCASUS={
+ClassName="ATC_GROUND_CAUCASUS",
 Airbases={
 [AIRBASE.Caucasus.Anapa_Vityazevo]={
 PointsRunways={
@@ -17294,12 +17298,12 @@ MaximumSpeed=50,
 },
 },
 }
-function AIRBASEPOLICE_CAUCASUS:New(AirbaseNames)
-local self=BASE:Inherit(self,AIRBASEPOLICE_BASE:New(self.Airbases,AirbaseNames))
+function ATC_GROUND_CAUCASUS:New(AirbaseNames)
+local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
 return self
 end
-AIRBASEPOLICE_NEVADA={
-ClassName="AIRBASEPOLICE_NEVADA",
+ATC_GROUND_NEVADA={
+ClassName="ATC_GROUND_NEVADA",
 Airbases={
 [AIRBASE.Nevada.Beatty_Airport]={
 PointsRunways={
@@ -17567,11 +17571,11 @@ MaximumSpeed=50,
 },
 },
 }
-function AIRBASEPOLICE_NEVADA:New(AirbaseNames)
-local self=BASE:Inherit(self,AIRBASEPOLICE_BASE:New(self.Airbases,AirbaseNames))
+function ATC_GROUND_NEVADA:New(AirbaseNames)
+local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
 end
-AIRBASEPOLICE_NORMANDY={
-ClassName="AIRBASEPOLICE_NORMANDY",
+ATC_GROUND_NORMANDY={
+ClassName="ATC_GROUND_NORMANDY",
 Airbases={
 [AIRBASE.Normandy.Azeville]={
 PointsRunways={
@@ -17961,8 +17965,8 @@ MaximumSpeed=40,
 },
 },
 }
-function AIRBASEPOLICE_NORMANDY:New(AirbaseNames)
-local self=BASE:Inherit(self,AIRBASEPOLICE_BASE:New(self.Airbases,AirbaseNames))
+function ATC_GROUND_NORMANDY:New(AirbaseNames)
+local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
 end
 do
 DETECTION_BASE={
