@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171026_1205' )
+env.info( 'Moose Generation Timestamp: 20171026_1455' )
 
 --- Various routines
 -- @module routines
@@ -10571,44 +10571,44 @@ end
 --- Handles the OnPlayerEnterUnit event to fill the active players table (with the unit filter applied).
 -- @param #SET_BASE self
 -- @param Core.Event#EVENTDATA Event
-function SET_BASE:_EventOnPlayerEnterUnit( Event )
-  self:F3( { Event } )
-
-  if Event.IniDCSUnit then
-    local ObjectName, Object = self:AddInDatabase( Event )
-    self:T3( ObjectName, Object )
-    if self:IsIncludeObject( Object ) then
-      self:Add( ObjectName, Object )
-      --self:_EventOnPlayerEnterUnit( Event )
-    end
-  end
-end
+--function SET_BASE:_EventOnPlayerEnterUnit( Event )
+--  self:F3( { Event } )
+--
+--  if Event.IniDCSUnit then
+--    local ObjectName, Object = self:AddInDatabase( Event )
+--    self:T3( ObjectName, Object )
+--    if self:IsIncludeObject( Object ) then
+--      self:Add( ObjectName, Object )
+--      --self:_EventOnPlayerEnterUnit( Event )
+--    end
+--  end
+--end
 
 --- Handles the OnPlayerLeaveUnit event to clean the active players table.
 -- @param #SET_BASE self
 -- @param Core.Event#EVENTDATA Event
-function SET_BASE:_EventOnPlayerLeaveUnit( Event )
-  self:F3( { Event } )
-
-  local ObjectName = Event.IniDCSUnit
-  if Event.IniDCSUnit then
-    if Event.IniDCSGroup then
-      local GroupUnits = Event.IniDCSGroup:getUnits()
-      local PlayerCount = 0
-      for _, DCSUnit in pairs( GroupUnits ) do
-        if DCSUnit ~= Event.IniDCSUnit then
-          if DCSUnit:getPlayerName() ~= nil then
-            PlayerCount = PlayerCount + 1
-          end
-        end
-      end
-      self:E(PlayerCount)
-      if PlayerCount == 0 then
-        self:Remove( Event.IniDCSGroupName )
-      end
-    end
-  end
-end
+--function SET_BASE:_EventOnPlayerLeaveUnit( Event )
+--  self:F3( { Event } )
+--
+--  local ObjectName = Event.IniDCSUnit
+--  if Event.IniDCSUnit then
+--    if Event.IniDCSGroup then
+--      local GroupUnits = Event.IniDCSGroup:getUnits()
+--      local PlayerCount = 0
+--      for _, DCSUnit in pairs( GroupUnits ) do
+--        if DCSUnit ~= Event.IniDCSUnit then
+--          if DCSUnit:getPlayerName() ~= nil then
+--            PlayerCount = PlayerCount + 1
+--          end
+--        end
+--      end
+--      self:E(PlayerCount)
+--      if PlayerCount == 0 then
+--        self:Remove( Event.IniDCSGroupName )
+--      end
+--    end
+--  end
+--end
 
 -- Iterators
 
@@ -34533,27 +34533,23 @@ end
 --- @param #ATC_GROUND self
 function ATC_GROUND:_AirbaseMonitor()
 
-  self:E( "In Scheduler")
+  self.SetClient:ForEachClient(
+    --- @param Wrapper.Client#CLIENT Client
+    function( Client )
 
-  for AirbaseID, AirbaseMeta in pairs( self.Airbases ) do
+      if Client:IsAlive() then
 
-    if AirbaseMeta.Monitor == true then
+        local IsOnGround = Client:InAir() == false
 
-      self:E( AirbaseID, AirbaseMeta.MaximumSpeed )
+        for AirbaseID, AirbaseMeta in pairs( self.Airbases ) do
+          self:E( AirbaseID, AirbaseMeta.MaximumSpeed )
+  
+          if AirbaseMeta.Monitor == true and Client:IsInZone( AirbaseMeta.ZoneBoundary )  then
 
-      self.SetClient:ForEachClientInZone( AirbaseMeta.ZoneBoundary,
-
-        --- @param Wrapper.Client#CLIENT Client
-        function( Client )
-
-          self:E( Client.UnitName )
-          if Client and Client:IsAlive() then
             local NotInRunwayZone = true
             for ZoneRunwayID, ZoneRunway in pairs( AirbaseMeta.ZoneRunways ) do
               NotInRunwayZone = ( Client:IsNotInZone( ZoneRunway ) == true ) and NotInRunwayZone or false
             end
-
-            local IsOnGround = Client:InAir() == false
 
             if NotInRunwayZone then
               
@@ -34654,13 +34650,13 @@ function ATC_GROUND:_AirbaseMonitor()
                 Client:SetState( self, "Taxi", false )
               end
             end
-          else
-            Client:SetState( self, "Taxi", false )
           end
         end
-      )
+      else
+        Client:SetState( self, "Taxi", false )
+      end
     end
-  end
+  )
 
   return true
 end

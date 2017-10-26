@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171026_1205')
+env.info('Moose Generation Timestamp: 20171026_1455')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -5493,37 +5493,6 @@ if Event.IniDCSUnit then
 local ObjectName,Object=self:FindInDatabase(Event)
 if ObjectName then
 self:Remove(ObjectName)
-end
-end
-end
-function SET_BASE:_EventOnPlayerEnterUnit(Event)
-self:F3({Event})
-if Event.IniDCSUnit then
-local ObjectName,Object=self:AddInDatabase(Event)
-self:T3(ObjectName,Object)
-if self:IsIncludeObject(Object)then
-self:Add(ObjectName,Object)
-end
-end
-end
-function SET_BASE:_EventOnPlayerLeaveUnit(Event)
-self:F3({Event})
-local ObjectName=Event.IniDCSUnit
-if Event.IniDCSUnit then
-if Event.IniDCSGroup then
-local GroupUnits=Event.IniDCSGroup:getUnits()
-local PlayerCount=0
-for _,DCSUnit in pairs(GroupUnits)do
-if DCSUnit~=Event.IniDCSUnit then
-if DCSUnit:getPlayerName()~=nil then
-PlayerCount=PlayerCount+1
-end
-end
-end
-self:E(PlayerCount)
-if PlayerCount==0 then
-self:Remove(Event.IniDCSGroupName)
-end
 end
 end
 end
@@ -16909,19 +16878,17 @@ function ATC_GROUND:SetKickSpeedMiph(KickSpeedMiph)
 self.KickSpeed=UTILS.MiphToMps(KickSpeedMiph)
 end
 function ATC_GROUND:_AirbaseMonitor()
-self:E("In Scheduler")
-for AirbaseID,AirbaseMeta in pairs(self.Airbases)do
-if AirbaseMeta.Monitor==true then
-self:E(AirbaseID,AirbaseMeta.MaximumSpeed)
-self.SetClient:ForEachClientInZone(AirbaseMeta.ZoneBoundary,
+self.SetClient:ForEachClient(
 function(Client)
-self:E(Client.UnitName)
-if Client and Client:IsAlive()then
+if Client:IsAlive()then
+local IsOnGround=Client:InAir()==false
+for AirbaseID,AirbaseMeta in pairs(self.Airbases)do
+self:E(AirbaseID,AirbaseMeta.MaximumSpeed)
+if AirbaseMeta.Monitor==true and Client:IsInZone(AirbaseMeta.ZoneBoundary)then
 local NotInRunwayZone=true
 for ZoneRunwayID,ZoneRunway in pairs(AirbaseMeta.ZoneRunways)do
 NotInRunwayZone=(Client:IsNotInZone(ZoneRunway)==true)and NotInRunwayZone or false
 end
-local IsOnGround=Client:InAir()==false
 if NotInRunwayZone then
 if IsOnGround then
 local Taxi=Client:GetState(self,"Taxi")
@@ -17002,13 +16969,13 @@ Client:Message("You have progressed to the runway ... Await take-off clearance .
 Client:SetState(self,"Taxi",false)
 end
 end
+end
+end
 else
 Client:SetState(self,"Taxi",false)
 end
 end
 )
-end
-end
 return true
 end
 ATC_GROUND_CAUCASUS={
