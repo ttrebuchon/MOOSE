@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171026_1119' )
+env.info( 'Moose Generation Timestamp: 20171026_1205' )
 
 --- Various routines
 -- @module routines
@@ -29697,7 +29697,7 @@ function AIRBASE:Register( AirbaseName )
 
   local self = BASE:Inherit( self, POSITIONABLE:New( AirbaseName ) )
   self.AirbaseName = AirbaseName
-  self.AirbaseZone = ZONE_RADIUS:New( AirbaseName, self:GetVec2(), 2000 )
+  self.AirbaseZone = ZONE_RADIUS:New( AirbaseName, self:GetVec2(), 2500 )
   return self
 end
 
