@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171026_1914')
+env.info('Moose Generation Timestamp: 20171031_0833')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -3262,7 +3262,7 @@ end
 end
 end
 else
-self:E({EventMeta.Text,Event})
+self:T({EventMeta.Text,Event})
 end
 Event=nil
 end
@@ -10714,7 +10714,8 @@ self:F({From,Event,To,ToPointVec2})
 if From=="Loaded"then
 self.CargoSet:ForEach(
 function(Cargo)
-Cargo:UnLoad(ToPointVec2)
+local RandomVec2=ToPointVec2:GetRandomPointVec2InRadius(10)
+Cargo:UnLoad(RandomVec2)
 end
 )
 end
@@ -12703,6 +12704,48 @@ if DCSControllable then
 local Controller=self:_GetController()
 if self:IsAir()then
 Controller:setOption(AI.Option.Air.id.REACTION_ON_THREAT,AI.Option.Air.val.REACTION_ON_THREAT.BYPASS_AND_ESCAPE)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAlarmStateAuto()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsGround()then
+Controller:setOption(AI.Option.Ground.id.ALARM_STATE,AI.Option.Ground.val.ALARM_STATE.AUTO)
+elseif self:IsShip()then
+Controller:setOption(AI.Option.Naval.id.ALARM_STATE,AI.Option.Naval.val.ALARM_STATE.AUTO)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAlarmStateGreen()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsGround()then
+Controller:setOption(AI.Option.Ground.id.ALARM_STATE,AI.Option.Ground.val.ALARM_STATE.GREEN)
+elseif self:IsShip()then
+Controller:setOption(AI.Option.Naval.id.ALARM_STATE,AI.Option.Naval.val.ALARM_STATE.GREEN)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAlarmStateRed()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsGround()then
+Controller:setOption(AI.Option.Ground.id.ALARM_STATE,AI.Option.Ground.val.ALARM_STATE.RED)
+elseif self:IsShip()then
+Controller:setOption(AI.Option.Naval.id.ALARM_STATE,AI.Option.Naval.val.ALARM_STATE.RED)
 end
 return self
 end
@@ -16863,10 +16906,8 @@ Client:SetState(self,"OffRunwayWarnings",0)
 Client:SetState(self,"Taxi",false)
 end
 )
-self.AirbaseMonitor=SCHEDULER:New(self,self._AirbaseMonitor,{self},0,2,0.05)
 SSB=USERFLAG:New("SSB")
 SSB:Set(100)
-self:SetKickSpeedKmph(100)
 return self
 end
 function ATC_GROUND:SmokeRunways(SmokeColor)
@@ -16876,11 +16917,37 @@ Airbase.ZoneRunways[PointsRunwayID]:SmokeZone(SmokeColor)
 end
 end
 end
-function ATC_GROUND:SetKickSpeedKmph(KickSpeed)
-self.KickSpeed=UTILS.KmphToMps(KickSpeed)
+function ATC_GROUND:SetKickSpeed(KickSpeed,Airbase)
+if not Airbase then
+self.KickSpeed=KickSpeed
+else
+self.Airbases[Airbase].KickSpeed=KickSpeed
 end
-function ATC_GROUND:SetKickSpeedMiph(KickSpeedMiph)
-self.KickSpeed=UTILS.MiphToMps(KickSpeedMiph)
+return self
+end
+function ATC_GROUND:SetKickSpeedKmph(KickSpeed,Airbase)
+self:SetKickSpeed(UTILS.KmphToMps(KickSpeed),Airbase)
+return self
+end
+function ATC_GROUND:SetKickSpeedMiph(KickSpeedMiph,Airbase)
+self:SetKickSpeed(UTILS.MiphToMps(KickSpeedMiph),Airbase)
+return self
+end
+function ATC_GROUND:SetMaximumKickSpeed(MaximumKickSpeed,Airbase)
+if not Airbase then
+self.MaximumKickSpeed=MaximumKickSpeed
+else
+self.Airbases[Airbase].MaximumKickSpeed=MaximumKickSpeed
+end
+return self
+end
+function ATC_GROUND:SetMaximumKickSpeedKmph(MaximumKickSpeed,Airbase)
+self:SetMaximumKickSpeed(UTILS.KmphToMps(MaximumKickSpeed),Airbase)
+return self
+end
+function ATC_GROUND:SetMaximumKickSpeedMiph(MaximumKickSpeedMiph,Airbase)
+self:SetMaximumKickSpeed(UTILS.MiphToMps(MaximumKickSpeedMiph),Airbase)
+return self
 end
 function ATC_GROUND:_AirbaseMonitor()
 self.SetClient:ForEachClient(
@@ -16888,7 +16955,7 @@ function(Client)
 if Client:IsAlive()then
 local IsOnGround=Client:InAir()==false
 for AirbaseID,AirbaseMeta in pairs(self.Airbases)do
-self:E(AirbaseID,AirbaseMeta.MaximumSpeed)
+self:E(AirbaseID,AirbaseMeta.KickSpeed)
 if AirbaseMeta.Monitor==true and Client:IsInZone(AirbaseMeta.ZoneBoundary)then
 local NotInRunwayZone=true
 for ZoneRunwayID,ZoneRunway in pairs(AirbaseMeta.ZoneRunways)do
@@ -16899,29 +16966,52 @@ if IsOnGround then
 local Taxi=Client:GetState(self,"Taxi")
 self:E(Taxi)
 if Taxi==false then
-Client:Message("Welcome at "..AirbaseID..". The maximum taxiing speed is "..AirbaseMeta.MaximumSpeed.." km/h.",20,"ATC")
+local Velocity=VELOCITY:New(AirbaseMeta.KickSpeed or self.KickSpeed)
+Client:Message("Welcome at "..AirbaseID..". The maximum taxiing speed is "..
+Velocity:ToString(),20,"ATC")
 Client:SetState(self,"Taxi",true)
 end
 local Velocity=VELOCITY_POSITIONABLE:New(Client)
 local IsAboveRunway=Client:IsAboveRunway()
 self:T(IsAboveRunway,IsOnGround)
 if IsOnGround then
-if Velocity:Get()>self.KickSpeed then
-MESSAGE:New("Penalty! Player "..Client:GetPlayerName().." is kicked, due to a severe airbase traffic rule violation ...",10,"ATC"):ToAll()
+local Speeding=false
+if AirbaseMeta.MaximumKickSpeed then
+if Velocity:Get()>AirbaseMeta.MaximumKickSpeed then
+Speeding=true
+end
+else
+if Velocity:Get()>self.MaximumKickSpeed then
+Speeding=true
+end
+end
+if Speeding==true then
+MESSAGE:New("Penalty! Player "..Client:GetPlayerName()..
+" is kicked, due to a severe airbase traffic rule violation ...",10,"ATC"):ToAll()
 Client:Destroy()
 Client:SetState(self,"Speeding",false)
 Client:SetState(self,"Warnings",0)
 end
 end
 if IsOnGround then
-if Velocity:GetKmph()>AirbaseMeta.MaximumSpeed then
+local Speeding=false
+if AirbaseMeta.KickSpeed then
+if Velocity:Get()>AirbaseMeta.KickSpeed then
+Speeding=true
+end
+else
+if Velocity:Get()>self.KickSpeed then
+Speeding=true
+end
+end
+if Speeding==true then
 local IsSpeeding=Client:GetState(self,"Speeding")
 if IsSpeeding==true then
 local SpeedingWarnings=Client:GetState(self,"Warnings")
 self:T(SpeedingWarnings)
 if SpeedingWarnings<=3 then
 Client:Message("Warning "..SpeedingWarnings.."/3! Airbase traffic rule violation! Slow down now! Your speed is "..
-string.format("%s",Velocity:ToString()),5,"ATC")
+Velocity:ToString(),5,"ATC")
 Client:SetState(self,"Warnings",SpeedingWarnings+1)
 else
 MESSAGE:New("Penalty! Player "..Client:GetPlayerName().." is kicked, due to a severe airbase traffic rule violation ...",10,"ATC"):ToAll()
@@ -16930,7 +17020,8 @@ Client:SetState(self,"Speeding",false)
 Client:SetState(self,"Warnings",0)
 end
 else
-Client:Message("Attention! You are speeding on the taxiway, slow down! Your speed is "..string.format("%s",Velocity:ToString()),5,"ATC")
+Client:Message("Attention! You are speeding on the taxiway, slow down! Your speed is "..
+Velocity:ToString(),5,"ATC")
 Client:SetState(self,"Speeding",true)
 Client:SetState(self,"Warnings",1)
 end
@@ -16996,7 +17087,6 @@ PointsRunways={
 [5]={["y"]=242140.57142858,["x"]=-6480.0000000011,}
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Batumi]={
 PointsRunways={
@@ -17017,7 +17107,6 @@ PointsRunways={
 [14]={["y"]=616441.42857142,["x"]=-355092.57142858,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Beslan]={
 PointsRunways={
@@ -17029,7 +17118,6 @@ PointsRunways={
 [5]={["y"]=842104,["x"]=-148460.28571429,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Gelendzhik]={
 PointsRunways={
@@ -17041,7 +17129,6 @@ PointsRunways={
 [5]={["y"]=297835.14285715,["x"]=-51107.714285715,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Gudauta]={
 PointsRunways={
@@ -17053,7 +17140,6 @@ PointsRunways={
 [5]={["y"]=517097.99999999,["x"]=-197807.42857143,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Kobuleti]={
 PointsRunways={
@@ -17065,7 +17151,6 @@ PointsRunways={
 [5]={["y"]=634510.28571429,["x"]=-318339.71428572,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Krasnodar_Center]={
 PointsRunways={
@@ -17077,7 +17162,6 @@ PointsRunways={
 [5]={["y"]=369208.85714286,["x"]=11788.57142857,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Krasnodar_Pashkovsky]={
 PointsRunways={
@@ -17096,7 +17180,6 @@ PointsRunways={
 [5]={["y"]=386714.57142858,["x"]=6674.5714285703,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Krymsk]={
 PointsRunways={
@@ -17108,7 +17191,6 @@ PointsRunways={
 [5]={["y"]=293523.14285715,["x"]=-7568.2857142868,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Kutaisi]={
 PointsRunways={
@@ -17120,7 +17202,6 @@ PointsRunways={
 [5]={["y"]=682638.28571429,["x"]=-285202.85714286,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Maykop_Khanskaya]={
 PointsRunways={
@@ -17132,7 +17213,6 @@ PointsRunways={
 [5]={["y"]=457004.57142857,["x"]=-27669.714285715,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Mineralnye_Vody]={
 PointsRunways={
@@ -17144,7 +17224,6 @@ PointsRunways={
 [5]={["y"]=703902,["x"]=-50352.000000002,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Mozdok]={
 PointsRunways={
@@ -17156,7 +17235,6 @@ PointsRunways={
 [5]={["y"]=832200.57142857,["x"]=-83700.000000002,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Nalchik]={
 PointsRunways={
@@ -17168,7 +17246,6 @@ PointsRunways={
 [5]={["y"]=759456,["x"]=-125552.57142857,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Novorossiysk]={
 PointsRunways={
@@ -17180,7 +17257,6 @@ PointsRunways={
 [5]={["y"]=278672.00000001,["x"]=-41614.857142858,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Senaki_Kolkhi]={
 PointsRunways={
@@ -17192,7 +17268,6 @@ PointsRunways={
 [5]={["y"]=646063.71428571,["x"]=-281738.85714286,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Sochi_Adler]={
 PointsRunways={
@@ -17211,7 +17286,6 @@ PointsRunways={
 [5]={["y"]=460831.42857143,["x"]=-165177.14285714,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Soganlug]={
 PointsRunways={
@@ -17223,7 +17297,6 @@ PointsRunways={
 [5]={["y"]=894524.57142857,["x"]=-316963.71428571,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Sukhumi_Babushara]={
 PointsRunways={
@@ -17235,7 +17308,6 @@ PointsRunways={
 [5]={["y"]=562684.57142857,["x"]=-219782.57142857,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Tbilisi_Lochini]={
 PointsRunways={
@@ -17254,7 +17326,6 @@ PointsRunways={
 [5]={["y"]=895606,["x"]=-314724.85714286,}
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Caucasus.Vaziani]={
 PointsRunways={
@@ -17266,12 +17337,14 @@ PointsRunways={
 [5]={["y"]=902247.71428571,["x"]=-318190.85714286,},
 },
 },
-MaximumSpeed=50,
 },
 },
 }
 function ATC_GROUND_CAUCASUS:New(AirbaseNames)
 local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
+self.AirbaseMonitor=SCHEDULER:New(self,self._AirbaseMonitor,{self},0,2,0.05)
+self:SetKickSpeedKmph(50)
+self:SetMaximumKickSpeedKmph(150)
 return self
 end
 ATC_GROUND_NEVADA={
@@ -17286,7 +17359,6 @@ PointsRunways={
 [4]={["y"]=-174971.01828571,["x"]=-329682.59171429,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Boulder_City_Airport]={
 PointsRunways={
@@ -17303,7 +17375,6 @@ PointsRunways={
 [4]={["y"]=-1883.955714286,["x"]=-429807.83742856,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Creech_AFB]={
 PointsRunways={
@@ -17320,7 +17391,6 @@ PointsRunways={
 [4]={["y"]=-75734.142857144,["x"]=-359023.14285714,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Echo_Bay]={
 PointsRunways={
@@ -17331,7 +17401,6 @@ PointsRunways={
 [4]={["y"]=33185.422285715,["x"]=-388717.82228571,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Groom_Lake_AFB]={
 PointsRunways={
@@ -17348,7 +17417,6 @@ PointsRunways={
 [4]={["y"]=-86799.623714285,["x"]=-290374.16771428,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Henderson_Executive_Airport]={
 PointsRunways={
@@ -17365,7 +17433,6 @@ PointsRunways={
 [4]={["y"]=-25708.296285714,["x"]=-426515.15114285,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Jean_Airport]={
 PointsRunways={
@@ -17382,7 +17449,6 @@ PointsRunways={
 [4]={["y"]=-42609.216571429,["x"]=-449891.28628571,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Laughlin_Airport]={
 PointsRunways={
@@ -17399,7 +17465,6 @@ PointsRunways={
 [4]={["y"]=28138.022857143,["x"]=-515573.07514286,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Lincoln_County]={
 PointsRunways={
@@ -17410,7 +17475,6 @@ PointsRunways={
 [4]={["y"]=33201.198857147,["x"]=-223960.54457143,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.McCarran_International_Airport]={
 PointsRunways={
@@ -17439,7 +17503,6 @@ PointsRunways={
 [4]={["y"]=-29073.000000001,["x"]=-416386.85714284,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Mesquite]={
 PointsRunways={
@@ -17460,7 +17523,6 @@ PointsRunways={
 [4]={["y"]=-290104.69085714,["x"]=-160956.19457143,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Nellis_AFB]={
 PointsRunways={
@@ -17477,7 +17539,6 @@ PointsRunways={
 [4]={["y"]=-18451.571428572,["x"]=-399580.85714285,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Pahute_Mesa_Airstrip]={
 PointsRunways={
@@ -17488,7 +17549,6 @@ PointsRunways={
 [4]={["y"]=-132759.988,["x"]=-302723.326,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Tonopah_Test_Range_Airfield]={
 PointsRunways={
@@ -17499,7 +17559,6 @@ PointsRunways={
 [4]={["y"]=-175452.38685714,["x"]=-224806.84200001,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.Tonopah_Airport]={
 PointsRunways={
@@ -17516,7 +17575,6 @@ PointsRunways={
 [4]={["y"]=-202097.14314285,["x"]=-196739.16514286,},
 },
 },
-MaximumSpeed=50,
 },
 [AIRBASE.Nevada.North_Las_Vegas]={
 PointsRunways={
@@ -17539,12 +17597,15 @@ PointsRunways={
 [4]={["y"]=-31884.969142858,["x"]=-401020.59771429,},
 },
 },
-MaximumSpeed=50,
 },
 },
 }
 function ATC_GROUND_NEVADA:New(AirbaseNames)
 local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
+self.AirbaseMonitor=SCHEDULER:New(self,self._AirbaseMonitor,{self},0,2,0.05)
+self:SetKickSpeedKmph(50)
+self:SetMaximumKickSpeedKmph(150)
+return self
 end
 ATC_GROUND_NORMANDY={
 ClassName="ATC_GROUND_NORMANDY",
@@ -17558,7 +17619,6 @@ PointsRunways={
 [4]={["y"]=-74176.959142857,["x"]=-2741.997142857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Bazenville]={
 PointsRunways={
@@ -17569,7 +17629,6 @@ PointsRunways={
 [4]={["y"]=-19217.791999999,["x"]=-21283.597714285,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Beny_sur_Mer]={
 PointsRunways={
@@ -17580,7 +17639,6 @@ PointsRunways={
 [4]={["y"]=-8451.0482857133,["x"]=-20368.87542857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Beuzeville]={
 PointsRunways={
@@ -17591,7 +17649,6 @@ PointsRunways={
 [4]={["y"]=-71585.849428571,["x"]=-8709.9648571426,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Biniville]={
 PointsRunways={
@@ -17602,7 +17659,6 @@ PointsRunways={
 [4]={["y"]=-84784.969714286,["x"]=-7402.0588571427,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Brucheville]={
 PointsRunways={
@@ -17613,7 +17669,6 @@ PointsRunways={
 [4]={["y"]=-65528.393714285,["x"]=-14657.995714286,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Cardonville]={
 PointsRunways={
@@ -17624,7 +17679,6 @@ PointsRunways={
 [4]={["y"]=-54323.354571428,["x"]=-15855.004,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Carpiquet]={
 PointsRunways={
@@ -17635,7 +17689,6 @@ PointsRunways={
 [4]={["y"]=-10794.90942857,["x"]=-34287.041428571,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Chailey]={
 PointsRunways={
@@ -17653,7 +17706,6 @@ PointsRunways={
 [4]={["y"]=11726.973428578,["x"]=164489.94257143,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Chippelle]={
 PointsRunways={
@@ -17664,7 +17716,6 @@ PointsRunways={
 [4]={["y"]=-48555.657714285,["x"]=-28839.90142857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Cretteville]={
 PointsRunways={
@@ -17675,7 +17726,6 @@ PointsRunways={
 [4]={["y"]=-78380.008857143,["x"]=-18208.011142857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Cricqueville_en_Bessin]={
 PointsRunways={
@@ -17686,7 +17736,6 @@ PointsRunways={
 [4]={["y"]=-50910.569428571,["x"]=-14327.562857142,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Deux_Jumeaux]={
 PointsRunways={
@@ -17697,7 +17746,6 @@ PointsRunways={
 [4]={["y"]=-49584.839428571,["x"]=-16617.732571428,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Evreux]={
 PointsRunways={
@@ -17714,7 +17762,6 @@ PointsRunways={
 [4]={["y"]=111966.03657143,["x"]=-45112.604285713,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Ford]={
 PointsRunways={
@@ -17731,7 +17778,6 @@ PointsRunways={
 [4]={["y"]=-25252.357999994,["x"]=148448.64457143,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Funtington]={
 PointsRunways={
@@ -17749,7 +17795,6 @@ PointsRunways={
 [4]={["y"]=-45871.25971428,["x"]=153136.82714286,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Lantheuil]={
 PointsRunways={
@@ -17760,7 +17805,6 @@ PointsRunways={
 [4]={["y"]=-17090.734857142,["x"]=-24673.248,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Lessay]={
 PointsRunways={
@@ -17777,7 +17821,6 @@ PointsRunways={
 [4]={["y"]=-87087.688571429,["x"]=-34258.272285715,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Lignerolles]={
 PointsRunways={
@@ -17788,7 +17831,6 @@ PointsRunways={
 [4]={["y"]=-35263.548285713,["x"]=-35192.75542857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Longues_sur_Mer]={
 PointsRunways={
@@ -17799,7 +17841,6 @@ PointsRunways={
 [4]={["y"]=-29529.616285713,["x"]=-16477.766571428,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Maupertus]={
 PointsRunways={
@@ -17810,7 +17851,6 @@ PointsRunways={
 [4]={["y"]=-85613.626571429,["x"]=16132.410571429,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Meautis]={
 PointsRunways={
@@ -17821,7 +17861,6 @@ PointsRunways={
 [4]={["y"]=-72631.715714286,["x"]=-24639.966857143,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Le_Molay]={
 PointsRunways={
@@ -17832,7 +17871,6 @@ PointsRunways={
 [4]={["y"]=-41913.638285713,["x"]=-26665.137999999,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Needs_Oar_Point]={
 PointsRunways={
@@ -17850,7 +17888,6 @@ PointsRunways={
 [4]={["y"]=-84605.051428566,["x"]=141966.01428572,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Picauville]={
 PointsRunways={
@@ -17861,7 +17898,6 @@ PointsRunways={
 [4]={["y"]=-80827.815142857,["x"]=-11901.835142857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Rucqueville]={
 PointsRunways={
@@ -17872,7 +17908,6 @@ PointsRunways={
 [4]={["y"]=-20022.218857141,["x"]=-26608.505428571,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Saint_Pierre_du_Mont]={
 PointsRunways={
@@ -17883,7 +17918,6 @@ PointsRunways={
 [4]={["y"]=-48016.837142856,["x"]=-11929.371142857,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Sainte_Croix_sur_Mer]={
 PointsRunways={
@@ -17894,7 +17928,6 @@ PointsRunways={
 [4]={["y"]=-15878.229142856,["x"]=-18764.071428571,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Sainte_Laurent_sur_Mer]={
 PointsRunways={
@@ -17905,7 +17938,6 @@ PointsRunways={
 [4]={["y"]=-41687.120571427,["x"]=-14509.680857142,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Sommervieu]={
 PointsRunways={
@@ -17916,7 +17948,6 @@ PointsRunways={
 [4]={["y"]=-26818.002285713,["x"]=-21440.532857142,},
 },
 },
-MaximumSpeed=40,
 },
 [AIRBASE.Normandy.Tangmere]={
 PointsRunways={
@@ -17933,12 +17964,15 @@ PointsRunways={
 [4]={["y"]=-33176.545999994,["x"]=150870.22542857,},
 },
 },
-MaximumSpeed=40,
 },
 },
 }
 function ATC_GROUND_NORMANDY:New(AirbaseNames)
 local self=BASE:Inherit(self,ATC_GROUND:New(self.Airbases,AirbaseNames))
+self.AirbaseMonitor=SCHEDULER:New(self,self._AirbaseMonitor,{self},0,2,0.05)
+self:SetKickSpeedKmph(40)
+self:SetMaximumKickSpeedKmph(100)
+return self
 end
 do
 DETECTION_BASE={
@@ -19777,7 +19811,9 @@ end
 RAT={
 ClassName="RAT",
 debug=false,
+templategroup=nil,
 alias=nil,
+spawninitialized=false,
 spawndelay=5,
 spawninterval=5,
 coalition=nil,
@@ -19792,23 +19828,33 @@ AlphaDescent=3.6,
 roe="hold",
 rot="noreaction",
 takeoff=0,
+landing=9,
 mindist=5000,
-maxdist=500000,
+maxdist=5000000,
 airports_map={},
 airports={},
 random_departure=true,
 random_destination=true,
-departure_zones={},
 departure_ports={},
 destination_ports={},
+Ndestination_Airports=0,
+Ndestination_Zones=0,
+Ndeparture_Airports=0,
+Ndeparture_Zones=0,
+destinationzone=false,
+return_zones={},
+returnzone=false,
 excluded_ports={},
 departure_Azone=nil,
 destination_Azone=nil,
+addfriendlydepartures=false,
+addfriendlydestinations=false,
 ratcraft={},
-Tinactive=300,
+Tinactive=600,
 reportstatus=false,
 statusinterval=30,
 placemarkers=false,
+FLcruise=nil,
 FLminuser=nil,
 FLmaxuser=nil,
 FLuser=nil,
@@ -19820,11 +19866,23 @@ f10menu=true,
 Menu={},
 SubMenuName=nil,
 respawn_at_landing=false,
+norespawn=false,
+respawn_after_takeoff=false,
 respawn_delay=nil,
 markerids={},
+waypointdescriptions={},
+waypointstatus={},
 livery=nil,
 skill="High",
 ATCswitch=true,
+parking_id=nil,
+wp_final=nil,
+wp_holding=nil,
+radio=nil,
+frequency=nil,
+modulation=nil,
+actype=nil,
+uncontrolled=false,
 }
 RAT.cat={
 plane="plane",
@@ -19841,6 +19899,26 @@ cruise=6,
 descent=7,
 holding=8,
 landing=9,
+finalwp=10,
+}
+RAT.status={
+Departure="At departure point",
+Climb="Climbing",
+Cruise="Cruising",
+Uturn="Flying back home",
+Descent="Descending",
+DescentHolding="Descend to holding point",
+Holding="Holding",
+Destination="Arrived at destination",
+EventBirthAir="Born in air",
+EventBirth="Ready and starting engines",
+EventEngineStartAir="On journey",
+EventEngineStart="Started engines and taxiing",
+EventTakeoff="Airborne after take-off",
+EventLand="Landed and taxiing",
+EventEngineShutdown="Engines off",
+EventDead="Dead",
+EventCrash="Crashed",
 }
 RAT.coal={
 same="same",
@@ -19870,26 +19948,37 @@ flight={},
 airport={},
 unregistered=-1,
 onfinal=-100,
+Nclearance=2,
+delay=240,
 }
 RAT.markerid=0
 RAT.MenuF10=nil
 RAT.id="RAT | "
+RAT.version="2.0.0"
 function RAT:New(groupname,alias)
+env.info(RAT.id.."Version "..RAT.version)
 env.info(RAT.id.."Creating new RAT object from template: "..groupname)
 alias=alias or groupname
 local self=BASE:Inherit(self,SPAWN:NewWithAlias(groupname,alias))
 self.alias=alias
 local DCSgroup=Group.getByName(groupname)
 if DCSgroup==nil then
-env.error("Group with name "..groupname.." does not exist in the mission editor!")
+env.error(RAT.id.."Group with name "..groupname.." does not exist in the mission editor!")
 return nil
 end
+self.templategroup=GROUP:FindByName(groupname)
 self.coalition=DCSgroup:getCoalition()
 self:_InitAircraft(DCSgroup)
 self:_GetAirportsOfMap()
 return self
 end
 function RAT:Spawn(naircraft)
+if self.spawninitialized==true then
+env.error("Spawn function should only be called once per RAT object! Exiting and returning nil.")
+return nil
+else
+self.spawninitialized=true
+end
 self.ngroups=naircraft or 1
 if self.ATCswitch and not RAT.ATC.init then
 RAT:_ATCInit(self.airports_map)
@@ -19908,6 +19997,20 @@ end
 if self.destination_Azone~=nil then
 self.destination_ports=self:_GetAirportsInZone(self.destination_Azone)
 end
+if self.addfriendlydepartures then
+self:_AddFriendlyAirports(self.departure_ports)
+end
+if self.addfriendlydestinations then
+self:_AddFriendlyAirports(self.destination_ports)
+end
+if self.FLcruise==nil then
+if self.category==RAT.cat.plane then
+self.FLcruise=200*RAT.unit.FL2m
+else
+self.FLcruise=005*RAT.unit.FL2m
+end
+end
+self:_CheckConsistency()
 local text=string.format("\n******************************************************\n")
 text=text..string.format("Spawning %i aircraft from template %s of type %s.\n",self.ngroups,self.SpawnTemplatePrefix,self.aircraft.type)
 text=text..string.format("Alias: %s\n",self.alias)
@@ -19915,23 +20018,40 @@ text=text..string.format("Category: %s\n",self.category)
 text=text..string.format("Friendly coalitions: %s\n",self.friendly)
 text=text..string.format("Number of airports on map  : %i\n",#self.airports_map)
 text=text..string.format("Number of friendly airports: %i\n",#self.airports)
+text=text..string.format("Totally random departure: %s\n",tostring(self.random_departure))
+if not self.random_departure then
+text=text..string.format("Number of departure airports: %d\n",self.Ndeparture_Airports)
+text=text..string.format("Number of departure zones   : %d\n",self.Ndeparture_Zones)
+end
+text=text..string.format("Totally random destination: %s\n",tostring(self.random_destination))
+if not self.random_destination then
+text=text..string.format("Number of destination airports: %d\n",self.Ndestination_Airports)
+text=text..string.format("Number of destination zones   : %d\n",self.Ndestination_Zones)
+end
 text=text..string.format("Min dist to destination: %4.1f\n",self.mindist)
 text=text..string.format("Max dist to destination: %4.1f\n",self.maxdist)
 text=text..string.format("Takeoff type: %i\n",self.takeoff)
+text=text..string.format("Landing type: %i\n",self.landing)
 text=text..string.format("Commute: %s\n",tostring(self.commute))
 text=text..string.format("Journey: %s\n",tostring(self.continuejourney))
+text=text..string.format("Destination Zone: %s\n",tostring(self.destinationzone))
+text=text..string.format("Return Zone: %s\n",tostring(self.returnzone))
+text=text..string.format("Uncontrolled: %s\n",tostring(self.uncontrolled))
 text=text..string.format("Spawn delay: %4.1f\n",self.spawndelay)
 text=text..string.format("Spawn interval: %4.1f\n",self.spawninterval)
 text=text..string.format("Respawn after landing: %s\n",tostring(self.respawn_at_landing))
+text=text..string.format("Respawning off: %s\n",tostring(self.norespawn))
+text=text..string.format("Respawn after take-off: %s\n",tostring(self.respawn_after_takeoff))
 text=text..string.format("Respawn delay: %s\n",tostring(self.respawn_delay))
 text=text..string.format("ROE: %s\n",tostring(self.roe))
 text=text..string.format("ROT: %s\n",tostring(self.rot))
 text=text..string.format("Vclimb: %4.1f\n",self.Vclimb)
 text=text..string.format("AlphaDescent: %4.2f\n",self.AlphaDescent)
 text=text..string.format("Vcruisemax: %s\n",tostring(self.Vcruisemax))
+text=text..string.format("FLcruise =  %6.1f km = FL%3.0f\n",self.FLcruise/1000,self.FLcruise/RAT.unit.FL2m)
 text=text..string.format("FLuser: %s\n",tostring(self.Fluser))
-text=text..string.format("FLminuser: %s\n",tostring(self.Flminuser))
-text=text..string.format("FLmaxuser: %s\n",tostring(self.Flmaxuser))
+text=text..string.format("FLminuser: %s\n",tostring(self.FLminuser))
+text=text..string.format("FLmaxuser: %s\n",tostring(self.FLmaxuser))
 text=text..string.format("Place markers: %s\n",tostring(self.placemarkers))
 text=text..string.format("Report status: %s\n",tostring(self.reportstatus))
 text=text..string.format("Status interval: %4.1f\n",self.statusinterval)
@@ -19939,6 +20059,15 @@ text=text..string.format("Time inactive: %4.1f\n",self.Tinactive)
 text=text..string.format("Create F10 menu : %s\n",tostring(self.f10menu))
 text=text..string.format("F10 submenu name: %s\n",self.SubMenuName)
 text=text..string.format("ATC enabled : %s\n",tostring(self.ATCswitch))
+text=text..string.format("Radio comms      : %s\n",tostring(self.radio))
+text=text..string.format("Radio frequency  : %s\n",tostring(self.frequency))
+text=text..string.format("Radio modulation : %s\n",tostring(self.frequency))
+if self.livery then
+text=text..string.format("Available liveries:\n")
+for _,livery in pairs(self.livery)do
+text=text..string.format("- %s\n",livery)
+end
+end
 text=text..string.format("******************************************************\n")
 env.info(RAT.id..text)
 if self.f10menu then
@@ -19963,6 +20092,80 @@ self:HandleEvent(EVENTS.Land,self._OnLand)
 self:HandleEvent(EVENTS.EngineShutdown,self._OnEngineShutdown)
 self:HandleEvent(EVENTS.Dead,self._OnDead)
 self:HandleEvent(EVENTS.Crash,self._OnCrash)
+end
+function RAT:_CheckConsistency()
+if not self.random_departure then
+for _,name in pairs(self.departure_ports)do
+if self:_AirportExists(name)then
+self.Ndeparture_Airports=self.Ndeparture_Airports+1
+elseif self:_ZoneExists(name)then
+self.Ndeparture_Zones=self.Ndeparture_Zones+1
+end
+end
+for _,name in pairs(self.destination_ports)do
+if self:_AirportExists(name)then
+self.Ndestination_Airports=self.Ndestination_Airports+1
+elseif self:_ZoneExists(name)then
+self.Ndestination_Zones=self.Ndestination_Zones+1
+end
+end
+if self.Ndeparture_Zones>0 and self.takeoff~=RAT.wp.air then
+self.takeoff=RAT.wp.air
+env.error(RAT.id.."At least one zone defined as departure and takeoff is NOT set to air. Enabling air start!")
+end
+if self.Ndeparture_Airports==0 and self.Ndeparture_Zone==0 then
+self.random_departure=true
+local text="No airports or zones found given in SetDeparture(). Enabling random departure airports!"
+env.error(RAT.id..text)
+MESSAGE:New(text,30):ToAll()
+end
+end
+if not self.random_destination then
+if self.Ndestination_Zones>0 and self.landing~=RAT.wp.air and not self.returnzone then
+self.landing=RAT.wp.air
+self.destinationzone=true
+env.error(RAT.id.."At least one zone defined as destination and landing is NOT set to air. Enabling destination zone!")
+end
+if self.Ndestination_Airports==0 and self.Ndestination_Zones==0 then
+self.random_destination=true
+local text="No airports or zones found given in SetDestination(). Enabling random destination airports!"
+env.error(RAT.id..text)
+MESSAGE:New(text,30):ToAll()
+end
+end
+if self.destinationzone and self.returnzone then
+env.error(RAT.id.."Destination zone _and_ return to zone not possible! Disabling return to zone.")
+self.returnzone=false
+end
+if self.returnzone and self.takeoff==RAT.wp.air then
+self.landing=RAT.wp.air
+end
+if self.FLminuser then
+self.FLminuser=math.min(self.FLminuser,self.aircraft.ceiling)
+end
+if self.FLmaxuser then
+self.FLmaxuser=math.min(self.FLmaxuser,self.aircraft.ceiling)
+end
+if self.FLcruise then
+self.FLcruise=math.min(self.FLcruise,self.aircraft.ceiling)
+end
+if self.FLminuser and self.FLmaxuser then
+if self.FLminuser>self.FLmaxuser then
+local min=self.FLminuser
+local max=self.FLmaxuser
+self.FLminuser=max
+self.FLmaxuser=min
+end
+end
+if self.FLminuser and self.FLcruise<self.FLminuser then
+self.FLcruise=self.FLminuser
+end
+if self.FLmaxuser and self.FLcruise>self.FLmaxuser then
+self.FLcruise=self.FLmaxuser
+end
+if self.uncontrolled then
+self.takeoff=RAT.wp.hot
+end
 end
 function RAT:SetCoalition(friendly)
 if friendly:lower()=="sameonly"then
@@ -20006,50 +20209,52 @@ _Type=RAT.wp.coldorhot
 end
 self.takeoff=_Type
 end
-function RAT:SetDeparture(names)
+function RAT:SetDeparture(departurenames)
 self.random_departure=false
-if type(names)=="table"then
+local names
+if type(departurenames)=="table"then
+names=departurenames
+elseif type(departurenames)=="string"then
+names={departurenames}
+else
+env.error(RAT.id.."Input parameter must be a string or a table in SetDeparture()!")
+end
 for _,name in pairs(names)do
 if self:_AirportExists(name)then
 table.insert(self.departure_ports,name)
+elseif self:_ZoneExists(name)then
+table.insert(self.departure_ports,name)
 else
-local z=trigger.misc.getZone(name)
-if z then
-table.insert(self.departure_zones,name)
+env.error(RAT.id.."ERROR! No departure airport or zone found with name "..name)
 end
 end
 end
-elseif type(names)=="string"then
-if self:_AirportExists(names)then
-table.insert(self.departure_ports,names)
-else
-table.insert(self.departure_zones,names)
-end
-else
-env.error("Input parameter must be a string or a table!")
-end
-end
-function RAT:SetDestination(names)
+function RAT:SetDestination(destinationnames)
 self.random_destination=false
-if type(names)=="table"then
+local names
+if type(destinationnames)=="table"then
+names=destinationnames
+elseif type(destinationnames)=="string"then
+names={destinationnames}
+else
+env.error(RAT.id.."Input parameter must be a string or a table in SetDestination()!")
+end
 for _,name in pairs(names)do
 if self:_AirportExists(name)then
 table.insert(self.destination_ports,name)
+elseif self:_ZoneExists(name)then
+table.insert(self.destination_ports,name)
 else
-local text=string.format("Airport %s does not exist on map!",name)
-env.error(text)
+env.error(RAT.id.."ERROR! No destination airport or zone found with name "..name)
 end
 end
-elseif type(names)=="string"then
-if self:_AirportExists(names)then
-self.destination_ports={names}
-else
-local text=string.format("Airport %s does not exist on map!",names)
-env.error(text)
 end
-else
-env.error("Input parameter must be a string or a table!")
+function RAT:DestinationZone()
+self.destinationzone=true
+self.landing=RAT.wp.air
 end
+function RAT:ReturnZone()
+self.returnzone=true
 end
 function RAT:SetDestinationsFromZone(zone)
 self.random_destination=false
@@ -20059,11 +20264,30 @@ function RAT:SetDeparturesFromZone(zone)
 self.random_departure=false
 self.departure_Azone=zone
 end
+function RAT:AddFriendlyAirportsToDepartures()
+self.addfriendlydepartures=true
+end
+function RAT:AddFriendlyAirportsToDestinations()
+self.addfriendlydestinations=true
+end
 function RAT:ExcludedAirports(ports)
 if type(ports)=="string"then
 self.excluded_ports={ports}
 else
 self.excluded_ports=ports
+end
+end
+function RAT:SetAISkill(skill)
+if skill:lower()=="average"then
+self.skill="Average"
+elseif skill:lower()=="good"then
+self.skill="Good"
+elseif skill:lower()=="excellent"then
+self.skill="Excellent"
+elseif skill:lower()=="random"then
+self.skill="Random"
+else
+self.skill="High"
 end
 end
 function RAT:Livery(skins)
@@ -20073,35 +20297,80 @@ else
 self.livery=skins
 end
 end
-function RAT:ContinueJourney(switch)
-switch=switch or true
-self.continuejourney=switch
+function RAT:ChangeAircraft(actype)
+self.actype=actype
 end
-function RAT:Commute(switch)
-switch=switch or true
-self.commute=switch
+function RAT:ContinueJourney()
+self.continuejourney=true
+self.commute=false
+end
+function RAT:Commute()
+self.commute=true
+self.continuejourney=false
 end
 function RAT:SetSpawnDelay(delay)
+delay=delay or 5
 self.spawndelay=math.max(0.5,delay)
 end
 function RAT:SetSpawnInterval(interval)
+interval=interval or 5
 self.spawninterval=math.max(0.5,interval)
 end
 function RAT:RespawnAfterLanding(delay)
 delay=delay or 180
 self.respawn_at_landing=true
+delay=math.max(0.5,delay)
 self.respawn_delay=delay
 end
+function RAT:NoRespawn()
+self.norespawn=true
+end
+function RAT:RespawnAfterTakeoff()
+self.respawn_after_takeoff=true
+end
+function RAT:SetParkingID(id)
+self.parking_id=id
+env.info(RAT.id.."Setting parking ID to "..self.parking_id)
+end
+function RAT:RadioON()
+self.radio=true
+end
+function RAT:RadioOFF()
+self.radio=false
+end
+function RAT:RadioFrequency(frequency)
+self.frequency=frequency
+end
+function RAT:Uncontrolled()
+self.uncontrolled=true
+end
+function RAT:RadioModulation(modulation)
+if modulation=="AM"then
+self.modulation=radio.modulation.AM
+elseif modulation=="FM"then
+self.modulation=radio.modulation.FM
+else
+self.modulation=radio.modulation.AM
+end
+end
 function RAT:TimeDestroyInactive(time)
+time=time or self.Tinactive
+time=math.max(time,60)
 self.Tinactive=time
 end
 function RAT:SetMaxCruiseSpeed(speed)
 self.Vcruisemax=speed/3.6
 end
 function RAT:SetClimbRate(rate)
+rate=rate or self.Vclimb
+rate=math.max(rate,100)
+rate=math.min(rate,15000)
 self.Vclimb=rate
 end
 function RAT:SetDescentAngle(angle)
+angle=angle or self.AlphaDescent
+angle=math.max(angle,0.5)
+angle=math.min(angle,50)
 self.AlphaDescent=angle
 end
 function RAT:SetROE(roe)
@@ -20126,7 +20395,16 @@ function RAT:MenuName(name)
 self.SubMenuName=tostring(name)
 end
 function RAT:EnableATC(switch)
+if switch==nil then
+switch=true
+end
 self.ATCswitch=switch
+end
+function RAT:ATC_Clearance(n)
+RAT.ATC.Nclearance=n or 2
+end
+function RAT:ATC_Delay(time)
+RAT.ATC.delay=time or 240
 end
 function RAT:SetMinDistance(dist)
 self.mindist=math.max(500,dist*1000)
@@ -20135,37 +20413,45 @@ function RAT:SetMaxDistance(dist)
 self.maxdist=dist*1000
 end
 function RAT:_Debug(switch)
-switch=switch or true
+if switch==nil then
+switch=true
+end
 self.debug=switch
 end
 function RAT:StatusReports(switch)
-switch=switch or true
+if switch==nil then
+switch=true
+end
 self.reportstatus=switch
 end
 function RAT:PlaceMarkers(switch)
-switch=switch or true
+if switch==nil then
+switch=true
+end
 self.placemarkers=switch
 end
-function RAT:SetFL(height)
-self.FLuser=height*RAT.unit.FL2m
+function RAT:SetFL(FL)
+FL=FL or self.FLcruise
+FL=math.max(FL,0)
+self.FLuser=FL*RAT.unit.FL2m
 end
-function RAT:SetFLmax(height)
-self.FLmaxuser=height*RAT.unit.FL2m
+function RAT:SetFLmax(FL)
+self.FLmaxuser=FL*RAT.unit.FL2m
 end
 function RAT:SetMaxCruiseAltitude(alt)
 self.FLmaxuser=alt
 end
-function RAT:SetFLmin(height)
-self.FLminuser=height*RAT.unit.FL2m
+function RAT:SetFLmin(FL)
+self.FLminuser=FL*RAT.unit.FL2m
 end
 function RAT:SetMinCruiseAltitude(alt)
 self.FLminuser=alt
 end
-function RAT:SetFLcruise(height)
-self.aircraft.FLcruise=height*RAT.unit.FL2m
+function RAT:SetFLcruise(FL)
+self.FLcruise=FL*RAT.unit.FL2m
 end
 function RAT:SetCruiseAltitude(alt)
-self.aircraft.FLcruise=alt
+self.FLcruise=alt
 end
 function RAT:_InitAircraft(DCSgroup)
 local DCSunit=DCSgroup:getUnit(1)
@@ -20186,15 +20472,10 @@ end
 self.aircraft.type=DCStype
 self.aircraft.fuel=DCSunit:getFuel()
 self.aircraft.Rmax=DCSdesc.range*RAT.unit.nm2m
-self.aircraft.Reff=self.aircraft.Rmax*self.aircraft.fuel*0.9
+self.aircraft.Reff=self.aircraft.Rmax*self.aircraft.fuel*0.95
 self.aircraft.Vmax=DCSdesc.speedMax
 self.aircraft.Vymax=DCSdesc.VyMax
 self.aircraft.ceiling=DCSdesc.Hmax
-if self.category==RAT.cat.plane then
-self.aircraft.FLcruise=200*RAT.unit.FL2m
-else
-self.aircraft.FLcruise=005*RAT.unit.FL2m
-end
 local text=string.format("\n******************************************************\n")
 text=text..string.format("Aircraft parameters:\n")
 text=text..string.format("Template group  =  %s\n",self.SpawnTemplatePrefix)
@@ -20205,27 +20486,50 @@ text=text..string.format("Max air speed   = %6.1f m/s\n",self.aircraft.Vmax)
 text=text..string.format("Max climb speed = %6.1f m/s\n",self.aircraft.Vymax)
 text=text..string.format("Initial Fuel    = %6.1f\n",self.aircraft.fuel*100)
 text=text..string.format("Max range       = %6.1f km\n",self.aircraft.Rmax/1000)
-text=text..string.format("Eff range       = %6.1f km\n",self.aircraft.Reff/1000)
+text=text..string.format("Eff range       = %6.1f km (with 95 percent initial fuel amount)\n",self.aircraft.Reff/1000)
 text=text..string.format("Ceiling         = %6.1f km = FL%3.0f\n",self.aircraft.ceiling/1000,self.aircraft.ceiling/RAT.unit.FL2m)
-text=text..string.format("FL cruise       = %6.1f km = FL%3.0f\n",self.aircraft.FLcruise/1000,self.aircraft.FLcruise/RAT.unit.FL2m)
 text=text..string.format("******************************************************\n")
 env.info(RAT.id..text)
 end
-function RAT:_SpawnWithRoute(_departure,_destination)
-local _takeoff=self.takeoff
+function RAT:_SpawnWithRoute(_departure,_destination,_takeoff,_landing,_livery,_waypoint)
+local takeoff=self.takeoff
+local landing=self.landing
 if self.takeoff==RAT.wp.coldorhot then
 local temp={RAT.wp.cold,RAT.wp.hot}
-_takeoff=temp[math.random(2)]
+takeoff=temp[math.random(2)]
 end
-local departure,destination,waypoints=self:_SetRoute(_takeoff,_departure,_destination)
+if _takeoff then
+takeoff=_takeoff
+end
+if _landing then
+landing=_landing
+end
+local departure,destination,waypoints=self:_SetRoute(takeoff,landing,_departure,_destination,_waypoint)
 if not(departure and destination and waypoints)then
 return nil
 end
-self:_ModifySpawnTemplate(waypoints)
+local livery
+if _livery then
+livery=_livery
+elseif self.livery then
+livery=self.livery[math.random(#self.livery)]
+local text=string.format("Chosen livery for group %s: %s",self:_AnticipatedGroupName(),livery)
+env.info(RAT.id..text)
+else
+livery=nil
+end
+self:_ModifySpawnTemplate(waypoints,livery)
 local group=self:SpawnWithIndex(self.SpawnIndex)
 self.alive=self.alive+1
-if self.ATCswitch then
+if self.ATCswitch and landing==RAT.wp.landing then
+if self.returnzone then
+RAT:_ATCAddFlight(group:GetName(),departure:GetName())
+else
 RAT:_ATCAddFlight(group:GetName(),destination:GetName())
+end
+end
+if self.placemarkers then
+self:_PlaceMarkers(waypoints,self.SpawnIndex)
 end
 self:_SetROE(group,self.roe)
 self:_SetROT(group,self.rot)
@@ -20248,7 +20552,10 @@ end
 self.ratcraft[self.SpawnIndex]["P0"]=group:GetCoordinate()
 self.ratcraft[self.SpawnIndex]["Pnow"]=group:GetCoordinate()
 self.ratcraft[self.SpawnIndex]["Distance"]=0
-self.ratcraft[self.SpawnIndex]["takeoff"]=_takeoff
+self.ratcraft[self.SpawnIndex].takeoff=takeoff
+self.ratcraft[self.SpawnIndex].landing=landing
+self.ratcraft[self.SpawnIndex].livery=livery
+self.ratcraft[self.SpawnIndex].despawnme=false
 if self.f10menu then
 local name=self.aircraft.type.." ID "..tostring(self.SpawnIndex)
 self.Menu[self.SubMenuName].groups[self.SpawnIndex]=MENU_MISSION:New(name,self.Menu[self.SubMenuName].groups)
@@ -20261,37 +20568,86 @@ MENU_MISSION_COMMAND:New("No reaction",self.Menu[self.SubMenuName].groups[self.S
 MENU_MISSION_COMMAND:New("Passive defense",self.Menu[self.SubMenuName].groups[self.SpawnIndex]["rot"],self._SetROT,self,group,RAT.ROT.passive)
 MENU_MISSION_COMMAND:New("Evade on fire",self.Menu[self.SubMenuName].groups[self.SpawnIndex]["rot"],self._SetROT,self,group,RAT.ROT.evade)
 MENU_MISSION_COMMAND:New("Despawn group",self.Menu[self.SubMenuName].groups[self.SpawnIndex],self._Despawn,self,group)
-MENU_MISSION_COMMAND:New("Clear for landing",self.Menu[self.SubMenuName].groups[self.SpawnIndex],self.ClearForLanding,self,group:GetName())
-MENU_MISSION_COMMAND:New("Place markers",self.Menu[self.SubMenuName].groups[self.SpawnIndex],self._PlaceMarkers,self,waypoints)
+MENU_MISSION_COMMAND:New("Place markers",self.Menu[self.SubMenuName].groups[self.SpawnIndex],self._PlaceMarkers,self,waypoints,self.SpawnIndex)
 MENU_MISSION_COMMAND:New("Status report",self.Menu[self.SubMenuName].groups[self.SpawnIndex],self.Status,self,true,self.SpawnIndex)
 end
 return self.SpawnIndex
 end
 function RAT:ClearForLanding(name)
-env.info("ATC: setting user flag "..name.." to 1.")
 trigger.action.setUserFlag(name,1)
 local flagvalue=trigger.misc.getUserFlag(name)
-env.info("ATC: user flag "..name.." ="..flagvalue)
+env.info(RAT.id.."ATC: User flag value (landing) for "..name.." set to "..flagvalue)
 end
 function RAT:_Respawn(group)
 local index=self:GetSpawnIndexFromGroup(group)
 local departure=self.ratcraft[index].departure
 local destination=self.ratcraft[index].destination
+local takeoff=self.ratcraft[index].takeoff
+local landing=self.ratcraft[index].landing
+local livery=self.ratcraft[index].livery
+local lastwp=self.ratcraft[index].waypoints[#self.ratcraft[index].waypoints]
 local _departure=nil
 local _destination=nil
+local _takeoff=nil
+local _landing=nil
+local _livery=nil
+local _lastwp=nil
 if self.continuejourney then
 _departure=destination:GetName()
+_livery=livery
+if self.destinationzone then
+_takeoff=RAT.wp.air
+_landing=RAT.wp.air
+elseif self.returnzone then
+_takeoff=self.takeoff
+if self.takeoff==RAT.wp.air then
+_landing=RAT.wp.air
+else
+_landing=RAT.wp.landing
+end
+_departure=departure:GetName()
+else
+_takeoff=self.takeoff
+_landing=self.landing
+end
 elseif self.commute then
 _departure=destination:GetName()
 _destination=departure:GetName()
+_livery=livery
+if self.destinationzone then
+if self.takeoff==RAT.wp.air then
+_takeoff=RAT.wp.air
+_landing=RAT.wp.air
+else
+if takeoff==RAT.wp.air then
+_takeoff=self.takeoff
+_landing=RAT.wp.air
+else
+_takeoff=RAT.wp.air
+_landing=RAT.wp.landing
+end
+end
+elseif self.returnzone then
+_departure=departure:GetName()
+_destination=destination:GetName()
+_takeoff=self.takeoff
+_landing=self.landing
+end
+end
+if _takeoff==RAT.wp.air and(self.continuejourney or self.commute)then
+_lastwp=lastwp
+end
+if self.debug then
+env.info(RAT.id..string.format("self.takeoff, takeoff, _takeoff = %s, %s, %s",tostring(self.takeoff),tostring(takeoff),tostring(_takeoff)))
+env.info(RAT.id..string.format("self.landing, landing, _landing = %s, %s, %s",tostring(self.landing),tostring(landing),tostring(_landing)))
 end
 if self.respawn_delay then
-SCHEDULER:New(nil,self._SpawnWithRoute,{self,_departure,_destination},self.respawn_delay)
+SCHEDULER:New(nil,self._SpawnWithRoute,{self,_departure,_destination,_takeoff,_landing,_livery,_lastwp},self.respawn_delay)
 else
-self:_SpawnWithRoute(_departure,_destination)
+self:_SpawnWithRoute(_departure,_destination,_takeoff,_landing,_livery,_lastwp)
 end
 end
-function RAT:_SetRoute(takeoff,_departure,_destination)
+function RAT:_SetRoute(takeoff,landing,_departure,_destination,_waypoint)
 local VxCruiseMax
 if self.Vcruisemax then
 VxCruiseMax=min(self.Vcruisemax,self.aircraft.Vmax)
@@ -20307,10 +20663,16 @@ local VxFinal=VxHolding*0.9
 local VyClimb=math.min(self.Vclimb*RAT.unit.ft2meter/60,self.aircraft.Vymax)
 local AlphaClimb=math.asin(VyClimb/VxClimb)
 local AlphaDescent=math.rad(self.AlphaDescent)
+local FLcruise_expect=self.FLcruise
 local departure=nil
 if _departure then
 if self:_AirportExists(_departure)then
 departure=AIRBASE:FindByName(_departure)
+if takeoff==RAT.wp.air then
+departure=departure:GetZone()
+end
+elseif self:_ZoneExists(_departure)then
+departure=ZONE:New(_departure)
 else
 local text=string.format("ERROR: Specified departure airport %s does not exist for %s!",_departure,self.alias)
 env.error(RAT.id..text)
@@ -20326,8 +20688,12 @@ return nil
 end
 local Pdeparture
 if takeoff==RAT.wp.air then
+if _waypoint then
+Pdeparture=COORDINATE:New(_waypoint.x,_waypoint.alt,_waypoint.y)
+else
 local vec2=departure:GetRandomVec2()
 Pdeparture=COORDINATE:NewFromVec2(vec2)
+end
 else
 Pdeparture=departure:GetCoordinate()
 end
@@ -20339,29 +20705,59 @@ Hmin=1000
 else
 Hmin=50
 end
-H_departure=self:_Randomize(self.aircraft.FLcruise*0.7,0.3,Pdeparture.y+Hmin,self.aircraft.FLcruise)
+H_departure=self:_Randomize(FLcruise_expect*0.7,0.3,Pdeparture.y+Hmin,FLcruise_expect)
+if self.FLminuser then
+H_departure=math.max(H_departure,self.FLminuser)
+end
+if _waypoint then
+H_departure=_waypoint.alt
+end
 else
 H_departure=Pdeparture.y
 end
+local mindist=self.mindist
 if self.FLminuser then
-self.mindist=self:_MinDistance(AlphaClimb,AlphaDescent,self.FLminuser-H_departure)
-local text=string.format("Adjusting min distance to %d km (for given min FL%03d)",self.mindist/1000,self.FLminuser/RAT.unit.FL2m)
+local hclimb=self.FLminuser-H_departure
+local hdescent=self.FLminuser-H_departure
+local Dclimb,Ddescent,Dtot=self:_MinDistance(AlphaClimb,AlphaDescent,hclimb,hdescent)
+if takeoff==RAT.wp.air and landing==RAT.wpair then
+mindist=0
+elseif takeoff==RAT.wp.air then
+mindist=Ddescent
+elseif landing==RAT.wp.air then
+mindist=Dclimb
+else
+mindist=Dtot
+end
+mindist=math.max(self.mindist,mindist)
+local text=string.format("Adjusting min distance to %d km (for given min FL%03d)",mindist/1000,self.FLminuser/RAT.unit.FL2m)
 env.info(RAT.id..text)
 end
 local destination=nil
 if _destination then
 if self:_AirportExists(_destination)then
 destination=AIRBASE:FindByName(_destination)
+if landing==RAT.wp.air or self.returnzone then
+destination=destination:GetZone()
+end
+elseif self:_ZoneExists(_destination)then
+destination=ZONE:New(_destination)
 else
-local text=string.format("ERROR: Specified destination airport %s does not exist for %s!",_destination,self.alias)
+local text=string.format("ERROR: Specified destination airport/zone %s does not exist for %s!",_destination,self.alias)
 env.error(RAT.id..text)
 end
 else
+local random=self.random_destination
 if self.continuejourney and _departure and#self.destination_ports<3 then
-self.random_destination=true
+random=true
 end
-local destinations=self:_GetDestinations(departure,Pdeparture,self.mindist,math.min(self.aircraft.Reff,self.maxdist))
-destination=self:_PickDestination(destinations)
+local mylanding=landing
+local acrange=self.aircraft.Reff
+if self.returnzone then
+mylanding=RAT.wp.air
+acrange=self.aircraft.Reff/2
+end
+destination=self:_PickDestination(departure,Pdeparture,mindist,math.min(acrange,self.maxdist),random,mylanding)
 end
 if not destination then
 local text=string.format("No valid destination airport could be found for %s!",self.alias)
@@ -20370,18 +20766,33 @@ env.error(RAT.id..text)
 return nil
 end
 if destination:GetName()==departure:GetName()then
-local text=string.format("%s: Destination and departure airport are identical. Airport %s (ID %d).",self.alias,destination:GetName(),destination:GetID())
-MESSAGE:New(text,120):ToAll()
+local text=string.format("%s: Destination and departure are identical. Airport/zone %s.",self.alias,destination:GetName())
+MESSAGE:New(text,30):ToAll()
 env.error(RAT.id..text)
 end
-local Pdestination=destination:GetCoordinate()
-local H_destination=Pdestination.y
-local Vholding
-if self.category==RAT.cat.plane then
-Vholding=destination:GetCoordinate():GetRandomVec2InRadius(10000,5000)
-else
-Vholding=destination:GetCoordinate():GetRandomVec2InRadius(1000,500)
+local Preturn
+local destination_returnzone
+if self.returnzone then
+local vec2=destination:GetRandomVec2()
+Preturn=COORDINATE:NewFromVec2(vec2)
+destination_returnzone=destination
+destination=departure
 end
+local Pdestination
+if landing==RAT.wp.air then
+local vec2=destination:GetRandomVec2()
+Pdestination=COORDINATE:NewFromVec2(vec2)
+else
+Pdestination=destination:GetCoordinate()
+end
+local H_destination=Pdestination.y
+local Rhmin=8000
+local Rhmax=20000
+if self.category==RAT.cat.heli then
+Rhmin=500
+Rhmax=1000
+end
+local Vholding=Pdestination:GetRandomVec2InRadius(Rhmax,Rhmin)
 local Pholding=COORDINATE:NewFromVec2(Vholding)
 local H_holding=Pholding.y
 local h_holding
@@ -20391,46 +20802,96 @@ else
 h_holding=150
 end
 h_holding=self:_Randomize(h_holding,0.2)
-local d_holding=Pholding:Get2DDistance(Pdestination)
-local deltaH=math.abs(h_holding+H_holding-H_departure)
-local heading=self:_Course(Pdeparture,Pholding)
-local d_total=Pdeparture:Get2DDistance(Pholding)
-local phi=math.atan(deltaH/d_total)
-local PhiClimb=AlphaClimb+phi
-local PhiDescent=AlphaDescent-phi
-local FLmax=self:_FLmax(AlphaClimb,AlphaDescent,d_total,phi,H_departure)
-local FLmin=math.max(H_departure,H_holding+h_holding)
-if FLmin>FLmax then
-FLmin=FLmax*0.75
+local Hh_holding=H_holding+h_holding
+if landing==RAT.wp.air then
+Hh_holding=H_departure
 end
+local d_holding=Pholding:Get2DDistance(Pdestination)
+local heading
+local d_total
+if self.returnzone then
+heading=self:_Course(Pdeparture,Preturn)
+d_total=Pdeparture:Get2DDistance(Preturn)+Preturn:Get2DDistance(Pholding)
+else
+heading=self:_Course(Pdeparture,Pholding)
+d_total=Pdeparture:Get2DDistance(Pholding)
+end
+if takeoff==RAT.wp.air then
+local H_departure_max
+if landing==RAT.wp.air then
+H_departure_max=H_departure
+else
+H_departure_max=d_total*math.tan(AlphaDescent)+Hh_holding
+end
+H_departure=math.min(H_departure,H_departure_max)
+end
+local deltaH=math.abs(H_departure-Hh_holding)
+local phi=math.atan(deltaH/d_total)
+local phi_climb
+local phi_descent
+if(H_departure>Hh_holding)then
+phi_climb=AlphaClimb+phi
+phi_descent=AlphaDescent-phi
+else
+phi_climb=AlphaClimb-phi
+phi_descent=AlphaDescent+phi
+end
+local D_total
+if self.returnzone then
+D_total=math.sqrt(deltaH*deltaH+d_total/2*d_total/2)
+else
+D_total=math.sqrt(deltaH*deltaH+d_total*d_total)
+end
+local gamma=math.rad(180)-phi_climb-phi_descent
+local a=D_total*math.sin(phi_climb)/math.sin(gamma)
+local b=D_total*math.sin(phi_descent)/math.sin(gamma)
+local hphi_max=b*math.sin(phi_climb)
+local hphi_max2=a*math.sin(phi_descent)
+local h_max1=b*math.sin(AlphaClimb)
+local h_max2=a*math.sin(AlphaDescent)
+local h_max
+if(H_departure>Hh_holding)then
+h_max=math.min(h_max1,h_max2)
+else
+h_max=math.max(h_max1,h_max2)
+end
+local FLmax=h_max+H_departure
+local FLmin=math.max(H_departure,Hh_holding)
 if self.category==RAT.cat.heli then
 FLmin=math.max(H_departure,H_destination)+50
 FLmax=math.max(H_departure,H_destination)+1000
 end
-FLmax=math.min(FLmax,self.aircraft.ceiling*0.9)
+FLmax=math.min(FLmax,self.aircraft.ceiling)
 if self.FLminuser then
-FLmin=self.FLminuser
+FLmin=math.max(self.FLminuser,FLmin)
 end
 if self.FLmaxuser then
-FLmax=self.FLmaxuser
+FLmax=math.min(self.FLmaxuser,FLmax)
 end
-if self.aircraft.FLcruise<FLmin then
-self.aircraft.FLcruise=FLmin
+if FLmin>FLmax then
+FLmin=FLmax
 end
-if self.aircraft.FLcruise>FLmax then
-self.aircraft.FLcruise=FLmax
+if FLcruise_expect<FLmin then
+FLcruise_expect=FLmin
 end
-local FLcruise=self:_Random_Gaussian(self.aircraft.FLcruise,(FLmax-FLmin)/4,FLmin,FLmax)
+if FLcruise_expect>FLmax then
+FLcruise_expect=FLmax
+end
+local FLcruise=self:_Random_Gaussian(FLcruise_expect,math.abs(FLmax-FLmin)/4,FLmin,FLmax)
 if self.FLuser then
 FLcruise=self.FLuser
+FLcruise=math.max(FLcruise,FLmin)
+FLcruise=math.min(FLcruise,FLmax)
 end
 local h_climb=FLcruise-H_departure
-local d_climb=h_climb/math.tan(PhiClimb)
-local h_descent=FLcruise-(H_holding+h_holding)
-local d_descent=h_descent/math.tan(PhiDescent)
+local h_descent=FLcruise-Hh_holding
+local d_climb=h_climb/math.tan(AlphaClimb)
+local d_descent=h_descent/math.tan(AlphaDescent)
 local d_cruise=d_total-d_climb-d_descent
 local text=string.format("\n******************************************************\n")
-text=text..string.format("Template      =  %s\n\n",self.SpawnTemplatePrefix)
+text=text..string.format("Template      =  %s\n",self.SpawnTemplatePrefix)
+text=text..string.format("Alias         =  %s\n",self.alias)
+text=text..string.format("Group name    =  %s\n\n",self:_AnticipatedGroupName())
 text=text..string.format("Speeds:\n")
 text=text..string.format("VxCruiseMin   = %6.1f m/s = %5.1f km/h\n",VxCruiseMin,VxCruiseMin*3.6)
 text=text..string.format("VxCruiseMax   = %6.1f m/s = %5.1f km/h\n",VxCruiseMax,VxCruiseMax*3.6)
@@ -20458,74 +20919,160 @@ text=text..string.format("FLmin         = %6.1f m ASL = FL%03d\n",FLmin,FLmin/RA
 text=text..string.format("FLcruise      = %6.1f m ASL = FL%03d\n",FLcruise,FLcruise/RAT.unit.FL2m)
 text=text..string.format("FLmax         = %6.1f m ASL = FL%03d\n",FLmax,FLmax/RAT.unit.FL2m)
 text=text..string.format("\nAngles:\n")
-text=text..string.format("Alpha climb   = %6.1f Deg\n",math.deg(AlphaClimb))
-text=text..string.format("Alpha descent = %6.1f Deg\n",math.deg(AlphaDescent))
-text=text..string.format("Phi (slope)   = %6.1f Deg\n",math.deg(phi))
-text=text..string.format("Phi climb     = %6.1f Deg\n",math.deg(PhiClimb))
-text=text..string.format("Phi descent   = %6.1f Deg\n",math.deg(PhiDescent))
+text=text..string.format("Alpha climb   = %6.2f Deg\n",math.deg(AlphaClimb))
+text=text..string.format("Alpha descent = %6.2f Deg\n",math.deg(AlphaDescent))
+text=text..string.format("Phi (slope)   = %6.2f Deg\n",math.deg(phi))
+text=text..string.format("Phi climb     = %6.2f Deg\n",math.deg(phi_climb))
+text=text..string.format("Phi descent   = %6.2f Deg\n",math.deg(phi_descent))
+if self.debug then
+local h_climb_max=FLmax-H_departure
+local h_descent_max=FLmax-Hh_holding
+local d_climb_max=h_climb_max/math.tan(AlphaClimb)
+local d_descent_max=h_descent_max/math.tan(AlphaDescent)
+local d_cruise_max=d_total-d_climb_max-d_descent_max
 text=text..string.format("Heading       = %6.1f Deg\n",heading)
+text=text..string.format("\nSSA triangle:\n")
+text=text..string.format("D_total       = %6.1f km\n",D_total/1000)
+text=text..string.format("gamma         = %6.1f Deg\n",math.deg(gamma))
+text=text..string.format("a             = %6.1f m\n",a)
+text=text..string.format("b             = %6.1f m\n",b)
+text=text..string.format("hphi_max      = %6.1f m\n",hphi_max)
+text=text..string.format("hphi_max2     = %6.1f m\n",hphi_max2)
+text=text..string.format("h_max1        = %6.1f m\n",h_max1)
+text=text..string.format("h_max2        = %6.1f m\n",h_max2)
+text=text..string.format("h_max         = %6.1f m\n",h_max)
+text=text..string.format("\nMax heights and distances:\n")
+text=text..string.format("d_climb_max   = %6.1f km\n",d_climb_max/1000)
+text=text..string.format("d_cruise_max  = %6.1f km\n",d_cruise_max/1000)
+text=text..string.format("d_descent_max = %6.1f km\n",d_descent_max/1000)
+text=text..string.format("h_climb_max   = %6.1f m\n",h_climb_max)
+text=text..string.format("h_descent_max = %6.1f m\n",h_descent_max)
+end
 text=text..string.format("******************************************************\n")
 env.info(RAT.id..text)
 if d_cruise<0 then
 d_cruise=100
 end
-local c0=Pdeparture
-local c1=c0:Translate(d_climb/2,heading)
-local c2=c1:Translate(d_climb/2,heading)
-local c3=c2:Translate(d_cruise,heading)
-local c4=c3:Translate(d_descent/2,heading)
-local c5=Pholding
-local c6=Pdestination
-local wp0=self:_Waypoint(takeoff,c0,VxClimb,H_departure,departure)
-local wp1=self:_Waypoint(RAT.wp.climb,c1,VxClimb,H_departure+(FLcruise-H_departure)/2)
-local wp2=self:_Waypoint(RAT.wp.cruise,c2,VxCruise,FLcruise)
-local wp3=self:_Waypoint(RAT.wp.cruise,c3,VxCruise,FLcruise)
-local wp4=self:_Waypoint(RAT.wp.descent,c4,VxDescent,FLcruise-(FLcruise-(h_holding+H_holding))/2)
-local wp5=self:_Waypoint(RAT.wp.holding,c5,VxHolding,H_holding+h_holding)
-local wp6=self:_Waypoint(RAT.wp.landing,c6,VxFinal,H_destination,destination)
-local waypoints={wp0,wp1,wp2,wp3,wp4,wp5,wp6}
-if self.placemarkers then
-self:_PlaceMarkers(waypoints)
+local wp={}
+local c={}
+c[#c+1]=Pdeparture
+wp[#wp+1]=self:_Waypoint(#wp+1,takeoff,c[#wp+1],VxClimb,H_departure,departure)
+self.waypointdescriptions[#wp]="Departure"
+self.waypointstatus[#wp]=RAT.status.Departure
+if takeoff==RAT.wp.air then
+if d_climb<5000 or d_cruise<5000 then
+d_cruise=d_cruise+d_climb
+else
+c[#c+1]=c[#c]:Translate(d_climb,heading)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.cruise,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="Begin of Cruise"
+self.waypointstatus[#wp]=RAT.status.Cruise
+end
+else
+c[#c+1]=c[#c]:Translate(d_climb/2,heading)
+c[#c+1]=c[#c]:Translate(d_climb/2,heading)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.climb,c[#wp+1],VxClimb,H_departure+(FLcruise-H_departure)/2)
+self.waypointdescriptions[#wp]="Climb"
+self.waypointstatus[#wp]=RAT.status.Climb
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.cruise,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="Begin of Cruise"
+self.waypointstatus[#wp]=RAT.status.Cruise
+end
+if self.returnzone then
+c[#c+1]=Preturn
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.cruise,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="Return Zone"
+self.waypointstatus[#wp]=RAT.status.Uturn
+end
+if landing==RAT.wp.air then
+c[#c+1]=Pdestination
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.finalwp,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="Final Destination"
+self.waypointstatus[#wp]=RAT.status.Destination
+elseif self.returnzone then
+c[#c+1]=c[#c]:Translate(d_cruise/2,heading-180)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.cruise,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="End of Cruise"
+self.waypointstatus[#wp]=RAT.status.Descent
+else
+c[#c+1]=c[#c]:Translate(d_cruise,heading)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.cruise,c[#wp+1],VxCruise,FLcruise)
+self.waypointdescriptions[#wp]="End of Cruise"
+self.waypointstatus[#wp]=RAT.status.Descent
+end
+if landing==RAT.wp.landing then
+if self.returnzone then
+c[#c+1]=c[#c]:Translate(d_descent/2,heading-180)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.descent,c[#wp+1],VxDescent,FLcruise-(FLcruise-(h_holding+H_holding))/2)
+self.waypointdescriptions[#wp]="Descent"
+self.waypointstatus[#wp]=RAT.status.DescentHolding
+else
+c[#c+1]=c[#c]:Translate(d_descent/2,heading)
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.descent,c[#wp+1],VxDescent,FLcruise-(FLcruise-(h_holding+H_holding))/2)
+self.waypointdescriptions[#wp]="Descent"
+self.waypointstatus[#wp]=RAT.status.DescentHolding
+end
+end
+if landing==RAT.wp.landing then
+c[#c+1]=Pholding
+wp[#wp+1]=self:_Waypoint(#wp+1,RAT.wp.holding,c[#wp+1],VxHolding,H_holding+h_holding)
+self.waypointdescriptions[#wp]="Holding Point"
+self.waypointstatus[#wp]=RAT.status.Holding
+self.wp_holding=#wp
+c[#c+1]=Pdestination
+wp[#wp+1]=self:_Waypoint(#wp+1,landing,c[#wp+1],VxFinal,H_destination,destination)
+self.waypointdescriptions[#wp]="Destination"
+self.waypointstatus[#wp]=RAT.status.Destination
+end
+self.wp_final=#wp
+local waypoints={}
+for _,p in ipairs(wp)do
+table.insert(waypoints,p)
 end
 self:_Routeinfo(waypoints,"Waypoint info in set_route:")
+if self.returnzone then
+return departure,destination_returnzone,waypoints
+else
 return departure,destination,waypoints
+end
 end
 function RAT:_PickDeparture(takeoff)
 local departures={}
+if self.random_departure then
+for _,airport in pairs(self.airports)do
+local name=airport:GetName()
+if not self:_Excluded(name)then
 if takeoff==RAT.wp.air then
-if self.random_departure then
-for _,airport in pairs(self.airports)do
-if not self:_Excluded(airport:GetName())then
 table.insert(departures,airport:GetZone())
-end
-end
 else
-for _,name in pairs(self.departure_zones)do
-if not self:_Excluded(name)then
-table.insert(departures,ZONE:New(name))
-end
-end
-for _,name in pairs(self.departure_ports)do
-if not self:_Excluded(name)then
-table.insert(departures,AIRBASE:FindByName(name):GetZone())
-end
-end
-end
-else
-if self.random_departure then
-for _,airport in pairs(self.airports)do
-if not self:_Excluded(airport:GetName())then
 table.insert(departures,airport)
 end
 end
+end
 else
 for _,name in pairs(self.departure_ports)do
-if self:_IsFriendly(name)and not self:_Excluded(name)then
-table.insert(departures,AIRBASE:FindByName(name))
+local dep=nil
+if self:_AirportExists(name)then
+if takeoff==RAT.wp.air then
+dep=AIRBASE:FindByName(name):GetZone()
+else
+dep=AIRBASE:FindByName(name)
+end
+elseif self:_ZoneExists(name)then
+if takeoff==RAT.wp.air then
+dep=ZONE:New(name)
+else
+env.error(RAT.id.."Takeoff is not in air. Cannot use "..name.." as departure!")
+end
+else
+env.error(RAT.id.."No airport or zone found with name "..name)
+end
+if dep then
+table.insert(departures,dep)
 end
 end
 end
-end
+env.info(RAT.id.."Number of possible departures = "..#departures)
 local departure=departures[math.random(#departures)]
 local text
 if departure and departure:GetName()then
@@ -20539,59 +21086,89 @@ if self.debug then
 MESSAGE:New(text,30):ToAll()
 end
 else
+env.error(RAT.id.."No departure airport or zone found.")
 departure=nil
 end
 return departure
 end
-function RAT:_PickDestination(destinations,_random)
-local destination=nil
-if destinations and#destinations>0 then
-destination=destinations[math.random(#destinations)]
-local text="Chosen destination airport: "..destination:GetName().." (ID "..destination:GetID()..")"
-env.info(RAT.id..text)
-if self.debug then
-MESSAGE:New(text,30):ToAll()
-end
-else
-env.error(RAT.id.."No destination airport found.")
-end
-return destination
-end
-function RAT:_GetDestinations(departure,q,minrange,maxrange)
+function RAT:_PickDestination(departure,q,minrange,maxrange,random,landing)
 minrange=minrange or self.mindist
 maxrange=maxrange or self.maxdist
-local possible_destinations={}
-if self.random_destination then
+local destinations={}
+if random then
 for _,airport in pairs(self.airports)do
 local name=airport:GetName()
 if self:_IsFriendly(name)and not self:_Excluded(name)and name~=departure:GetName()then
 local distance=q:Get2DDistance(airport:GetCoordinate())
 if distance>=minrange and distance<=maxrange then
-table.insert(possible_destinations,airport)
+if landing==RAT.wp.air then
+table.insert(destinations,airport:GetZone())
+else
+table.insert(destinations,airport)
+end
 end
 end
 end
 else
 for _,name in pairs(self.destination_ports)do
 if name~=departure:GetName()then
-local airport=AIRBASE:FindByName(name)
-table.insert(possible_destinations,airport)
+local dest=nil
+if self:_AirportExists(name)then
+if landing==RAT.wp.air then
+dest=AIRBASE:FindByName(name):GetZone()
+else
+dest=AIRBASE:FindByName(name)
+end
+elseif self:_ZoneExists(name)then
+if landing==RAT.wp.air then
+dest=ZONE:New(name)
+else
+env.error(RAT.id.."Landing is not in air. Cannot use zone "..name.." as destination!")
+end
+else
+env.error(RAT.id.."No airport or zone found with name "..name)
+end
+if dest then
+local distance=q:Get2DDistance(dest:GetCoordinate())
+if distance>=minrange and distance<=maxrange then
+table.insert(destinations,dest)
+else
+local text=string.format("Destination %s is ouside range. Distance = %5.1f km, min = %5.1f km, max = %5.1f km.",name,distance,minrange,maxrange)
+env.info(RAT.id..text)
 end
 end
 end
-env.info(RAT.id.."Number of possible destination airports = "..#possible_destinations)
-if#possible_destinations>0 then
+end
+end
+env.info(RAT.id.."Number of possible destinations = "..#destinations)
+if#destinations>0 then
 local function compare(a,b)
 local qa=q:Get2DDistance(a:GetCoordinate())
 local qb=q:Get2DDistance(b:GetCoordinate())
 return qa<qb
 end
-table.sort(possible_destinations,compare)
+table.sort(destinations,compare)
 else
-env.error(RAT.id.."No possible destination airports found!")
-possible_destinations=nil
+destinations=nil
 end
-return possible_destinations
+local destination
+if destinations and#destinations>0 then
+destination=destinations[math.random(#destinations)]
+local text
+if landing==RAT.wp.air then
+text=string.format("Chosen destination zone: %s.",destination:GetName())
+else
+text=string.format("Chosen destination airport: %s (ID %d).",destination:GetName(),destination:GetID())
+end
+env.info(RAT.id..text)
+if self.debug then
+MESSAGE:New(text,30):ToAll()
+end
+else
+env.error(RAT.id.."No destination airport or zone found.")
+destination=nil
+end
+return destination
 end
 function RAT:_GetAirportsInZone(zone)
 local airports={}
@@ -20640,9 +21217,7 @@ local _myab=AIRBASE:FindByName(_name)
 table.insert(self.airports_map,_myab)
 if self.debug then
 local text1="MOOSE: Airport ID = ".._myab:GetID().." and Name = ".._myab:GetName()..", Category = ".._myab:GetCategory()..", TypeName = ".._myab:GetTypeName()
-local text2="DCS  : Airport ID = "..airbase:getID().." and Name = "..airbase:getName()..", Category = "..airbase:getCategory()..", TypeName = "..airbase:getTypeName()
 env.info(RAT.id..text1)
-env.info(RAT.id..text2)
 end
 end
 end
@@ -20669,11 +21244,6 @@ function RAT:Status(message,forID)
 message=message or false
 forID=forID or false
 local ngroups=#self.ratcraft
-if(message and not forID)or self.reportstatus then
-local text=string.format("Alive groups of template %s: %d",self.SpawnTemplatePrefix,self.alive)
-env.info(RAT.id..text)
-MESSAGE:New(text,20):ToAll()
-end
 local Tnow=timer.getTime()
 for i=1,ngroups do
 if self.ratcraft[i].group then
@@ -20702,7 +21272,7 @@ Tg=Tnow-self.ratcraft[i]["Tground"]
 Dg=coords:Get2DDistance(self.ratcraft[i]["Pground"])
 dTlast=Tnow-self.ratcraft[i]["Tlastcheck"]
 if dTlast>self.Tinactive then
-if Dg<50 then
+if Dg<50 and not self.uncontrolled then
 stationary=true
 end
 self.ratcraft[i]["Tlastcheck"]=Tnow
@@ -20719,18 +21289,9 @@ local Dtravel=Pn:Get2DDistance(self.ratcraft[i]["Pnow"])
 self.ratcraft[i]["Pnow"]=Pn
 self.ratcraft[i]["Distance"]=self.ratcraft[i]["Distance"]+Dtravel
 local Ddestination=Pn:Get2DDistance(self.ratcraft[i].destination:GetCoordinate())
-local Hp=COORDINATE:New(self.ratcraft[i].waypoints[6].x,self.ratcraft[i].waypoints[6].alt,self.ratcraft[i].waypoints[6].y)
-local Dholding=Pn:Get2DDistance(Hp)
 local status=self.ratcraft[i].status
-local DRholding
-if self.category==RAT.cat.plane then
-DRholding=8000
-else
-DRholding=2000
-end
-if self.ATCswitch and Dholding<=DRholding and string.match(status,"On journey")then
-RAT:_ATCRegisterFlight(group:GetName(),Tnow)
-self.ratcraft[i].status="Holding"
+if self.uncontrolled then
+status="Uncontrolled"
 end
 if(forID and i==forID)or(not forID)then
 local text=string.format("ID %i of group %s\n",i,prefix)
@@ -20741,7 +21302,7 @@ text=text..string.format("%s travelling from %s to %s (and continueing form ther
 else
 text=text..string.format("%s travelling from %s to %s\n",type,departure,destination)
 end
-text=text..string.format("Status: %s",self.ratcraft[i].status)
+text=text..string.format("Status: %s",status)
 if airborne then
 text=text.." [airborne]\n"
 else
@@ -20749,9 +21310,9 @@ text=text.." [on ground]\n"
 end
 text=text..string.format("Fuel = %3.0f %%\n",fuel)
 text=text..string.format("Life  = %3.0f %%\n",life)
-text=text..string.format("FL%03d = %i m\n",alt/RAT.unit.FL2m,alt)
+text=text..string.format("FL%03d = %i m ASL\n",alt/RAT.unit.FL2m,alt)
 text=text..string.format("Distance travelled        = %6.1f km\n",self.ratcraft[i]["Distance"]/1000)
-text=text..string.format("Distance to destination = %6.1f km",Dholding/1000)
+text=text..string.format("Distance to destination = %6.1f km",Ddestination/1000)
 if not airborne then
 text=text..string.format("\nTime on ground  = %6.0f seconds\n",Tg)
 text=text..string.format("Position change = %8.1f m since %3.0f seconds.",Dg,dTlast)
@@ -20759,20 +21320,26 @@ end
 if self.debug then
 env.info(RAT.id..text)
 end
-if self.reportstatus or message then
+if message then
 MESSAGE:New(text,20):ToAll()
 end
 end
 if not airborne then
 if stationary then
-local text=string.format("Group %s is despawned after being %4.0f seconds inaktive on ground.",self.SpawnTemplatePrefix,dTlast)
+local text=string.format("Group %s is despawned after being %4.0f seconds inaktive on ground.",self.alias,dTlast)
 env.info(RAT.id..text)
 self:_Despawn(group)
 end
 if life<10 and Dtravel<100 then
-local text=string.format("Damaged group %s is despawned. Life = %3.0f",self.SpawnTemplatePrefix,life)
+local text=string.format("Damaged group %s is despawned. Life = %3.0f",self.alias,life)
 self:_Despawn(group)
 end
+end
+if self.ratcraft[i].despawnme then
+local text=string.format("Flight %s will be despawned NOW!",self.alias)
+env.info(RAT.id..text)
+self:_Respawn(self.ratcraft[i].group)
+self:_Despawn(self.ratcraft[i].group)
 end
 end
 else
@@ -20781,6 +21348,11 @@ local text=string.format("Group %i does not exist.",i)
 env.info(RAT.id..text)
 end
 end
+end
+if(message and not forID)then
+local text=string.format("Alive groups of %s: %d",self.alias,self.alive)
+env.info(RAT.id..text)
+MESSAGE:New(text,20):ToAll()
 end
 end
 function RAT:_GetLife(group)
@@ -20803,8 +21375,15 @@ return life
 end
 function RAT:_SetStatus(group,status)
 local index=self:GetSpawnIndexFromGroup(group)
-env.info(RAT.id.."Status for group "..group:GetName()..": "..status)
 self.ratcraft[index].status=status
+local no1=status==RAT.status.Departure
+local no2=status==RAT.status.EventBirthAir
+local no3=status==RAT.status.Holding
+local text=string.format("Flight %s: %s.",group:GetName(),status)
+env.info(RAT.id..text)
+if(not(no1 or no2 or no3))then
+MESSAGE:New(text,10):ToAllIf(self.reportstatus)
+end
 end
 function RAT:_OnBirth(EventData)
 local SpawnGroup=EventData.IniGroup
@@ -20817,8 +21396,10 @@ env.info(RAT.id..text)
 local status
 if SpawnGroup:InAir()then
 status="Just born (after air start)"
+status=RAT.status.EventBirthAir
 else
 status="Starting engines (after birth)"
+status=RAT.status.EventBirth
 end
 self:_SetStatus(SpawnGroup,status)
 end
@@ -20840,8 +21421,10 @@ env.info(RAT.id..text)
 local status
 if SpawnGroup:InAir()then
 status="On journey (after air start)"
+status=RAT.status.EventEngineStartAir
 else
 status="Taxiing (after engines started)"
+status=RAT.status.EventEngineStart
 end
 self:_SetStatus(SpawnGroup,status)
 end
@@ -20860,7 +21443,13 @@ if EventPrefix then
 if EventPrefix==self.alias then
 local text="Event: Group "..SpawnGroup:GetName().." is airborne."
 env.info(RAT.id..text)
-self:_SetStatus(SpawnGroup,"On journey (after takeoff)")
+local status=RAT.status.EventTakeoff
+self:_SetStatus(SpawnGroup,status)
+if self.respawn_after_takeoff then
+text="Event: Group "..SpawnGroup:GetName().." will be respawned."
+env.info(RAT.id..text)
+self:_Respawn(SpawnGroup)
+end
 end
 end
 else
@@ -20877,11 +21466,12 @@ if EventPrefix then
 if EventPrefix==self.alias then
 local text="Event: Group "..SpawnGroup:GetName().." landed."
 env.info(RAT.id..text)
-self:_SetStatus(SpawnGroup,"Taxiing (after landing)")
+local status=RAT.status.EventLand
+self:_SetStatus(SpawnGroup,status)
 if self.ATCswitch then
 RAT:_ATCFlightLanded(SpawnGroup:GetName())
 end
-if self.respawn_at_landing then
+if self.respawn_at_landing and not self.norespawn then
 text="Event: Group "..SpawnGroup:GetName().." will be respawned."
 env.info(RAT.id..text)
 self:_Respawn(SpawnGroup)
@@ -20902,8 +21492,9 @@ if EventPrefix then
 if EventPrefix==self.alias then
 local text="Event: Group "..SpawnGroup:GetName().." shut down its engines."
 env.info(RAT.id..text)
-self:_SetStatus(SpawnGroup,"Parking (shutting down engines)")
-if not self.respawn_at_landing then
+local status=RAT.status.EventEngineShutdown
+self:_SetStatus(SpawnGroup,status)
+if not self.respawn_at_landing and not self.norespawn then
 text="Event: Group "..SpawnGroup:GetName().." will be respawned."
 env.info(RAT.id..text)
 self:_Respawn(SpawnGroup)
@@ -20927,7 +21518,8 @@ if EventPrefix then
 if EventPrefix==self.alias then
 local text="Event: Group "..SpawnGroup:GetName().." died."
 env.info(RAT.id..text)
-self:_SetStatus(SpawnGroup,"Destroyed (after dead)")
+local status=RAT.status.EventDead
+self:_SetStatus(SpawnGroup,status)
 end
 end
 else
@@ -20938,14 +21530,15 @@ end
 end
 function RAT:_OnCrash(EventData)
 local SpawnGroup=EventData.IniGroup
-env.info(string.format("%sGroup %s crashed!",RAT.id,SpawnGroup:GetName()))
 if SpawnGroup then
+env.info(string.format("%sGroup %s crashed!",RAT.id,SpawnGroup:GetName()))
 local EventPrefix=self:_GetPrefixFromGroup(SpawnGroup)
 if EventPrefix then
 if EventPrefix==self.alias then
 local text="Event: Group "..SpawnGroup:GetName().." crashed."
 env.info(RAT.id..text)
-self:_SetStatus(SpawnGroup,"Crashed")
+local status=RAT.status.EventCrash
+self:_SetStatus(SpawnGroup,status)
 end
 end
 else
@@ -20956,38 +21549,34 @@ end
 end
 function RAT:_Despawn(group)
 local index=self:GetSpawnIndexFromGroup(group)
-self.ratcraft[index].group:Destroy()
 self.ratcraft[index].group=nil
+group:Destroy()
 self.alive=self.alive-1
 if self.f10menu then
 self.Menu[self.SubMenuName]["groups"][index]:Remove()
 end
 end
-function RAT:_Waypoint(Type,Coord,Speed,Altitude,Airport)
+function RAT:_Waypoint(index,Type,Coord,Speed,Altitude,Airport)
 local _Altitude=Altitude or Coord.y
 local Hland=Coord:GetLandHeight()
 local _Type=nil
 local _Action=nil
 local _alttype="RADIO"
-local _AID=nil
 if Type==RAT.wp.cold then
 _Type="TakeOffParking"
 _Action="From Parking Area"
 _Altitude=0
 _alttype="RADIO"
-_AID=Airport:GetID()
 elseif Type==RAT.wp.hot then
 _Type="TakeOffParkingHot"
 _Action="From Parking Area Hot"
 _Altitude=0
 _alttype="RADIO"
-_AID=Airport:GetID()
 elseif Type==RAT.wp.runway then
 _Type="TakeOff"
 _Action="From Parking Area"
 _Altitude=0
 _alttype="RADIO"
-_AID=Airport:GetID()
 elseif Type==RAT.wp.air then
 _Type="Turning Point"
 _Action="Turning Point"
@@ -21013,7 +21602,10 @@ _Type="Land"
 _Action="Landing"
 _Altitude=0
 _alttype="RADIO"
-_AID=Airport:GetID()
+elseif Type==RAT.wp.finalwp then
+_Type="Turning Point"
+_Action="Turning Point"
+_alttype="BARO"
 else
 env.error("Unknown waypoint type in RAT:Waypoint() function!")
 _Type="Turning Point"
@@ -21021,7 +21613,9 @@ _Action="Turning Point"
 _alttype="RADIO"
 end
 local text=string.format("\n******************************************************\n")
+text=text..string.format("Waypoint =  %d\n",index)
 text=text..string.format("Template =  %s\n",self.SpawnTemplatePrefix)
+text=text..string.format("Alias    =  %s\n",self.alias)
 text=text..string.format("Type: %i - %s\n",Type,_Type)
 text=text..string.format("Action: %s\n",_Action)
 text=text..string.format("Coord: x = %6.1f km, y = %6.1f km, alt = %6.1f m\n",Coord.x/1000,Coord.z/1000,Coord.y)
@@ -21032,7 +21626,7 @@ if Airport then
 if Type==RAT.wp.air then
 text=text..string.format("Zone = %s\n",Airport:GetName())
 else
-text=text..string.format("Airport = %s with ID %i\n",Airport:GetName(),Airport:GetID())
+text=text..string.format("Airport = %s\n",Airport:GetName())
 end
 else
 text=text..string.format("No airport/zone specified\n")
@@ -21053,7 +21647,7 @@ RoutePoint.speed_locked=true
 RoutePoint.ETA=nil
 RoutePoint.ETA_locked=false
 RoutePoint.name="RAT waypoint"
-if(Airport~=nil)and Type~=RAT.wp.air then
+if(Airport~=nil)and(Type~=RAT.wp.air)then
 local AirbaseID=Airport:GetID()
 local AirbaseCategory=Airport:GetDesc().category
 if AirbaseCategory==Airbase.Category.SHIP then
@@ -21074,15 +21668,17 @@ RoutePoint.properties={
 ["vangle"]=0,
 ["steer"]=2,
 }
-if Type==RAT.wp.holding then
-local Duration=self:_Randomize(90,0.9)
-RoutePoint.task=self:_TaskHolding({x=Coord.x,y=Coord.z},Altitude,Speed,Duration)
-else
+local TaskCombo={}
+local TaskHolding=self:_TaskHolding({x=Coord.x,y=Coord.z},Altitude,Speed,self:_Randomize(90,0.9))
+local TaskWaypoint=self:_TaskFunction("RAT._WaypointFunction",self,index)
 RoutePoint.task={}
 RoutePoint.task.id="ComboTask"
 RoutePoint.task.params={}
-RoutePoint.task.params.tasks={}
+TaskCombo[#TaskCombo+1]=TaskWaypoint
+if Type==RAT.wp.holding then
+TaskCombo[#TaskCombo+1]=TaskHolding
 end
+RoutePoint.task.params.tasks=TaskCombo
 return RoutePoint
 end
 function RAT:_Routeinfo(waypoints,comment)
@@ -21094,7 +21690,7 @@ end
 text=text..string.format("Number of waypoints = %i\n",#waypoints)
 for i=1,#waypoints do
 local p=waypoints[i]
-text=text..string.format("WP #%i: x = %6.1f km, y = %6.1f km, alt = %6.1f m\n",i-1,p.x/1000,p.y/1000,p.alt)
+text=text..string.format("WP #%i: x = %6.1f km, y = %6.1f km, alt = %6.1f m  %s\n",i-1,p.x/1000,p.y/1000,p.alt,self.waypointdescriptions[i])
 end
 local total=0.0
 for i=1,#waypoints-1 do
@@ -21107,13 +21703,13 @@ local y2=point2.y
 local d=math.sqrt((x1-x2)^2+(y1-y2)^2)
 local heading=self:_Course(point1,point2)
 total=total+d
-text=text..string.format("Distance from WP %i-->%i = %6.1f km. Heading = %i.\n",i-1,i,d/1000,heading)
+text=text..string.format("Distance from WP %i-->%i = %6.1f km. Heading = %03d :  %s - %s\n",i-1,i,d/1000,heading,self.waypointdescriptions[i],self.waypointdescriptions[i+1])
 end
 text=text..string.format("Total distance = %6.1f km\n",total/1000)
-local text=string.format("******************************************************\n")
+text=text..string.format("******************************************************\n")
 if self.debug then
-env.info(RAT.id..text)
 end
+env.info(RAT.id..text)
 return total
 end
 function RAT:_TaskHolding(P1,Altitude,Speed,Duration)
@@ -21142,11 +21738,67 @@ DCSTask.params={}
 DCSTask.params.task=Task
 if self.ATCswitch then
 local userflagname=string.format("%s#%03d",self.alias,self.SpawnIndex+1)
-DCSTask.params.stopCondition={userFlag=userflagname,userFlagValue=1,duration=1800}
+local maxholdingduration=60*120
+DCSTask.params.stopCondition={userFlag=userflagname,userFlagValue=1,duration=maxholdingduration}
 else
 DCSTask.params.stopCondition={duration=Duration}
 end
 return DCSTask
+end
+function RAT._WaypointFunction(group,rat,wp)
+local Tnow=timer.getTime()
+local sdx=rat:GetSpawnIndexFromGroup(group)
+local departure=rat.ratcraft[sdx].departure:GetName()
+local destination=rat.ratcraft[sdx].destination:GetName()
+local landing=rat.ratcraft[sdx].landing
+local text
+text=string.format("Flight %s passing waypoint #%d %s.",group:GetName(),wp,rat.waypointdescriptions[wp])
+env.info(RAT.id..text)
+local status=rat.waypointstatus[wp]
+rat:_SetStatus(group,status)
+if wp==rat.wp_holding then
+text=string.format("Flight %s to %s ATC: Holding and awaiting landing clearance.",group:GetName(),destination)
+MESSAGE:New(text,10):ToAllIf(rat.reportstatus)
+if rat.ATCswitch then
+MENU_MISSION_COMMAND:New("Clear for landing",rat.Menu[rat.SubMenuName].groups[sdx],rat.ClearForLanding,rat,group:GetName())
+rat:_ATCRegisterFlight(group:GetName(),Tnow)
+end
+end
+if wp==rat.wp_final then
+text=string.format("Flight %s arrived at final destination %s.",group:GetName(),destination)
+MESSAGE:New(text,10):ToAllIf(rat.reportstatus)
+env.info(RAT.id..text)
+if landing==RAT.wp.air then
+text=string.format("Activating despawn switch for flight %s! Group will be detroyed soon.",group:GetName())
+MESSAGE:New(text,30):ToAllIf(rat.debug)
+env.info(RAT.id..text)
+rat.ratcraft[sdx].despawnme=true
+end
+end
+end
+function RAT:_TaskFunction(FunctionString,...)
+self:F2({FunctionString,arg})
+local DCSTask
+local ArgumentKey
+local templatename=self.templategroup:GetName()
+local groupname=self:_AnticipatedGroupName()
+local DCSScript={}
+DCSScript[#DCSScript+1]="local MissionControllable = GROUP:FindByName(\""..groupname.."\") "
+DCSScript[#DCSScript+1]="local RATtemplateControllable = GROUP:FindByName(\""..templatename.."\") "
+if arg and arg.n>0 then
+ArgumentKey='_'..tostring(arg):match("table: (.*)")
+self.templategroup:SetState(self.templategroup,ArgumentKey,arg)
+DCSScript[#DCSScript+1]="local Arguments = RATtemplateControllable:GetState(RATtemplateControllable, '"..ArgumentKey.."' ) "
+DCSScript[#DCSScript+1]=FunctionString.."( MissionControllable, unpack( Arguments ) )"
+else
+DCSScript[#DCSScript+1]=FunctionString.."( MissionControllable )"
+end
+DCSTask=self.templategroup:TaskWrappedAction(self.templategroup:CommandDoScript(table.concat(DCSScript)))
+return DCSTask
+end
+function RAT:_AnticipatedGroupName(index)
+local index=index or self.SpawnIndex+1
+return string.format("%s#%03d",self.alias,index)
 end
 function RAT:_FLmax(alpha,beta,d,phi,h0)
 local gamma=math.rad(180)-alpha-beta
@@ -21163,16 +21815,38 @@ env.info(RAT.id..text)
 end
 return h3+h0
 end
-function RAT:_MinDistance(alpha,beta,h)
-local d1=h/math.tan(alpha)
-local d2=h/math.tan(beta)
-return d1+d2
+function RAT:_MinDistance(alpha,beta,ha,hb)
+local d1=ha/math.tan(alpha)
+local d2=hb/math.tan(beta)
+return d1,d2,d1+d2
+end
+function RAT:_AddFriendlyAirports(ports)
+for _,airport in pairs(self.airports)do
+if not self:_NameInList(ports,airport:GetName())then
+table.insert(ports,airport:GetName())
+end
+end
+end
+function RAT:_NameInList(liste,name)
+for _,item in pairs(liste)do
+if item==name then
+return true
+end
+end
+return false
 end
 function RAT:_AirportExists(name)
 for _,airport in pairs(self.airports_map)do
 if airport:GetName()==name then
 return true
 end
+end
+return false
+end
+function RAT:_ZoneExists(name)
+local z=trigger.misc.getZone(name)
+if z then
+return true
 end
 return false
 end
@@ -21229,6 +21903,15 @@ angle=360+angle
 end
 return angle
 end
+function RAT:_Heading(course)
+local h
+if course<=180 then
+h=math.rad(course)
+else
+h=-math.rad(360-course)
+end
+return h
+end
 function RAT:_Randomize(value,fac,lower,upper)
 local min
 if lower then
@@ -21265,23 +21948,24 @@ end
 end
 return r
 end
-function RAT:_PlaceMarkers(waypoints)
-self:_SetMarker("Takeoff",waypoints[1])
-self:_SetMarker("Climb",waypoints[2])
-self:_SetMarker("Begin of Cruise",waypoints[3])
-self:_SetMarker("End of Cruise",waypoints[4])
-self:_SetMarker("Descent",waypoints[5])
-self:_SetMarker("Holding Point",waypoints[6])
-self:_SetMarker("Destination",waypoints[7])
+function RAT:_PlaceMarkers(waypoints,index)
+for i=1,#waypoints do
+self:_SetMarker(self.waypointdescriptions[i],waypoints[i],index)
+if self.debug then
+local text=string.format("Marker at waypoint #%d: %s for flight #%d",i,self.waypointdescriptions[i],index)
+env.info(RAT.id..text)
 end
-function RAT:_SetMarker(text,wp)
+end
+end
+function RAT:_SetMarker(text,wp,index)
 RAT.markerid=RAT.markerid+1
 self.markerids[#self.markerids+1]=RAT.markerid
 if self.debug then
 env.info(RAT.id..self.SpawnTemplatePrefix..": placing marker with ID "..RAT.markerid..": "..text)
 end
 local vec={x=wp.x,y=wp.alt,z=wp.y}
-local text1=string.format("%s:\n%s",self.alias,text)
+local flight=self:GetGroupFromIndex(index):GetName()
+local text1=string.format("%s:\n%s",flight,text)
 trigger.action.markToAll(RAT.markerid,text1,vec)
 end
 function RAT:_DeleteMarkers()
@@ -21292,13 +21976,17 @@ for k,v in ipairs(self.markerids)do
 self.markerids[k]=nil
 end
 end
-function RAT:_ModifySpawnTemplate(waypoints)
+function RAT:_ModifySpawnTemplate(waypoints,livery)
 local PointVec3={x=waypoints[1].x,y=waypoints[1].alt,z=waypoints[1].y}
-local heading=self:_Course(waypoints[1],waypoints[2])
+local course=self:_Course(waypoints[1],waypoints[2])
+local heading=self:_Heading(course)
 if self:_GetSpawnIndex(self.SpawnIndex+1)then
 local SpawnTemplate=self.SpawnGroups[self.SpawnIndex].SpawnTemplate
 if SpawnTemplate then
 self:T(SpawnTemplate)
+if self.uncontrolled then
+SpawnTemplate.uncontrolled=true
+end
 for UnitID=1,#SpawnTemplate.units do
 self:T('Before Translation SpawnTemplate.units['..UnitID..'].x = '..SpawnTemplate.units[UnitID].x..', SpawnTemplate.units['..UnitID..'].y = '..SpawnTemplate.units[UnitID].y)
 local UnitTemplate=SpawnTemplate.units[UnitID]
@@ -21311,9 +21999,13 @@ local TY=PointVec3.z+(SY-BY)
 SpawnTemplate.units[UnitID].x=TX
 SpawnTemplate.units[UnitID].y=TY
 SpawnTemplate.units[UnitID].alt=PointVec3.y
-SpawnTemplate.units[UnitID].heading=math.rad(heading)
-if self.livery then
-SpawnTemplate.units[UnitID].livery_id=self.livery[math.random(#self.livery)]
+SpawnTemplate.units[UnitID].heading=heading
+SpawnTemplate.units[UnitID].psi=-heading
+if livery then
+SpawnTemplate.units[UnitID].livery_id=livery
+end
+if self.actype then
+SpawnTemplate.units[UnitID]["type"]=self.actype
 end
 SpawnTemplate.units[UnitID]["skill"]=self.skill
 SpawnTemplate.units[UnitID]["onboard_num"]=self.SpawnIndex
@@ -21322,7 +22014,7 @@ if self.country then
 SpawnTemplate.CountryID=self.country
 end
 UnitTemplate.parking=nil
-UnitTemplate.parking_id=nil
+UnitTemplate.parking_id=self.parking_id
 UnitTemplate.alt=PointVec3.y
 self:T('After Translation SpawnTemplate.units['..UnitID..'].x = '..SpawnTemplate.units[UnitID].x..', SpawnTemplate.units['..UnitID..'].y = '..SpawnTemplate.units[UnitID].y)
 end
@@ -21331,7 +22023,15 @@ SpawnTemplate.route.points[i]=wp
 end
 SpawnTemplate.x=PointVec3.x
 SpawnTemplate.y=PointVec3.z
-self.SpawnGroups[self.SpawnIndex].SpawnTemplate=SpawnTemplate
+if self.radio then
+SpawnTemplate.communication=self.radio
+end
+if self.frequency then
+SpawnTemplate.frequency=self.frequency
+end
+if self.modulation then
+SpawnTemplate.modulation=self.modulation
+end
 self:T(SpawnTemplate)
 end
 end
@@ -21339,14 +22039,18 @@ end
 function RAT:_ATCInit(airports_map)
 if not RAT.ATC.init then
 env.info(RAT.id.."Starting RAT ATC.")
+env.info(RAT.id.."Simultanious = "..RAT.ATC.Nclearance)
+env.info(RAT.id.."Delay        = "..RAT.ATC.delay)
 RAT.ATC.init=true
 for _,ap in pairs(airports_map)do
 local name=ap:GetName()
 RAT.ATC.airport[name]={}
 RAT.ATC.airport[name].queue={}
 RAT.ATC.airport[name].busy=false
-RAT.ATC.airport[name].onfinal=nil
+RAT.ATC.airport[name].onfinal={}
+RAT.ATC.airport[name].Nonfinal=0
 RAT.ATC.airport[name].traffic=0
+RAT.ATC.airport[name].Tlastclearance=nil
 end
 SCHEDULER:New(nil,RAT._ATCCheck,{self},5,15)
 SCHEDULER:New(nil,RAT._ATCStatus,{self},5,60)
@@ -21354,7 +22058,7 @@ RAT.ATC.T0=timer.getTime()
 end
 end
 function RAT:_ATCAddFlight(name,dest)
-env.info(string.format("%s%s ATC: Adding flight %s with destination %s.",RAT.id,dest,name,dest))
+env.info(string.format("%sATC %s: Adding flight %s with destination %s.",RAT.id,dest,name,dest))
 RAT.ATC.flight[name]={}
 RAT.ATC.flight[name].destination=dest
 RAT.ATC.flight[name].Tarrive=-1
@@ -21369,6 +22073,7 @@ end
 end
 end
 function RAT:_ATCRegisterFlight(name,time)
+env.info(RAT.id.."Flight "..name.." registered at ATC for landing clearance.")
 RAT.ATC.flight[name].Tarrive=time
 RAT.ATC.flight[name].holding=0
 end
@@ -21378,20 +22083,18 @@ for name,_ in pairs(RAT.ATC.flight)do
 local hold=RAT.ATC.flight[name].holding
 local dest=RAT.ATC.flight[name].destination
 if hold>=0 then
-local busy="Runway is currently clear"
-if RAT.ATC.airport[dest].busy then
-if RAT.ATC.airport[dest].onfinal then
-busy="Runway is occupied by "..RAT.ATC.airport[dest].onfinal
+local busy="Runway state is unknown"
+if RAT.ATC.airport[dest].Nonfinal>0 then
+busy="Runway is occupied by "..RAT.ATC.airport[dest].Nonfinal
 else
-busy="Runway is occupied"
+busy="Runway is currently clear"
 end
-end
-env.info(string.format("%s%s ATC: Flight %s is holding for %i:%02d. %s.",RAT.id,dest,name,hold/60,hold%60,busy))
+local text=string.format("ATC %s: Flight %s is holding for %i:%02d. %s.",dest,name,hold/60,hold%60,busy)
+env.info(RAT.id..text)
 elseif hold==RAT.ATC.onfinal then
 local Tfinal=Tnow-RAT.ATC.flight[name].Tonfinal
-env.info(string.format("%s%s ATC: Flight %s was cleared for landing. Waiting %i:%02d for landing event.",RAT.id,dest,name,Tfinal/60,Tfinal%60))
-if Tfinal>300 then
-end
+local text=string.format("ATC %s: Flight %s is on final. Waiting %i:%02d for landing event.",dest,name,Tfinal/60,Tfinal%60)
+env.info(RAT.id..text)
 elseif hold==RAT.ATC.unregistered then
 else
 env.error(RAT.id.."Unknown holding time in RAT:_ATCStatus().")
@@ -21402,33 +22105,40 @@ function RAT:_ATCCheck()
 RAT:_ATCQueue()
 local Tnow=timer.getTime()
 for name,_ in pairs(RAT.ATC.airport)do
-local qw={}
 for qID,flight in ipairs(RAT.ATC.airport[name].queue)do
 local nqueue=#RAT.ATC.airport[name].queue
-if RAT.ATC.airport[name].busy then
-RAT.ATC.flight[flight].holding=Tnow-RAT.ATC.flight[flight].Tarrive
-local text=string.format("%s ATC: Flight %s runway is busy. You are #%d of %d in landing queue. Your holding time is %i:%02d.",name,flight,qID,nqueue,RAT.ATC.flight[flight].holding/60,RAT.ATC.flight[flight].holding%60)
-env.info(text)
+local landing1
+if RAT.ATC.airport[name].Tlastclearance then
+landing1=(Tnow-RAT.ATC.airport[name].Tlastclearance>RAT.ATC.delay)and RAT.ATC.airport[name].Nonfinal<RAT.ATC.Nclearance
 else
+landing1=false
+end
+local landing2=RAT.ATC.airport[name].Nonfinal==0
+if not landing1 and not landing2 then
+RAT.ATC.flight[flight].holding=Tnow-RAT.ATC.flight[flight].Tarrive
+local text=string.format("ATC %s: Flight %s runway is busy. You are #%d of %d in landing queue. Your holding time is %i:%02d.",name,flight,qID,nqueue,RAT.ATC.flight[flight].holding/60,RAT.ATC.flight[flight].holding%60)
+env.info(RAT.id..text)
+else
+local text=string.format("ATC %s: Flight %s was cleared for landing. Your holding time was %i:%02d.",name,flight,RAT.ATC.flight[flight].holding/60,RAT.ATC.flight[flight].holding%60)
+env.info(RAT.id..text)
 RAT:_ATCClearForLanding(name,flight)
-table.insert(qw,qID)
 end
 end
-for _,i in pairs(qw)do
-table.remove(RAT.ATC.airport[name].queue,i)
 end
-end
+RAT:_ATCQueue()
 end
 function RAT:_ATCClearForLanding(airport,flight)
 RAT.ATC.flight[flight].holding=RAT.ATC.onfinal
 RAT.ATC.airport[airport].busy=true
-RAT.ATC.airport[airport].onfinal=flight
+RAT.ATC.airport[airport].onfinal[flight]=flight
+RAT.ATC.airport[airport].Nonfinal=RAT.ATC.airport[airport].Nonfinal+1
+RAT.ATC.airport[airport].Tlastclearance=timer.getTime()
 RAT.ATC.flight[flight].Tonfinal=timer.getTime()
 trigger.action.setUserFlag(flight,1)
 local flagvalue=trigger.misc.getUserFlag(flight)
-local text1=string.format("%s%s ATC: Flight %s cleared for final approach (flag=%d).",RAT.id,airport,flight,flagvalue)
-local text2=string.format("%s ATC: Flight %s you are cleared for landing.",airport,flight)
-env.info(text1)
+local text1=string.format("ATC %s: Flight %s cleared for landing (flag=%d).",airport,flight,flagvalue)
+local text2=string.format("ATC %s: Flight %s you are cleared for landing.",airport,flight)
+env.info(RAT.id..text1)
 MESSAGE:New(text2,10):ToAll()
 end
 function RAT:_ATCFlightLanded(name)
@@ -21438,20 +22148,29 @@ local Tnow=timer.getTime()
 local Tfinal=Tnow-RAT.ATC.flight[name].Tonfinal
 local Thold=RAT.ATC.flight[name].Tonfinal-RAT.ATC.flight[name].Tarrive
 RAT.ATC.airport[dest].busy=false
-RAT.ATC.airport[dest].onfinal=nil
+RAT.ATC.airport[dest].onfinal[name]=nil
+RAT.ATC.airport[dest].Nonfinal=RAT.ATC.airport[dest].Nonfinal-1
 RAT:_ATCDelFlight(RAT.ATC.flight,name)
 RAT.ATC.airport[dest].traffic=RAT.ATC.airport[dest].traffic+1
-local text1=string.format("%s%s ATC: Flight %s landed. Tholding = %i:%02d, Tfinal = %i:%02d.",RAT.id,dest,name,Thold/60,Thold%60,Tfinal/60,Tfinal%60)
-local text2=string.format("%s ATC: Flight %s landed. Welcome to %s.",dest,name,dest)
-env.info(text1)
-env.info(string.format("%s%s ATC: Number of planes landed in total %d.",RAT.id,dest,RAT.ATC.airport[dest].traffic))
-MESSAGE:New(text2,10):ToAll()
+local TrafficPerHour=RAT.ATC.airport[dest].traffic/(timer.getTime()-RAT.ATC.T0)*3600
+local text1=string.format("ATC %s: Flight %s landed. Tholding = %i:%02d, Tfinal = %i:%02d.",dest,name,Thold/60,Thold%60,Tfinal/60,Tfinal%60)
+local text2=string.format("ATC %s: Number of flights still on final %d.",dest,RAT.ATC.airport[dest].Nonfinal)
+local text3=string.format("ATC %s: Traffic report: Number of planes landed in total %d. Flights/hour = %3.2f.",dest,RAT.ATC.airport[dest].traffic,TrafficPerHour)
+local text4=string.format("ATC %s: Flight %s landed. Welcome to %s.",dest,name,dest)
+env.info(RAT.id..text1)
+env.info(RAT.id..text2)
+env.info(RAT.id..text3)
+MESSAGE:New(text4,10):ToAll()
 end
 end
 function RAT:_ATCQueue()
 for airport,_ in pairs(RAT.ATC.airport)do
 local _queue={}
 for name,_ in pairs(RAT.ATC.flight)do
+local Tnow=timer.getTime()
+if RAT.ATC.flight[name].holding>=0 then
+RAT.ATC.flight[name].holding=Tnow-RAT.ATC.flight[name].Tarrive
+end
 local hold=RAT.ATC.flight[name].holding
 local dest=RAT.ATC.flight[name].destination
 if hold>=0 and airport==dest then
