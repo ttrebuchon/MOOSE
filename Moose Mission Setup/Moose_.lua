@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171101_1723')
+env.info('Moose Generation Timestamp: 20171102_0821')
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -7482,6 +7482,25 @@ do
 COORDINATE={
 ClassName="COORDINATE",
 }
+COORDINATE.WaypointAltType={
+BARO="BARO",
+RADIO="RADIO",
+}
+COORDINATE.WaypointAction={
+TurningPoint="Turning Point",
+FlyoverPoint="Fly Over Point",
+FromParkingArea="From Parking Area",
+FromParkingAreaHot="From Parking Area Hot",
+FromRunway="From Runway",
+Landing="Landing",
+}
+COORDINATE.WaypointType={
+TakeOffParking="TakeOffParking",
+TakeOffParkingHot="TakeOffParkingHot",
+TakeOff="TakeOffParkingHot",
+TurningPoint="Turning Point",
+Land="Land",
+}
 function COORDINATE:New(x,y,z)
 local self=BASE:Inherit(self,BASE:New())
 self.x=x
@@ -7689,6 +7708,24 @@ RoutePoint.task.id="ComboTask"
 RoutePoint.task.params={}
 RoutePoint.task.params.tasks={}
 return RoutePoint
+end
+function COORDINATE:WaypointAirTurningPoint(AltType,Speed)
+return self:WaypointAir(AltType,COORDINATE.WaypointType.TurningPoint,COORDINATE.WaypointAction.TurningPoint,Speed)
+end
+function COORDINATE:WaypointAirFlyOverPoint(AltType,Speed)
+return self:WaypointAir(AltType,COORDINATE.WaypointType.TurningPoint,COORDINATE.WaypointAction.FlyoverPoint,Speed)
+end
+function COORDINATE:WaypointAirTakeOffParkingHot(AltType,Speed)
+return self:WaypointAir(AltType,COORDINATE.WaypointType.TakeOffParkingHot,COORDINATE.WaypointAction.FromParkingAreaHot,Speed)
+end
+function COORDINATE:WaypointAirTakeOffParking(AltType,Speed)
+return self:WaypointAir(AltType,COORDINATE.WaypointType.TakeOffParking,COORDINATE.WaypointAction.FromParkingArea,Speed)
+end
+function COORDINATE:WaypointAirTakeOffRunway(AltType,Speed)
+return self:WaypointAir(AltType,COORDINATE.WaypointType.TakeOff,COORDINATE.WaypointAction.FromRunway,Speed)
+end
+function COORDINATE:WaypointAirLanding(Speed)
+return self:WaypointAir(nil,COORDINATE.WaypointType.Land,COORDINATE.WaypointAction.Landing,Speed)
 end
 function COORDINATE:WaypointGround(Speed,Formation)
 self:F2({Formation,Speed})
