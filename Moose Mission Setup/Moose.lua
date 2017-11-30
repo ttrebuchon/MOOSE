@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171130_1402' )
+env.info( 'Moose Generation Timestamp: 20171130_1605' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10336,8 +10336,10 @@ end
 function SET_BASE:Add( ObjectName, Object )
   self:F( ObjectName )
 
-  self.Set[ObjectName] = Object
-  table.insert( self.Index, ObjectName )
+  if not self.Set[ObjectName] then
+    self.Set[ObjectName] = Object
+    table.insert( self.Index, ObjectName )
+  end
 end
 
 --- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using the Object Name as the index.
@@ -51622,7 +51624,7 @@ do -- AI_A2A_DISPATCHER
 
       do
         local DefendersMissing, Friendlies = self:EvaluateGCI( DetectedItem )
-        if DefendersMissing then
+        if DefendersMissing and DefendersMissing > 0 then
           self:F( { DefendersMissing = DefendersMissing } )
           self:GCI( DetectedItem, DefendersMissing, Friendlies )
         end

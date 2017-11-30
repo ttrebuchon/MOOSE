@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171130_1402')
+env.info('Moose Generation Timestamp: 20171130_1605')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5467,8 +5467,10 @@ return Objects
 end
 function SET_BASE:Add(ObjectName,Object)
 self:F(ObjectName)
+if not self.Set[ObjectName]then
 self.Set[ObjectName]=Object
 table.insert(self.Index,ObjectName)
+end
 end
 function SET_BASE:AddObject(Object)
 self:F2(Object.ObjectName)
@@ -24145,7 +24147,7 @@ end
 end
 do
 local DefendersMissing,Friendlies=self:EvaluateGCI(DetectedItem)
-if DefendersMissing then
+if DefendersMissing and DefendersMissing>0 then
 self:F({DefendersMissing=DefendersMissing})
 self:GCI(DetectedItem,DefendersMissing,Friendlies)
 end
