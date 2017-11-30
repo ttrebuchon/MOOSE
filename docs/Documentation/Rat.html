@@ -214,6 +214,12 @@
 </td>
 		</tr>
 		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(RAT).ATC_Messages">RAT:ATC_Messages(switch)</a></td>
+		<td class="summary">
+<p>Turn messages from ATC on or off.</p>
+</td>
+		</tr>
+		<tr>
 		<td class="name" nowrap="nowrap"><a href="##(RAT).ATCswitch">RAT.ATCswitch</a></td>
 		<td class="summary">
 <p>Enable/disable ATC if set to true/false.</p>
@@ -265,6 +271,12 @@
 		<td class="name" nowrap="nowrap"><a href="##(RAT).ContinueJourney">RAT:ContinueJourney()</a></td>
 		<td class="summary">
 <p>Aircraft will continue their journey from their destination.</p>
+</td>
+		</tr>
+		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(RAT).Debug">RAT.Debug</a></td>
+		<td class="summary">
+<p>Turn debug messages on or off.</p>
 </td>
 		</tr>
 		<tr>
@@ -1066,12 +1078,6 @@
 </td>
 		</tr>
 		<tr>
-		<td class="name" nowrap="nowrap"><a href="##(RAT).debug">RAT.debug</a></td>
-		<td class="summary">
-<p>Turn debug messages on or off.</p>
-</td>
-		</tr>
-		<tr>
 		<td class="name" nowrap="nowrap"><a href="##(RAT).departure_Azone">RAT.departure_Azone</a></td>
 		<td class="summary">
 <p>Zone containing the departure airports.</p>
@@ -1615,6 +1621,31 @@ Delay time when the next aircraft will get landing clearance event if the previo
 		<dl class="function">
 <dt>
 
+<a id="#(RAT).ATC_Messages" >
+<strong>RAT:ATC_Messages(switch)</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Turn messages from ATC on or off.</p>
+
+	
+<p>Default is on. This setting effects all RAT objects and groups!</p>
+
+		<h3>Parameter</h3>
+		<ul>
+				<li>
+				
+<p><code><em>#boolean switch </em></code>: 
+Enable (true) or disable (false) messages from ATC. </p>
+
+				</li>
+		</ul>
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
 		<em>#boolean</em>
 <a id="#(RAT).ATCswitch" >
 <strong>RAT.ATCswitch</strong>
@@ -1757,6 +1788,20 @@ Name of flight to be cleared for landing.</p>
 
 	
 <p>This means they are respawned at their destination and get a new random destination.</p>
+
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+		<em>#boolean</em>
+<a id="#(RAT).Debug" >
+<strong>RAT.Debug</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Turn debug messages on or off.</p>
 
 </dd>
 </dl>
@@ -4937,20 +4982,6 @@ True if zone exsits, false otherwise. </p>
 <dd>
 	
 <p>Table with the valid coalitons from choice self.friendly.</p>
-
-</dd>
-</dl>
-		<dl class="function">
-<dt>
-
-		<em>#boolean</em>
-<a id="#(RAT).debug" >
-<strong>RAT.debug</strong>
-</a>
-</dt>
-<dd>
-	
-<p>Turn debug messages on or off.</p>
 
 </dd>
 </dl>

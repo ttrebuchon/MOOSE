@@ -389,6 +389,24 @@
 </td>
 		</tr>
 		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(DATABASE).GetPlayerUnits">DATABASE:GetPlayerUnits()</a></td>
+		<td class="summary">
+<p>Get the player table from the DATABASE, which contains all UNIT objects.</p>
+</td>
+		</tr>
+		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(DATABASE).GetPlayers">DATABASE:GetPlayers()</a></td>
+		<td class="summary">
+<p>Get the player table from the DATABASE.</p>
+</td>
+		</tr>
+		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(DATABASE).GetPlayersJoined">DATABASE:GetPlayersJoined()</a></td>
+		<td class="summary">
+<p>Get the player table from the DATABASE which have joined in the mission historically.</p>
+</td>
+		</tr>
+		<tr>
 		<td class="name" nowrap="nowrap"><a href="##(DATABASE).GetStaticUnitTemplate">DATABASE:GetStaticUnitTemplate(StaticName)</a></td>
 		<td class="summary">
 
@@ -1570,6 +1588,72 @@ self</p>
 				
 <p><em><a href="Core.Settings.html##(SETTINGS)">Core.Settings#SETTINGS</a>:</em></p>
 
+
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+<a id="#(DATABASE).GetPlayerUnits" >
+<strong>DATABASE:GetPlayerUnits()</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Get the player table from the DATABASE, which contains all UNIT objects.</p>
+
+	
+<p>The player table contains all UNIT objects of the player with the key the name of the player (PlayerName).</p>
+
+			<h3>Usage:</h3>
+		<pre class="example"><code>  local PlayerUnits = _DATABASE:GetPlayerUnits()
+  for PlayerName, PlayerUnit in pairs( PlayerUnits ) do
+    ..
+  end</code></pre>
+
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+<a id="#(DATABASE).GetPlayers" >
+<strong>DATABASE:GetPlayers()</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Get the player table from the DATABASE.</p>
+
+	
+<p>The player table contains all unit names with the key the name of the player (PlayerName).</p>
+
+			<h3>Usage:</h3>
+		<pre class="example"><code>  local Players = _DATABASE:GetPlayers()
+  for PlayerName, UnitName in pairs( Players ) do
+    ..
+  end</code></pre>
+
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+<a id="#(DATABASE).GetPlayersJoined" >
+<strong>DATABASE:GetPlayersJoined()</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Get the player table from the DATABASE which have joined in the mission historically.</p>
+
+	
+<p>The player table contains all UNIT objects with the key the name of the player (PlayerName).</p>
+
+			<h3>Usage:</h3>
+		<pre class="example"><code>  local PlayersJoined = _DATABASE:GetPlayersJoined()
+  for PlayerName, PlayerUnit in pairs( PlayersJoined ) do
+    ..
+  end</code></pre>
 
 </dd>
 </dl>

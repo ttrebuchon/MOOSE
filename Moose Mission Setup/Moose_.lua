@@ -1,5 +1,8 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171102_0821')
+env.info('Moose Generation Timestamp: 20171130_1204')
+MOOSE={}
+function MOOSE.Include()
+end
 env.setErrorMessageBoxEnabled(false)
 routines={}
 routines.majorVersion=3
@@ -75,7 +78,11 @@ end
 tbl_str[#tbl_str+1]='}'
 return table.concat(tbl_str)
 else
+if type(tbl)=='string'then
+return tbl
+else
 return tostring(tbl)
+end
 end
 end
 local objectreturn=_Serialize(tbl)
@@ -88,7 +95,7 @@ else
 if((type(s)=='number')or(type(s)=='boolean')or(type(s)=='function')or(type(s)=='table')or(type(s)=='userdata'))then
 return tostring(s)
 elseif type(s)=='string'then
-s=string.format('%q',s)
+s=string.format('%s',s:gsub("%%","%%%%"))
 return s
 end
 end
@@ -2060,6 +2067,7 @@ ClassName="BASE",
 ClassID=0,
 Events={},
 States={},
+Debug=debug,
 }
 BASE.__={}
 BASE._={
@@ -2242,8 +2250,8 @@ nil,
 nil,
 nil
 )
-self._.Schedules[#self.Schedules+1]=ScheduleID
-return self._.Schedules
+self._.Schedules[#self._.Schedules+1]=ScheduleID
+return self._.Schedules[#self._.Schedules]
 end
 function BASE:ScheduleRepeat(Start,Repeat,RandomizeFactor,Stop,SchedulerFunction,...)
 self:F2({Start})
@@ -2261,8 +2269,8 @@ Repeat,
 RandomizeFactor,
 Stop
 )
-self._.Schedules[SchedulerFunction]=ScheduleID
-return self._.Schedules
+self._.Schedules[#self._.Schedules+1]=ScheduleID
+return self._.Schedules[#self._.Schedules]
 end
 function BASE:ScheduleStop(SchedulerFunction)
 self:F3({"ScheduleStop:"})
@@ -2293,7 +2301,7 @@ function BASE:TraceOnOff(TraceOnOff)
 _TraceOnOff=TraceOnOff
 end
 function BASE:IsTrace()
-if debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
+if BASE.Debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
 return true
 else
 return false
@@ -2325,9 +2333,9 @@ _TraceClassMethod[Class].Method[Method]=true
 self:E("Tracing method "..Method.." of class "..Class)
 end
 function BASE:_F(Arguments,DebugInfoCurrentParam,DebugInfoFromParam)
-if debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
-local DebugInfoCurrent=DebugInfoCurrentParam and DebugInfoCurrentParam or debug.getinfo(2,"nl")
-local DebugInfoFrom=DebugInfoFromParam and DebugInfoFromParam or debug.getinfo(3,"l")
+if BASE.Debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
+local DebugInfoCurrent=DebugInfoCurrentParam and DebugInfoCurrentParam or BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=DebugInfoFromParam and DebugInfoFromParam or BASE.Debug.getinfo(3,"l")
 local Function="function"
 if DebugInfoCurrent.name then
 Function=DebugInfoCurrent.name
@@ -2346,36 +2354,36 @@ end
 end
 end
 function BASE:F(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=1 then
 self:_F(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:F2(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=2 then
 self:_F(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:F3(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=3 then
 self:_F(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:_T(Arguments,DebugInfoCurrentParam,DebugInfoFromParam)
-if debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
-local DebugInfoCurrent=DebugInfoCurrentParam and DebugInfoCurrentParam or debug.getinfo(2,"nl")
-local DebugInfoFrom=DebugInfoFromParam and DebugInfoFromParam or debug.getinfo(3,"l")
+if BASE.Debug and(_TraceAll==true)or(_TraceClass[self.ClassName]or _TraceClassMethod[self.ClassName])then
+local DebugInfoCurrent=DebugInfoCurrentParam and DebugInfoCurrentParam or BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=DebugInfoFromParam and DebugInfoFromParam or BASE.Debug.getinfo(3,"l")
 local Function="function"
 if DebugInfoCurrent.name then
 Function=DebugInfoCurrent.name
@@ -2394,36 +2402,36 @@ end
 end
 end
 function BASE:T(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=1 then
 self:_T(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:T2(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=2 then
 self:_T(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:T3(Arguments)
-if debug and _TraceOnOff then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug and _TraceOnOff then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 if _TraceLevel>=3 then
 self:_T(Arguments,DebugInfoCurrent,DebugInfoFrom)
 end
 end
 end
 function BASE:E(Arguments)
-if debug then
-local DebugInfoCurrent=debug.getinfo(2,"nl")
-local DebugInfoFrom=debug.getinfo(3,"l")
+if BASE.Debug then
+local DebugInfoCurrent=BASE.Debug.getinfo(2,"nl")
+local DebugInfoFrom=BASE.Debug.getinfo(3,"l")
 local Function="function"
 if DebugInfoCurrent.name then
 Function=DebugInfoCurrent.name
@@ -2434,6 +2442,8 @@ if DebugInfoFrom then
 LineFrom=DebugInfoFrom.currentline
 end
 env.info(string.format("%6d(%6d)/%1s:%20s%05d.%s(%s)",LineCurrent,LineFrom,"E",self.ClassName,self.ClassID,Function,routines.utils.oneLineSerialize(Arguments)))
+else
+env.info(string.format("%1s:%20s%05d(%s)","E",self.ClassName,self.ClassID,routines.utils.oneLineSerialize(Arguments)))
 end
 end
 do
@@ -2613,8 +2623,8 @@ self.Schedule[Scheduler][CallID].CallHandler=function(CallID)
 self:F2(CallID)
 local ErrorHandler=function(errmsg)
 env.info("Error in timer function: "..errmsg)
-if debug~=nil then
-env.info(debug.traceback())
+if BASE.Debug~=nil then
+env.info(BASE.Debug.traceback())
 end
 return errmsg
 end
@@ -3661,6 +3671,100 @@ MESSAGE:New(string.format("Settings: Default message time set for %s to %d.",Mes
 end
 end
 end
+MENU_INDEX={}
+MENU_INDEX.MenuMission={}
+MENU_INDEX.MenuMission.Menus={}
+MENU_INDEX.Coalition={}
+MENU_INDEX.Coalition[coalition.side.BLUE]={}
+MENU_INDEX.Coalition[coalition.side.BLUE].Menus={}
+MENU_INDEX.Coalition[coalition.side.RED]={}
+MENU_INDEX.Coalition[coalition.side.RED].Menus={}
+MENU_INDEX.Group={}
+function MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local Path=ParentMenu and"@"..table.concat(ParentMenu.MenuPath or{},"@")or""
+if ParentMenu then
+if BASE:IsInstanceOf("MENU_GROUP")or BASE:IsInstanceOf("MENU_GROUP_COMMAND")then
+local GroupName=ParentMenu.Group:GetName()
+if not self.Group[GroupName].Menus[Path]then
+BASE:E({Path=Path,GroupName=GroupName})
+error("Parent path not found in menu index for group menu")
+return nil
+end
+elseif BASE:IsInstanceOf("MENU_COALITION")or BASE:IsInstanceOf("MENU_COALITION_COMMAND")then
+local Coalition=ParentMenu.Coalition
+if not self.Coalition[Coalition].Menus[Path]then
+BASE:E({Path=Path,Coalition=Coalition})
+error("Parent path not found in menu index for coalition menu")
+return nil
+end
+elseif BASE:IsInstanceOf("MENU_MISSION")or BASE:IsInstanceOf("MENU_MISSION_COMMAND")then
+if not self.MenuMission.Menus[Path]then
+BASE:E({Path=Path})
+error("Parent path not found in menu index for mission menu")
+return nil
+end
+end
+end
+Path=Path.."@"..MenuText
+return Path
+end
+function MENU_INDEX:PrepareMission()
+self.MenuMission.Menus=self.MenuMission.Menus or{}
+end
+function MENU_INDEX:PrepareCoalition(CoalitionSide)
+self.Coalition[CoalitionSide]=self.Coalition[CoalitionSide]or{}
+self.Coalition[CoalitionSide].Menus=self.Coalition[CoalitionSide].Menus or{}
+end
+function MENU_INDEX:PrepareGroup(Group)
+local GroupName=Group:GetName()
+self.Group[GroupName]=self.Group[GroupName]or{}
+self.Group[GroupName].Menus=self.Group[GroupName].Menus or{}
+end
+function MENU_INDEX:HasMissionMenu(Path)
+return self.MenuMission.Menus[Path]
+end
+function MENU_INDEX:SetMissionMenu(Path,Menu)
+self.MenuMission.Menus[Path]=Menu
+end
+function MENU_INDEX:ClearMissionMenu(Path)
+self.MenuMission.Menus[Path]=nil
+end
+function MENU_INDEX:HasCoalitionMenu(Coalition,Path)
+return self.Coalition[Coalition].Menus[Path]
+end
+function MENU_INDEX:SetCoalitionMenu(Coalition,Path,Menu)
+self.Coalition[Coalition].Menus[Path]=Menu
+end
+function MENU_INDEX:ClearCoalitionMenu(Coalition,Path)
+self.Coalition[Coalition].Menus[Path]=nil
+end
+function MENU_INDEX:HasGroupMenu(Group,Path)
+local MenuGroupName=Group:GetName()
+return self.Group[MenuGroupName].Menus[Path]
+end
+function MENU_INDEX:SetGroupMenu(Group,Path,Menu)
+local MenuGroupName=Group:GetName()
+self.Group[MenuGroupName].Menus[Path]=Menu
+end
+function MENU_INDEX:ClearGroupMenu(Group,Path)
+local MenuGroupName=Group:GetName()
+self.Group[MenuGroupName].Menus[Path]=nil
+end
+function MENU_INDEX:Refresh(Group)
+for MenuID,Menu in pairs(self.MenuMission.Menus)do
+Menu:Refresh()
+end
+for MenuID,Menu in pairs(self.Coalition[coalition.side.BLUE].Menus)do
+Menu:Refresh()
+end
+for MenuID,Menu in pairs(self.Coalition[coalition.side.RED].Menus)do
+Menu:Refresh()
+end
+local GroupName=Group:GetName()
+for MenuID,Menu in pairs(self.Group[GroupName].Menus)do
+Menu:Refresh()
+end
+end
 do
 MENU_BASE={
 ClassName="MENU_BASE",
@@ -3676,21 +3780,31 @@ end
 local self=BASE:Inherit(self,BASE:New())
 self.MenuPath=nil
 self.MenuText=MenuText
+self.ParentMenu=ParentMenu
 self.MenuParentPath=MenuParentPath
+self.Path=(self.ParentMenu and"@"..table.concat(self.MenuParentPath or{},"@")or"").."@"..self.MenuText
 self.Menus={}
 self.MenuCount=0
-self.MenuRemoveParent=false
 self.MenuTime=timer.getTime()
+if self.ParentMenu then
+self.ParentMenu.Menus=self.ParentMenu.Menus or{}
+self.ParentMenu.Menus[MenuText]=self
+end
 return self
+end
+function MENU_BASE:SetParentMenu(MenuText,Menu)
+if self.ParentMenu then
+self.ParentMenu.Menus=self.ParentMenu.Menus or{}
+self.ParentMenu.Menus[MenuText]=Menu
+end
+end
+function MENU_BASE:ClearParentMenu(MenuText)
+if self.ParentMenu and self.ParentMenu.Menus[MenuText]then
+self.ParentMenu.Menus[MenuText]=nil
+end
 end
 function MENU_BASE:GetMenu(MenuText)
-self:F2({Menu=self.Menus[MenuText]})
 return self.Menus[MenuText]
-end
-function MENU_BASE:SetRemoveParent(RemoveParent)
-self:F2({RemoveParent})
-self.MenuRemoveParent=RemoveParent
-return self
 end
 function MENU_BASE:SetTime(MenuTime)
 self.MenuTime=MenuTime
@@ -3712,8 +3826,8 @@ function MENU_COMMAND_BASE:New(MenuText,ParentMenu,CommandMenuFunction,CommandMe
 local self=BASE:Inherit(self,MENU_BASE:New(MenuText,ParentMenu))
 local ErrorHandler=function(errmsg)
 env.info("MOOSE error in MENU COMMAND function: "..errmsg)
-if debug~=nil then
-env.info(debug.traceback())
+if BASE.Debug~=nil then
+env.info(BASE.Debug.traceback())
 end
 return errmsg
 end
@@ -3741,33 +3855,50 @@ MENU_MISSION={
 ClassName="MENU_MISSION"
 }
 function MENU_MISSION:New(MenuText,ParentMenu)
+MENU_INDEX:PrepareMission()
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local MissionMenu=MENU_INDEX:HasMissionMenu(Path)
+if MissionMenu then
+return MissionMenu
+else
 local self=BASE:Inherit(self,MENU_BASE:New(MenuText,ParentMenu))
-self:F({MenuText,ParentMenu})
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self.Menus={}
-self:T({MenuText})
-self.MenuPath=missionCommands.addSubMenu(MenuText,self.MenuParentPath)
-self:T({self.MenuPath})
-if ParentMenu and ParentMenu.Menus then
-ParentMenu.Menus[self.MenuPath]=self
-end
+MENU_INDEX:SetMissionMenu(Path,self)
+self.MenuPath=missionCommands.addSubMenu(self.MenuText,self.MenuParentPath)
+self:SetParentMenu(self.MenuText,self)
 return self
 end
+end
+function MENU_MISSION:Refresh()
+do
+missionCommands.removeItem(self.MenuPath)
+self.MenuPath=missionCommands.addSubMenu(self.MenuText,self.MenuParentPath)
+end
+end
 function MENU_MISSION:RemoveSubMenus()
-self:F(self.MenuPath)
-for MenuID,Menu in pairs(self.Menus)do
+for MenuID,Menu in pairs(self.Menus or{})do
 Menu:Remove()
 end
+self.Menus=nil
 end
-function MENU_MISSION:Remove()
-self:F(self.MenuPath)
+function MENU_MISSION:Remove(MenuTime,MenuTag)
+MENU_INDEX:PrepareMission()
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local MissionMenu=MENU_INDEX:HasMissionMenu(Path)
+if MissionMenu==self then
 self:RemoveSubMenus()
+if not MenuTime or self.MenuTime~=MenuTime then
+if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
+self:E({Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
 missionCommands.removeItem(self.MenuPath)
-if self.ParentMenu then
-self.ParentMenu.Menus[self.MenuPath]=nil
 end
+MENU_INDEX:ClearMissionMenu(self.Path)
+self:ClearParentMenu(self.MenuText)
 return nil
+end
+end
+end
+return self
 end
 end
 do
@@ -3775,21 +3906,45 @@ MENU_MISSION_COMMAND={
 ClassName="MENU_MISSION_COMMAND"
 }
 function MENU_MISSION_COMMAND:New(MenuText,ParentMenu,CommandMenuFunction,...)
+MENU_INDEX:PrepareMission()
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local MissionMenu=MENU_INDEX:HasMissionMenu(Path)
+if MissionMenu then
+MissionMenu:SetCommandMenuFunction(CommandMenuFunction)
+MissionMenu:SetCommandMenuArguments(arg)
+return MissionMenu
+else
 local self=BASE:Inherit(self,MENU_COMMAND_BASE:New(MenuText,ParentMenu,CommandMenuFunction,arg))
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self:T({MenuText,CommandMenuFunction,arg})
+MENU_INDEX:SetMissionMenu(Path,self)
 self.MenuPath=missionCommands.addCommand(MenuText,self.MenuParentPath,self.MenuCallHandler)
-ParentMenu.Menus[self.MenuPath]=self
+self:SetParentMenu(self.MenuText,self)
 return self
 end
-function MENU_MISSION_COMMAND:Remove()
-self:F(self.MenuPath)
-missionCommands.removeItem(self.MenuPath)
-if self.ParentMenu then
-self.ParentMenu.Menus[self.MenuPath]=nil
 end
+function MENU_MISSION_COMMAND:Refresh()
+do
+missionCommands.removeItem(self.MenuPath)
+missionCommands.addCommand(self.MenuText,self.MenuParentPath,self.MenuCallHandler)
+end
+end
+function MENU_MISSION_COMMAND:Remove()
+MENU_INDEX:PrepareMission()
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local MissionMenu=MENU_INDEX:HasMissionMenu(Path)
+if MissionMenu==self then
+if not MenuTime or self.MenuTime~=MenuTime then
+if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
+self:E({Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
+missionCommands.removeItem(self.MenuPath)
+end
+MENU_INDEX:ClearMissionMenu(self.Path)
+self:ClearParentMenu(self.MenuText)
 return nil
+end
+end
+end
+return self
 end
 end
 do
@@ -3797,34 +3952,51 @@ MENU_COALITION={
 ClassName="MENU_COALITION"
 }
 function MENU_COALITION:New(Coalition,MenuText,ParentMenu)
+MENU_INDEX:PrepareCoalition(Coalition)
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local CoalitionMenu=MENU_INDEX:HasCoalitionMenu(Coalition,Path)
+if CoalitionMenu then
+return CoalitionMenu
+else
 local self=BASE:Inherit(self,MENU_BASE:New(MenuText,ParentMenu))
-self:F({Coalition,MenuText,ParentMenu})
+MENU_INDEX:SetCoalitionMenu(Coalition,Path,self)
 self.Coalition=Coalition
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self.Menus={}
-self:T({MenuText})
 self.MenuPath=missionCommands.addSubMenuForCoalition(Coalition,MenuText,self.MenuParentPath)
-self:T({self.MenuPath})
-if ParentMenu and ParentMenu.Menus then
-ParentMenu.Menus[self.MenuPath]=self
-end
+self:SetParentMenu(self.MenuText,self)
 return self
 end
+end
+function MENU_COALITION:Refresh()
+do
+missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
+missionCommands.addSubMenuForCoalition(self.Coalition,self.MenuText,self.MenuParentPath)
+end
+end
 function MENU_COALITION:RemoveSubMenus()
-self:F(self.MenuPath)
-for MenuID,Menu in pairs(self.Menus)do
+for MenuID,Menu in pairs(self.Menus or{})do
 Menu:Remove()
 end
+self.Menus=nil
 end
-function MENU_COALITION:Remove()
-self:F(self.MenuPath)
+function MENU_COALITION:Remove(MenuTime,MenuTag)
+MENU_INDEX:PrepareCoalition(self.Coalition)
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local CoalitionMenu=MENU_INDEX:HasCoalitionMenu(self.Coalition,Path)
+if CoalitionMenu==self then
 self:RemoveSubMenus()
+if not MenuTime or self.MenuTime~=MenuTime then
+if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
+self:E({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
 missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
-if self.ParentMenu then
-self.ParentMenu.Menus[self.MenuPath]=nil
 end
+MENU_INDEX:ClearCoalitionMenu(self.Coalition,Path)
+self:ClearParentMenu(self.MenuText)
 return nil
+end
+end
+end
+return self
 end
 end
 do
@@ -3832,121 +4004,46 @@ MENU_COALITION_COMMAND={
 ClassName="MENU_COALITION_COMMAND"
 }
 function MENU_COALITION_COMMAND:New(Coalition,MenuText,ParentMenu,CommandMenuFunction,...)
+MENU_INDEX:PrepareCoalition(Coalition)
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local CoalitionMenu=MENU_INDEX:HasCoalitionMenu(Coalition,Path)
+if CoalitionMenu then
+CoalitionMenu:SetCommandMenuFunction(CommandMenuFunction)
+CoalitionMenu:SetCommandMenuArguments(arg)
+return CoalitionMenu
+else
 local self=BASE:Inherit(self,MENU_COMMAND_BASE:New(MenuText,ParentMenu,CommandMenuFunction,arg))
-self.MenuCoalition=Coalition
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self:T({MenuText,CommandMenuFunction,arg})
-self.MenuPath=missionCommands.addCommandForCoalition(self.MenuCoalition,MenuText,self.MenuParentPath,self.MenuCallHandler)
-ParentMenu.Menus[self.MenuPath]=self
+MENU_INDEX:SetCoalitionMenu(Coalition,Path,self)
+self.Coalition=Coalition
+self.MenuPath=missionCommands.addCommandForCoalition(self.Coalition,MenuText,self.MenuParentPath,self.MenuCallHandler)
+self:SetParentMenu(self.MenuText,self)
 return self
 end
-function MENU_COALITION_COMMAND:Remove()
-self:F(self.MenuPath)
-missionCommands.removeItemForCoalition(self.MenuCoalition,self.MenuPath)
-if self.ParentMenu then
-self.ParentMenu.Menus[self.MenuPath]=nil
 end
-return nil
-end
-end
+function MENU_COALITION_COMMAND:Refresh()
 do
-local _MENUCLIENTS={}
-MENU_CLIENT={
-ClassName="MENU_CLIENT"
-}
-function MENU_CLIENT:New(Client,MenuText,ParentMenu)
-local MenuParentPath={}
-if ParentMenu~=nil then
-MenuParentPath=ParentMenu.MenuPath
-end
-local self=BASE:Inherit(self,MENU_BASE:New(MenuText,MenuParentPath))
-self:F({Client,MenuText,ParentMenu})
-self.MenuClient=Client
-self.MenuClientGroupID=Client:GetClientGroupID()
-self.MenuParentPath=MenuParentPath
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self.Menus={}
-if not _MENUCLIENTS[self.MenuClientGroupID]then
-_MENUCLIENTS[self.MenuClientGroupID]={}
-end
-local MenuPath=_MENUCLIENTS[self.MenuClientGroupID]
-self:T({Client:GetClientGroupName(),MenuPath[table.concat(MenuParentPath)],MenuParentPath,MenuText})
-local MenuPathID=table.concat(MenuParentPath).."/"..MenuText
-if MenuPath[MenuPathID]then
-missionCommands.removeItemForGroup(self.MenuClient:GetClientGroupID(),MenuPath[MenuPathID])
-end
-self.MenuPath=missionCommands.addSubMenuForGroup(self.MenuClient:GetClientGroupID(),MenuText,MenuParentPath)
-MenuPath[MenuPathID]=self.MenuPath
-self:T({Client:GetClientGroupName(),self.MenuPath})
-if ParentMenu and ParentMenu.Menus then
-ParentMenu.Menus[self.MenuPath]=self
-end
-return self
-end
-function MENU_CLIENT:RemoveSubMenus()
-self:F(self.MenuPath)
-for MenuID,Menu in pairs(self.Menus)do
-Menu:Remove()
+missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
+missionCommands.addCommandForCoalition(self.Coalition,self.MenuText,self.MenuParentPath,self.MenuCallHandler)
 end
 end
-function MENU_CLIENT:Remove()
-self:F(self.MenuPath)
-self:RemoveSubMenus()
-if not _MENUCLIENTS[self.MenuClientGroupID]then
-_MENUCLIENTS[self.MenuClientGroupID]={}
+function MENU_COALITION_COMMAND:Remove(MenuTime,MenuTag)
+MENU_INDEX:PrepareCoalition(self.Coalition)
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local CoalitionMenu=MENU_INDEX:HasCoalitionMenu(self.Coalition,Path)
+if CoalitionMenu==self then
+if not MenuTime or self.MenuTime~=MenuTime then
+if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
+self:E({Coalition=self.Coalition,Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
+missionCommands.removeItemForCoalition(self.Coalition,self.MenuPath)
 end
-local MenuPath=_MENUCLIENTS[self.MenuClientGroupID]
-if MenuPath[table.concat(self.MenuParentPath).."/"..self.MenuText]then
-MenuPath[table.concat(self.MenuParentPath).."/"..self.MenuText]=nil
-end
-missionCommands.removeItemForGroup(self.MenuClient:GetClientGroupID(),self.MenuPath)
-self.ParentMenu.Menus[self.MenuPath]=nil
+MENU_INDEX:ClearCoalitionMenu(self.Coalition,Path)
+self:ClearParentMenu(self.MenuText)
 return nil
 end
-MENU_CLIENT_COMMAND={
-ClassName="MENU_CLIENT_COMMAND"
-}
-function MENU_CLIENT_COMMAND:New(Client,MenuText,ParentMenu,CommandMenuFunction,...)
-local MenuParentPath={}
-if ParentMenu~=nil then
-MenuParentPath=ParentMenu.MenuPath
 end
-local self=BASE:Inherit(self,MENU_COMMAND_BASE:New(MenuText,MenuParentPath,CommandMenuFunction,arg))
-self.MenuClient=Client
-self.MenuClientGroupID=Client:GetClientGroupID()
-self.MenuParentPath=MenuParentPath
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-if not _MENUCLIENTS[self.MenuClientGroupID]then
-_MENUCLIENTS[self.MenuClientGroupID]={}
-end
-local MenuPath=_MENUCLIENTS[self.MenuClientGroupID]
-self:T({Client:GetClientGroupName(),MenuPath[table.concat(MenuParentPath)],MenuParentPath,MenuText,CommandMenuFunction,arg})
-local MenuPathID=table.concat(MenuParentPath).."/"..MenuText
-if MenuPath[MenuPathID]then
-missionCommands.removeItemForGroup(self.MenuClient:GetClientGroupID(),MenuPath[MenuPathID])
-end
-self.MenuPath=missionCommands.addCommandForGroup(self.MenuClient:GetClientGroupID(),MenuText,MenuParentPath,self.MenuCallHandler)
-MenuPath[MenuPathID]=self.MenuPath
-if ParentMenu and ParentMenu.Menus then
-ParentMenu.Menus[self.MenuPath]=self
 end
 return self
-end
-function MENU_CLIENT_COMMAND:Remove()
-self:F(self.MenuPath)
-if not _MENUCLIENTS[self.MenuClientGroupID]then
-_MENUCLIENTS[self.MenuClientGroupID]={}
-end
-local MenuPath=_MENUCLIENTS[self.MenuClientGroupID]
-if MenuPath[table.concat(self.MenuParentPath).."/"..self.MenuText]then
-MenuPath[table.concat(self.MenuParentPath).."/"..self.MenuText]=nil
-end
-missionCommands.removeItemForGroup(self.MenuClient:GetClientGroupID(),self.MenuPath)
-self.ParentMenu.Menus[self.MenuPath]=nil
-return nil
 end
 end
 do
@@ -3954,108 +4051,105 @@ local _MENUGROUPS={}
 MENU_GROUP={
 ClassName="MENU_GROUP"
 }
-function MENU_GROUP:New(MenuGroup,MenuText,ParentMenu)
-MenuGroup._Menus=MenuGroup._Menus or{}
-local Path=(ParentMenu and(table.concat(ParentMenu.MenuPath or{},"@").."@"..MenuText))or MenuText
-if MenuGroup._Menus[Path]then
-self=MenuGroup._Menus[Path]
+function MENU_GROUP:New(Group,MenuText,ParentMenu)
+MENU_INDEX:PrepareGroup(Group)
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local GroupMenu=MENU_INDEX:HasGroupMenu(Group,Path)
+if GroupMenu then
+return GroupMenu
 else
 self=BASE:Inherit(self,MENU_BASE:New(MenuText,ParentMenu))
-MenuGroup._Menus[Path]=self
-self.MenuGroup=MenuGroup
-self.Path=Path
-self.MenuGroupID=MenuGroup:GetID()
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self:T({"Adding Menu ",MenuText,self.MenuParentPath})
-self.MenuPath=missionCommands.addSubMenuForGroup(self.MenuGroupID,MenuText,self.MenuParentPath)
-if self.ParentMenu and self.ParentMenu.Menus then
-self.ParentMenu.Menus[MenuText]=self
-self:F({self.ParentMenu.Menus,MenuText})
-self.ParentMenu.MenuCount=self.ParentMenu.MenuCount+1
-end
-end
+MENU_INDEX:SetGroupMenu(Group,Path,self)
+self.Group=Group
+self.GroupID=Group:GetID()
+self.MenuPath=missionCommands.addSubMenuForGroup(self.GroupID,MenuText,self.MenuParentPath)
+self:SetParentMenu(self.MenuText,self)
 return self
 end
+end
+function MENU_GROUP:Refresh()
+do
+missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
+missionCommands.addSubMenuForGroup(self.GroupID,self.MenuText,self.MenuParentPath)
+for MenuText,Menu in pairs(self.Menus or{})do
+Menu:Refresh()
+end
+end
+end
 function MENU_GROUP:RemoveSubMenus(MenuTime,MenuTag)
-self:T({"Removing Group SubMenus:",MenuTime,MenuTag,self.MenuGroup:GetName(),self.MenuPath})
-for MenuText,Menu in pairs(self.Menus)do
+for MenuText,Menu in pairs(self.Menus or{})do
 Menu:Remove(MenuTime,MenuTag)
 end
+self.Menus=nil
 end
 function MENU_GROUP:Remove(MenuTime,MenuTag)
+MENU_INDEX:PrepareGroup(self.Group)
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local GroupMenu=MENU_INDEX:HasGroupMenu(self.Group,Path)
+if GroupMenu==self then
 self:RemoveSubMenus(MenuTime,MenuTag)
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-if self.MenuGroup._Menus[self.Path]then
-self=self.MenuGroup._Menus[self.Path]
-missionCommands.removeItemForGroup(self.MenuGroupID,self.MenuPath)
-if self.ParentMenu then
-self.ParentMenu.Menus[self.MenuText]=nil
-self.ParentMenu.MenuCount=self.ParentMenu.MenuCount-1
-if self.ParentMenu.MenuCount==0 then
-if self.MenuRemoveParent==true then
-self:T2("Removing Parent Menu ")
-self.ParentMenu:Remove()
+self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
+missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
-end
-end
-end
-self:T({"Removing Group Menu:",MenuGroup=self.MenuGroup:GetName()})
-self.MenuGroup._Menus[self.Path]=nil
-self=nil
-end
-end
+MENU_INDEX:ClearGroupMenu(self.Group,Path)
+self:ClearParentMenu(self.MenuText)
 return nil
+end
+end
+else
+error("Remove: Not a correct path")
+return nil
+end
+return self
 end
 MENU_GROUP_COMMAND={
 ClassName="MENU_GROUP_COMMAND"
 }
-function MENU_GROUP_COMMAND:New(MenuGroup,MenuText,ParentMenu,CommandMenuFunction,...)
-MenuGroup._Menus=MenuGroup._Menus or{}
-local Path=(ParentMenu and(table.concat(ParentMenu.MenuPath or{},"@").."@"..MenuText))or MenuText
-if MenuGroup._Menus[Path]then
-self=MenuGroup._Menus[Path]
-self:SetCommandMenuFunction(CommandMenuFunction)
-self:SetCommandMenuArguments(arg)
-return self
-end
+function MENU_GROUP_COMMAND:New(Group,MenuText,ParentMenu,CommandMenuFunction,...)
+MENU_INDEX:PrepareGroup(Group)
+local Path=MENU_INDEX:ParentPath(ParentMenu,MenuText)
+local GroupMenu=MENU_INDEX:HasGroupMenu(Group,Path)
+if GroupMenu then
+GroupMenu:SetCommandMenuFunction(CommandMenuFunction)
+GroupMenu:SetCommandMenuArguments(arg)
+return GroupMenu
+else
 self=BASE:Inherit(self,MENU_COMMAND_BASE:New(MenuText,ParentMenu,CommandMenuFunction,arg))
-MenuGroup._Menus[Path]=self
-self.Path=Path
-self.MenuGroup=MenuGroup
-self.MenuGroupID=MenuGroup:GetID()
-self.MenuText=MenuText
-self.ParentMenu=ParentMenu
-self:F({"Adding Group Command Menu:",MenuGroup=MenuGroup:GetName(),MenuText=MenuText,MenuPath=self.MenuParentPath})
-self.MenuPath=missionCommands.addCommandForGroup(self.MenuGroupID,MenuText,self.MenuParentPath,self.MenuCallHandler)
-if self.ParentMenu and self.ParentMenu.Menus then
-self.ParentMenu.Menus[MenuText]=self
-self.ParentMenu.MenuCount=self.ParentMenu.MenuCount+1
-self:F2({ParentMenu.Menus,MenuText})
-end
+MENU_INDEX:SetGroupMenu(Group,Path,self)
+self.Group=Group
+self.GroupID=Group:GetID()
+self.MenuPath=missionCommands.addCommandForGroup(self.GroupID,MenuText,self.MenuParentPath,self.MenuCallHandler)
+self:SetParentMenu(self.MenuText,self)
 return self
+end
+end
+function MENU_GROUP_COMMAND:Refresh()
+do
+missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
+missionCommands.addCommandForGroup(self.GroupID,self.MenuText,self.MenuParentPath,self.MenuCallHandler)
+end
 end
 function MENU_GROUP_COMMAND:Remove(MenuTime,MenuTag)
+MENU_INDEX:PrepareGroup(self.Group)
+local Path=MENU_INDEX:ParentPath(self.ParentMenu,self.MenuText)
+local GroupMenu=MENU_INDEX:HasGroupMenu(self.Group,Path)
+if GroupMenu==self then
 if not MenuTime or self.MenuTime~=MenuTime then
 if(not MenuTag)or(MenuTag and self.MenuTag and MenuTag==self.MenuTag)then
-if self.MenuGroup._Menus[self.Path]then
-self=self.MenuGroup._Menus[self.Path]
-missionCommands.removeItemForGroup(self.MenuGroupID,self.MenuPath)
-self.ParentMenu.Menus[self.MenuText]=nil
-self.ParentMenu.MenuCount=self.ParentMenu.MenuCount-1
-if self.ParentMenu.MenuCount==0 then
-if self.MenuRemoveParent==true then
-self:T2("Removing Parent Menu ")
-self.ParentMenu:Remove()
+self:E({Group=self.GroupID,Text=self.MenuText,Path=self.MenuPath})
+if self.MenuPath~=nil then
+missionCommands.removeItemForGroup(self.GroupID,self.MenuPath)
 end
-end
-self.MenuGroup._Menus[self.Path]=nil
-self=nil
-end
-end
-end
+MENU_INDEX:ClearGroupMenu(self.Group,Path)
+self:ClearParentMenu(self.MenuText)
 return nil
+end
+end
+end
+return self
 end
 end
 ZONE_BASE={
@@ -4664,11 +4758,11 @@ local self=BASE:Inherit(self,ZONE_POLYGON_BASE:New(ZoneName,GroupPoints))
 self:F({ZoneName,ZoneGroup,self._.Polygon})
 return self
 end
-function ZONE_POLYGON:NewFromGroupName(ZoneName,GroupName)
+function ZONE_POLYGON:NewFromGroupName(GroupName)
 local ZoneGroup=GROUP:FindByName(GroupName)
 local GroupPoints=ZoneGroup:GetTaskRoute()
-local self=BASE:Inherit(self,ZONE_POLYGON_BASE:New(ZoneName,GroupPoints))
-self:F({ZoneName,ZoneGroup,self._.Polygon})
+local self=BASE:Inherit(self,ZONE_POLYGON_BASE:New(GroupName,GroupPoints))
+self:F({GroupName,ZoneGroup,self._.Polygon})
 return self
 end
 DATABASE={
@@ -4830,7 +4924,7 @@ function DATABASE:AddPlayer(UnitName,PlayerName)
 if PlayerName then
 self:E({"Add player for unit:",UnitName,PlayerName})
 self.PLAYERS[PlayerName]=UnitName
-self.PLAYERUNITS[UnitName]=PlayerName
+self.PLAYERUNITS[PlayerName]=self:FindUnit(UnitName)
 self.PLAYERSJOINED[PlayerName]=PlayerName
 end
 end
@@ -4838,8 +4932,17 @@ function DATABASE:DeletePlayer(UnitName,PlayerName)
 if PlayerName then
 self:E({"Clean player:",PlayerName})
 self.PLAYERS[PlayerName]=nil
-self.PLAYERUNITS[UnitName]=PlayerName
+self.PLAYERUNITS[PlayerName]=nil
 end
+end
+function DATABASE:GetPlayers()
+return self.PLAYERS
+end
+function DATABASE:GetPlayerUnits()
+return self.PLAYERUNITS
+end
+function DATABASE:GetPlayersJoined()
+return self.PLAYERSJOINED
 end
 function DATABASE:Spawn(SpawnTemplate)
 self:F(SpawnTemplate.name)
@@ -8466,8 +8569,8 @@ end
 function FSM:_call_handler(handler,params,EventName)
 local ErrorHandler=function(errmsg)
 env.info("Error in SCHEDULER function:"..errmsg)
-if debug~=nil then
-env.info(debug.traceback())
+if BASE.Debug~=nil then
+env.info(BASE.Debug.traceback())
 end
 return errmsg
 end
@@ -8637,8 +8740,8 @@ end
 function FSM_CONTROLLABLE:_call_handler(handler,params,EventName)
 local ErrorHandler=function(errmsg)
 env.info("Error in SCHEDULER function:"..errmsg)
-if debug~=nil then
-env.info(debug.traceback())
+if BASE.Debug~=nil then
+env.info(BASE.Debug.traceback())
 end
 return errmsg
 end
@@ -8665,8 +8768,8 @@ end
 function FSM_PROCESS:_call_handler(handler,params,EventName)
 local ErrorHandler=function(errmsg)
 env.info("Error in FSM_PROCESS call handler:"..errmsg)
-if debug~=nil then
-env.info(debug.traceback())
+if BASE.Debug~=nil then
+env.info(BASE.Debug.traceback())
 end
 return errmsg
 end
@@ -9516,7 +9619,7 @@ SpawnTemplate.y=PointVec3.z
 local GroupSpawned=self:SpawnWithIndex(self.SpawnIndex)
 if Takeoff==GROUP.Takeoff.Air then
 for UnitID,UnitSpawned in pairs(GroupSpawned:GetUnits())do
-SCHEDULER:New(nil,BASE.CreateEventTakeoff,{timer.getTime(),UnitSpawned:GetDCSObject()},1)
+SCHEDULER:New(nil,BASE.CreateEventTakeoff,{GroupSpawned,timer.getTime(),UnitSpawned:GetDCSObject()},1)
 end
 end
 return GroupSpawned
@@ -14454,8 +14557,17 @@ self:SetDisplayMessagePrefix()
 self:HandleEvent(EVENTS.Dead,self._EventOnDeadOrCrash)
 self:HandleEvent(EVENTS.Crash,self._EventOnDeadOrCrash)
 self:HandleEvent(EVENTS.Hit,self._EventOnHit)
+self:HandleEvent(EVENTS.Birth)
 self:HandleEvent(EVENTS.PlayerEnterUnit)
 self:HandleEvent(EVENTS.PlayerLeaveUnit)
+self.ScoringPlayerScan=BASE:ScheduleOnce(1,
+function()
+for PlayerName,PlayerUnit in pairs(_DATABASE:GetPlayerUnits())do
+self:_AddPlayerFromUnit(PlayerUnit)
+self:SetScoringMenu(PlayerUnit:GetGroup())
+end
+end
+)
 self:OpenCSV(GameName)
 return self
 end
@@ -14559,6 +14671,14 @@ return self
 end
 function SCORING:SetCoalitionChangePenalty(CoalitionChangePenalty)
 self.CoalitionChangePenalty=CoalitionChangePenalty
+return self
+end
+function SCORING:SetScoringMenu(ScoringGroup)
+local Menu=MENU_GROUP:New(ScoringGroup,'Scoring')
+local ReportGroupSummary=MENU_GROUP_COMMAND:New(ScoringGroup,'Summary report players in group',Menu,SCORING.ReportScoreGroupSummary,self,ScoringGroup)
+local ReportGroupDetailed=MENU_GROUP_COMMAND:New(ScoringGroup,'Detailed report players in group',Menu,SCORING.ReportScoreGroupDetailed,self,ScoringGroup)
+local ReportToAllSummary=MENU_GROUP_COMMAND:New(ScoringGroup,'Summary report all players',Menu,SCORING.ReportScoreAllSummary,self,ScoringGroup)
+self:SetState(ScoringGroup,"ScoringMenu",Menu)
 return self
 end
 function SCORING:_AddPlayerFromUnit(UnitData)
@@ -14686,16 +14806,12 @@ end
 function SCORING:OnEventPlayerEnterUnit(Event)
 if Event.IniUnit then
 self:_AddPlayerFromUnit(Event.IniUnit)
-local Menu=MENU_GROUP:New(Event.IniGroup,'Scoring')
-local ReportGroupSummary=MENU_GROUP_COMMAND:New(Event.IniGroup,'Summary report players in group',Menu,SCORING.ReportScoreGroupSummary,self,Event.IniGroup)
-local ReportGroupDetailed=MENU_GROUP_COMMAND:New(Event.IniGroup,'Detailed report players in group',Menu,SCORING.ReportScoreGroupDetailed,self,Event.IniGroup)
-local ReportToAllSummary=MENU_GROUP_COMMAND:New(Event.IniGroup,'Summary report all players',Menu,SCORING.ReportScoreAllSummary,self,Event.IniGroup)
-self:SetState(Event.IniUnit,"ScoringMenu",Menu)
+self:SetScoringMenu(Event.IniGroup)
 end
 end
 function SCORING:OnEventPlayerLeaveUnit(Event)
 if Event.IniUnit then
-local Menu=self:GetState(Event.IniUnit,"ScoringMenu")
+local Menu=self:GetState(Event.IniUnit:GetGroup(),"ScoringMenu")
 if Menu then
 end
 end
@@ -15314,8 +15430,9 @@ end
 end
 function SCORING:ReportScoreAllSummary(PlayerGroup)
 local PlayerMessage=""
-self:T("Report Score All Players")
+self:T({"Summary Score Report of All Players",Players=self.Players})
 for PlayerName,PlayerData in pairs(self.Players)do
+self:T({PlayerName=PlayerName,PlayerGroup=PlayerGroup})
 if PlayerName then
 local ReportHits,ScoreHits,PenaltyHits=self:ReportDetailedPlayerHits(PlayerName)
 ReportHits=ReportHits~=""and"\n- "..ReportHits or ReportHits
@@ -15861,7 +15978,7 @@ self.EscortClient._EscortGroups[EscortGroup:GetName()].EscortGroup=self.EscortGr
 self.EscortClient._EscortGroups[EscortGroup:GetName()].EscortName=self.EscortName
 self.EscortClient._EscortGroups[EscortGroup:GetName()].Detection=self.EscortGroup.Detection
 end
-self.EscortMenu=MENU_CLIENT:New(self.EscortClient,self.EscortName)
+self.EscortMenu=MENU_GROUP:New(self.EscortClient:GetGroup(),self.EscortName)
 self.EscortGroup:WayPointInitialize(1)
 self.EscortGroup:OptionROTVertical()
 self.EscortGroup:OptionROEOpenFire()
@@ -15915,12 +16032,12 @@ function ESCORT:MenuFollowAt(Distance)
 self:F(Distance)
 if self.EscortGroup:IsAir()then
 if not self.EscortMenuReportNavigation then
-self.EscortMenuReportNavigation=MENU_CLIENT:New(self.EscortClient,"Navigation",self.EscortMenu)
+self.EscortMenuReportNavigation=MENU_GROUP:New(self.EscortClient:GetGroup(),"Navigation",self.EscortMenu)
 end
 if not self.EscortMenuJoinUpAndFollow then
 self.EscortMenuJoinUpAndFollow={}
 end
-self.EscortMenuJoinUpAndFollow[#self.EscortMenuJoinUpAndFollow+1]=MENU_CLIENT_COMMAND:New(self.EscortClient,"Join-Up and Follow at "..Distance,self.EscortMenuReportNavigation,ESCORT._JoinUpAndFollow,self,Distance)
+self.EscortMenuJoinUpAndFollow[#self.EscortMenuJoinUpAndFollow+1]=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Join-Up and Follow at "..Distance,self.EscortMenuReportNavigation,ESCORT._JoinUpAndFollow,self,Distance)
 self.EscortMode=ESCORT.MODE.FOLLOW
 end
 return self
@@ -15929,7 +16046,7 @@ function ESCORT:MenuHoldAtEscortPosition(Height,Seconds,MenuTextFormat)
 self:F({Height,Seconds,MenuTextFormat})
 if self.EscortGroup:IsAir()then
 if not self.EscortMenuHold then
-self.EscortMenuHold=MENU_CLIENT:New(self.EscortClient,"Hold position",self.EscortMenu)
+self.EscortMenuHold=MENU_GROUP:New(self.EscortClient:GetGroup(),"Hold position",self.EscortMenu)
 end
 if not Height then
 Height=30
@@ -15954,9 +16071,9 @@ end
 if not self.EscortMenuHoldPosition then
 self.EscortMenuHoldPosition={}
 end
-self.EscortMenuHoldPosition[#self.EscortMenuHoldPosition+1]=MENU_CLIENT_COMMAND
+self.EscortMenuHoldPosition[#self.EscortMenuHoldPosition+1]=MENU_GROUP_COMMAND
 :New(
-self.EscortClient,
+self.EscortClient:GetGroup(),
 MenuText,
 self.EscortMenuHold,
 ESCORT._HoldPosition,
@@ -15972,7 +16089,7 @@ function ESCORT:MenuHoldAtLeaderPosition(Height,Seconds,MenuTextFormat)
 self:F({Height,Seconds,MenuTextFormat})
 if self.EscortGroup:IsAir()then
 if not self.EscortMenuHold then
-self.EscortMenuHold=MENU_CLIENT:New(self.EscortClient,"Hold position",self.EscortMenu)
+self.EscortMenuHold=MENU_GROUP:New(self.EscortClient:GetGroup(),"Hold position",self.EscortMenu)
 end
 if not Height then
 Height=30
@@ -15997,9 +16114,9 @@ end
 if not self.EscortMenuHoldAtLeaderPosition then
 self.EscortMenuHoldAtLeaderPosition={}
 end
-self.EscortMenuHoldAtLeaderPosition[#self.EscortMenuHoldAtLeaderPosition+1]=MENU_CLIENT_COMMAND
+self.EscortMenuHoldAtLeaderPosition[#self.EscortMenuHoldAtLeaderPosition+1]=MENU_GROUP_COMMAND
 :New(
-self.EscortClient,
+self.EscortClient:GetGroup(),
 MenuText,
 self.EscortMenuHold,
 ESCORT._HoldPosition,
@@ -16016,7 +16133,7 @@ function ESCORT:MenuScanForTargets(Height,Seconds,MenuTextFormat)
 self:F({Height,Seconds,MenuTextFormat})
 if self.EscortGroup:IsAir()then
 if not self.EscortMenuScan then
-self.EscortMenuScan=MENU_CLIENT:New(self.EscortClient,"Scan for targets",self.EscortMenu)
+self.EscortMenuScan=MENU_GROUP:New(self.EscortClient:GetGroup(),"Scan for targets",self.EscortMenu)
 end
 if not Height then
 Height=100
@@ -16041,9 +16158,9 @@ end
 if not self.EscortMenuScanForTargets then
 self.EscortMenuScanForTargets={}
 end
-self.EscortMenuScanForTargets[#self.EscortMenuScanForTargets+1]=MENU_CLIENT_COMMAND
+self.EscortMenuScanForTargets[#self.EscortMenuScanForTargets+1]=MENU_GROUP_COMMAND
 :New(
-self.EscortClient,
+self.EscortClient:GetGroup(),
 MenuText,
 self.EscortMenuScan,
 ESCORT._ScanTargets,
@@ -16056,7 +16173,7 @@ end
 function ESCORT:MenuFlare(MenuTextFormat)
 self:F()
 if not self.EscortMenuReportNavigation then
-self.EscortMenuReportNavigation=MENU_CLIENT:New(self.EscortClient,"Navigation",self.EscortMenu)
+self.EscortMenuReportNavigation=MENU_GROUP:New(self.EscortClient:GetGroup(),"Navigation",self.EscortMenu)
 end
 local MenuText=""
 if not MenuTextFormat then
@@ -16065,11 +16182,11 @@ else
 MenuText=MenuTextFormat
 end
 if not self.EscortMenuFlare then
-self.EscortMenuFlare=MENU_CLIENT:New(self.EscortClient,MenuText,self.EscortMenuReportNavigation,ESCORT._Flare,self)
-self.EscortMenuFlareGreen=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release green flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Green,"Released a green flare!")
-self.EscortMenuFlareRed=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release red flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Red,"Released a red flare!")
-self.EscortMenuFlareWhite=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release white flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.White,"Released a white flare!")
-self.EscortMenuFlareYellow=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release yellow flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Yellow,"Released a yellow flare!")
+self.EscortMenuFlare=MENU_GROUP:New(self.EscortClient:GetGroup(),MenuText,self.EscortMenuReportNavigation,ESCORT._Flare,self)
+self.EscortMenuFlareGreen=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release green flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Green,"Released a green flare!")
+self.EscortMenuFlareRed=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release red flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Red,"Released a red flare!")
+self.EscortMenuFlareWhite=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release white flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.White,"Released a white flare!")
+self.EscortMenuFlareYellow=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release yellow flare",self.EscortMenuFlare,ESCORT._Flare,self,FLARECOLOR.Yellow,"Released a yellow flare!")
 end
 return self
 end
@@ -16077,7 +16194,7 @@ function ESCORT:MenuSmoke(MenuTextFormat)
 self:F()
 if not self.EscortGroup:IsAir()then
 if not self.EscortMenuReportNavigation then
-self.EscortMenuReportNavigation=MENU_CLIENT:New(self.EscortClient,"Navigation",self.EscortMenu)
+self.EscortMenuReportNavigation=MENU_GROUP:New(self.EscortClient:GetGroup(),"Navigation",self.EscortMenu)
 end
 local MenuText=""
 if not MenuTextFormat then
@@ -16086,12 +16203,12 @@ else
 MenuText=MenuTextFormat
 end
 if not self.EscortMenuSmoke then
-self.EscortMenuSmoke=MENU_CLIENT:New(self.EscortClient,"Smoke",self.EscortMenuReportNavigation,ESCORT._Smoke,self)
-self.EscortMenuSmokeGreen=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release green smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Green,"Releasing green smoke!")
-self.EscortMenuSmokeRed=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release red smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Red,"Releasing red smoke!")
-self.EscortMenuSmokeWhite=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release white smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.White,"Releasing white smoke!")
-self.EscortMenuSmokeOrange=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release orange smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Orange,"Releasing orange smoke!")
-self.EscortMenuSmokeBlue=MENU_CLIENT_COMMAND:New(self.EscortClient,"Release blue smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Blue,"Releasing blue smoke!")
+self.EscortMenuSmoke=MENU_GROUP:New(self.EscortClient:GetGroup(),"Smoke",self.EscortMenuReportNavigation,ESCORT._Smoke,self)
+self.EscortMenuSmokeGreen=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release green smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Green,"Releasing green smoke!")
+self.EscortMenuSmokeRed=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release red smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Red,"Releasing red smoke!")
+self.EscortMenuSmokeWhite=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release white smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.White,"Releasing white smoke!")
+self.EscortMenuSmokeOrange=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release orange smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Orange,"Releasing orange smoke!")
+self.EscortMenuSmokeBlue=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Release blue smoke",self.EscortMenuSmoke,ESCORT._Smoke,self,SMOKECOLOR.Blue,"Releasing blue smoke!")
 end
 end
 return self
@@ -16099,38 +16216,38 @@ end
 function ESCORT:MenuReportTargets(Seconds)
 self:F({Seconds})
 if not self.EscortMenuReportNearbyTargets then
-self.EscortMenuReportNearbyTargets=MENU_CLIENT:New(self.EscortClient,"Report targets",self.EscortMenu)
+self.EscortMenuReportNearbyTargets=MENU_GROUP:New(self.EscortClient:GetGroup(),"Report targets",self.EscortMenu)
 end
 if not Seconds then
 Seconds=30
 end
-self.EscortMenuReportNearbyTargetsNow=MENU_CLIENT_COMMAND:New(self.EscortClient,"Report targets now!",self.EscortMenuReportNearbyTargets,ESCORT._ReportNearbyTargetsNow,self)
-self.EscortMenuReportNearbyTargetsOn=MENU_CLIENT_COMMAND:New(self.EscortClient,"Report targets on",self.EscortMenuReportNearbyTargets,ESCORT._SwitchReportNearbyTargets,self,true)
-self.EscortMenuReportNearbyTargetsOff=MENU_CLIENT_COMMAND:New(self.EscortClient,"Report targets off",self.EscortMenuReportNearbyTargets,ESCORT._SwitchReportNearbyTargets,self,false)
-self.EscortMenuAttackNearbyTargets=MENU_CLIENT:New(self.EscortClient,"Attack targets",self.EscortMenu)
+self.EscortMenuReportNearbyTargetsNow=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Report targets now!",self.EscortMenuReportNearbyTargets,ESCORT._ReportNearbyTargetsNow,self)
+self.EscortMenuReportNearbyTargetsOn=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Report targets on",self.EscortMenuReportNearbyTargets,ESCORT._SwitchReportNearbyTargets,self,true)
+self.EscortMenuReportNearbyTargetsOff=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Report targets off",self.EscortMenuReportNearbyTargets,ESCORT._SwitchReportNearbyTargets,self,false)
+self.EscortMenuAttackNearbyTargets=MENU_GROUP:New(self.EscortClient:GetGroup(),"Attack targets",self.EscortMenu)
 self.ReportTargetsScheduler=SCHEDULER:New(self,self._ReportTargetsScheduler,{},1,Seconds)
 return self
 end
 function ESCORT:MenuAssistedAttack()
 self:F()
-self.EscortMenuTargetAssistance=MENU_CLIENT:New(self.EscortClient,"Request assistance from",self.EscortMenu)
+self.EscortMenuTargetAssistance=MENU_GROUP:New(self.EscortClient:GetGroup(),"Request assistance from",self.EscortMenu)
 return self
 end
 function ESCORT:MenuROE(MenuTextFormat)
 self:F(MenuTextFormat)
 if not self.EscortMenuROE then
-self.EscortMenuROE=MENU_CLIENT:New(self.EscortClient,"ROE",self.EscortMenu)
+self.EscortMenuROE=MENU_GROUP:New(self.EscortClient:GetGroup(),"ROE",self.EscortMenu)
 if self.EscortGroup:OptionROEHoldFirePossible()then
-self.EscortMenuROEHoldFire=MENU_CLIENT_COMMAND:New(self.EscortClient,"Hold Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEHoldFire(),"Holding weapons!")
+self.EscortMenuROEHoldFire=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Hold Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEHoldFire(),"Holding weapons!")
 end
 if self.EscortGroup:OptionROEReturnFirePossible()then
-self.EscortMenuROEReturnFire=MENU_CLIENT_COMMAND:New(self.EscortClient,"Return Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEReturnFire(),"Returning fire!")
+self.EscortMenuROEReturnFire=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Return Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEReturnFire(),"Returning fire!")
 end
 if self.EscortGroup:OptionROEOpenFirePossible()then
-self.EscortMenuROEOpenFire=MENU_CLIENT_COMMAND:New(self.EscortClient,"Open Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEOpenFire(),"Opening fire on designated targets!!")
+self.EscortMenuROEOpenFire=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Open Fire",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEOpenFire(),"Opening fire on designated targets!!")
 end
 if self.EscortGroup:OptionROEWeaponFreePossible()then
-self.EscortMenuROEWeaponFree=MENU_CLIENT_COMMAND:New(self.EscortClient,"Weapon Free",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEWeaponFree(),"Opening fire on targets of opportunity!")
+self.EscortMenuROEWeaponFree=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Weapon Free",self.EscortMenuROE,ESCORT._ROE,self,self.EscortGroup:OptionROEWeaponFree(),"Opening fire on targets of opportunity!")
 end
 end
 return self
@@ -16139,18 +16256,18 @@ function ESCORT:MenuEvasion(MenuTextFormat)
 self:F(MenuTextFormat)
 if self.EscortGroup:IsAir()then
 if not self.EscortMenuEvasion then
-self.EscortMenuEvasion=MENU_CLIENT:New(self.EscortClient,"Evasion",self.EscortMenu)
+self.EscortMenuEvasion=MENU_GROUP:New(self.EscortClient:GetGroup(),"Evasion",self.EscortMenu)
 if self.EscortGroup:OptionROTNoReactionPossible()then
-self.EscortMenuEvasionNoReaction=MENU_CLIENT_COMMAND:New(self.EscortClient,"Fight until death",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTNoReaction(),"Fighting until death!")
+self.EscortMenuEvasionNoReaction=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Fight until death",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTNoReaction(),"Fighting until death!")
 end
 if self.EscortGroup:OptionROTPassiveDefensePossible()then
-self.EscortMenuEvasionPassiveDefense=MENU_CLIENT_COMMAND:New(self.EscortClient,"Use flares, chaff and jammers",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTPassiveDefense(),"Defending using jammers, chaff and flares!")
+self.EscortMenuEvasionPassiveDefense=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Use flares, chaff and jammers",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTPassiveDefense(),"Defending using jammers, chaff and flares!")
 end
 if self.EscortGroup:OptionROTEvadeFirePossible()then
-self.EscortMenuEvasionEvadeFire=MENU_CLIENT_COMMAND:New(self.EscortClient,"Evade enemy fire",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTEvadeFire(),"Evading on enemy fire!")
+self.EscortMenuEvasionEvadeFire=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Evade enemy fire",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTEvadeFire(),"Evading on enemy fire!")
 end
 if self.EscortGroup:OptionROTVerticalPossible()then
-self.EscortMenuOptionEvasionVertical=MENU_CLIENT_COMMAND:New(self.EscortClient,"Go below radar and evade fire",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTVertical(),"Evading on enemy fire with vertical manoeuvres!")
+self.EscortMenuOptionEvasionVertical=MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),"Go below radar and evade fire",self.EscortMenuEvasion,ESCORT._ROT,self,self.EscortGroup:OptionROTVertical(),"Evading on enemy fire with vertical manoeuvres!")
 end
 end
 end
@@ -16159,7 +16276,7 @@ end
 function ESCORT:MenuResumeMission()
 self:F()
 if not self.EscortMenuResumeMission then
-self.EscortMenuResumeMission=MENU_CLIENT:New(self.EscortClient,"Resume mission from",self.EscortMenu)
+self.EscortMenuResumeMission=MENU_GROUP:New(self.EscortClient:GetGroup(),"Resume mission from",self.EscortMenu)
 end
 return self
 end
@@ -16469,7 +16586,7 @@ if ClientEscortGroupName==EscortGroupName then
 local DetectedMsg=DetectedItemReportSummary:Text("\n")
 DetectedMsgs[#DetectedMsgs+1]=DetectedMsg
 self:T(DetectedMsg)
-MENU_CLIENT_COMMAND:New(self.EscortClient,
+MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),
 DetectedMsg,
 self.EscortMenuAttackNearbyTargets,
 ESCORT._AttackTarget,
@@ -16480,8 +16597,8 @@ else
 if self.EscortMenuTargetAssistance then
 local DetectedMsg=DetectedItemReportSummary:Text("\n")
 self:T(DetectedMsg)
-local MenuTargetAssistance=MENU_CLIENT:New(self.EscortClient,EscortGroupData.EscortName,self.EscortMenuTargetAssistance)
-MENU_CLIENT_COMMAND:New(self.EscortClient,
+local MenuTargetAssistance=MENU_GROUP:New(self.EscortClient:GetGroup(),EscortGroupData.EscortName,self.EscortMenuTargetAssistance)
+MENU_GROUP_COMMAND:New(self.EscortClient:GetGroup(),
 DetectedMsg,
 MenuTargetAssistance,
 ESCORT._AssistTarget,
@@ -16516,34 +16633,34 @@ Client:Message(self.Briefing,15,"Trainer")
 end
 if self.MenusOnOff==true then
 Client:Message("Use the 'Radio Menu' -> 'Other (F10)' -> 'Missile Trainer' menu options to change the Missile Trainer settings (for all players).",15,"Trainer")
-Client.MainMenu=MENU_CLIENT:New(Client,"Missile Trainer",nil)
-Client.MenuMessages=MENU_CLIENT:New(Client,"Messages",Client.MainMenu)
-Client.MenuOn=MENU_CLIENT_COMMAND:New(Client,"Messages On",Client.MenuMessages,self._MenuMessages,{MenuSelf=self,MessagesOnOff=true})
-Client.MenuOff=MENU_CLIENT_COMMAND:New(Client,"Messages Off",Client.MenuMessages,self._MenuMessages,{MenuSelf=self,MessagesOnOff=false})
-Client.MenuTracking=MENU_CLIENT:New(Client,"Tracking",Client.MainMenu)
-Client.MenuTrackingToAll=MENU_CLIENT_COMMAND:New(Client,"To All",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingToAll=true})
-Client.MenuTrackingToTarget=MENU_CLIENT_COMMAND:New(Client,"To Target",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingToAll=false})
-Client.MenuTrackOn=MENU_CLIENT_COMMAND:New(Client,"Tracking On",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingOnOff=true})
-Client.MenuTrackOff=MENU_CLIENT_COMMAND:New(Client,"Tracking Off",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingOnOff=false})
-Client.MenuTrackIncrease=MENU_CLIENT_COMMAND:New(Client,"Frequency Increase",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingFrequency=-1})
-Client.MenuTrackDecrease=MENU_CLIENT_COMMAND:New(Client,"Frequency Decrease",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingFrequency=1})
-Client.MenuAlerts=MENU_CLIENT:New(Client,"Alerts",Client.MainMenu)
-Client.MenuAlertsToAll=MENU_CLIENT_COMMAND:New(Client,"To All",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsToAll=true})
-Client.MenuAlertsToTarget=MENU_CLIENT_COMMAND:New(Client,"To Target",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsToAll=false})
-Client.MenuHitsOn=MENU_CLIENT_COMMAND:New(Client,"Hits On",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsHitsOnOff=true})
-Client.MenuHitsOff=MENU_CLIENT_COMMAND:New(Client,"Hits Off",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsHitsOnOff=false})
-Client.MenuLaunchesOn=MENU_CLIENT_COMMAND:New(Client,"Launches On",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsLaunchesOnOff=true})
-Client.MenuLaunchesOff=MENU_CLIENT_COMMAND:New(Client,"Launches Off",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsLaunchesOnOff=false})
-Client.MenuDetails=MENU_CLIENT:New(Client,"Details",Client.MainMenu)
-Client.MenuDetailsDistanceOn=MENU_CLIENT_COMMAND:New(Client,"Range On",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsRangeOnOff=true})
-Client.MenuDetailsDistanceOff=MENU_CLIENT_COMMAND:New(Client,"Range Off",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsRangeOnOff=false})
-Client.MenuDetailsBearingOn=MENU_CLIENT_COMMAND:New(Client,"Bearing On",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsBearingOnOff=true})
-Client.MenuDetailsBearingOff=MENU_CLIENT_COMMAND:New(Client,"Bearing Off",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsBearingOnOff=false})
-Client.MenuDistance=MENU_CLIENT:New(Client,"Set distance to plane",Client.MainMenu)
-Client.MenuDistance50=MENU_CLIENT_COMMAND:New(Client,"50 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=50/1000})
-Client.MenuDistance100=MENU_CLIENT_COMMAND:New(Client,"100 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=100/1000})
-Client.MenuDistance150=MENU_CLIENT_COMMAND:New(Client,"150 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=150/1000})
-Client.MenuDistance200=MENU_CLIENT_COMMAND:New(Client,"200 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=200/1000})
+Client.MainMenu=MENU_GROUP:New(Client:GetGroup(),"Missile Trainer",nil)
+Client.MenuMessages=MENU_GROUP:New(Client:GetGroup(),"Messages",Client.MainMenu)
+Client.MenuOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Messages On",Client.MenuMessages,self._MenuMessages,{MenuSelf=self,MessagesOnOff=true})
+Client.MenuOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Messages Off",Client.MenuMessages,self._MenuMessages,{MenuSelf=self,MessagesOnOff=false})
+Client.MenuTracking=MENU_GROUP:New(Client:GetGroup(),"Tracking",Client.MainMenu)
+Client.MenuTrackingToAll=MENU_GROUP_COMMAND:New(Client:GetGroup(),"To All",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingToAll=true})
+Client.MenuTrackingToTarget=MENU_GROUP_COMMAND:New(Client:GetGroup(),"To Target",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingToAll=false})
+Client.MenuTrackOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Tracking On",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingOnOff=true})
+Client.MenuTrackOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Tracking Off",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingOnOff=false})
+Client.MenuTrackIncrease=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Frequency Increase",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingFrequency=-1})
+Client.MenuTrackDecrease=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Frequency Decrease",Client.MenuTracking,self._MenuMessages,{MenuSelf=self,TrackingFrequency=1})
+Client.MenuAlerts=MENU_GROUP:New(Client:GetGroup(),"Alerts",Client.MainMenu)
+Client.MenuAlertsToAll=MENU_GROUP_COMMAND:New(Client:GetGroup(),"To All",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsToAll=true})
+Client.MenuAlertsToTarget=MENU_GROUP_COMMAND:New(Client:GetGroup(),"To Target",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsToAll=false})
+Client.MenuHitsOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Hits On",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsHitsOnOff=true})
+Client.MenuHitsOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Hits Off",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsHitsOnOff=false})
+Client.MenuLaunchesOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Launches On",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsLaunchesOnOff=true})
+Client.MenuLaunchesOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Launches Off",Client.MenuAlerts,self._MenuMessages,{MenuSelf=self,AlertsLaunchesOnOff=false})
+Client.MenuDetails=MENU_GROUP:New(Client:GetGroup(),"Details",Client.MainMenu)
+Client.MenuDetailsDistanceOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Range On",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsRangeOnOff=true})
+Client.MenuDetailsDistanceOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Range Off",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsRangeOnOff=false})
+Client.MenuDetailsBearingOn=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Bearing On",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsBearingOnOff=true})
+Client.MenuDetailsBearingOff=MENU_GROUP_COMMAND:New(Client:GetGroup(),"Bearing Off",Client.MenuDetails,self._MenuMessages,{MenuSelf=self,DetailsBearingOnOff=false})
+Client.MenuDistance=MENU_GROUP:New(Client:GetGroup(),"Set distance to plane",Client.MainMenu)
+Client.MenuDistance50=MENU_GROUP_COMMAND:New(Client:GetGroup(),"50 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=50/1000})
+Client.MenuDistance100=MENU_GROUP_COMMAND:New(Client:GetGroup(),"100 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=100/1000})
+Client.MenuDistance150=MENU_GROUP_COMMAND:New(Client:GetGroup(),"150 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=150/1000})
+Client.MenuDistance200=MENU_GROUP_COMMAND:New(Client:GetGroup(),"200 meter",Client.MenuDistance,self._MenuMessages,{MenuSelf=self,Distance=200/1000})
 else
 if Client.MainMenu then
 Client.MainMenu:Remove()
@@ -18509,7 +18626,6 @@ function DETECTION_BASE:IsDetectedObjectIdentified(DetectedObject)
 local DetectedObjectName=DetectedObject.Name
 if DetectedObjectName then
 local DetectedObjectIdentified=self.DetectedObjectsIdentified[DetectedObjectName]==true
-self:T3(DetectedObjectIdentified)
 return DetectedObjectIdentified
 else
 return nil
@@ -18565,10 +18681,10 @@ self.DetectedItemMax=self.DetectedItemMax+1
 if DetectedItemIndex then
 self.DetectedItems[DetectedItemIndex]=DetectedItem
 else
-self.DetectedItems[self.DetectedItemCount]=DetectedItem
+self.DetectedItems[self.DetectedItemMax]=DetectedItem
 end
 DetectedItem.Set=Set or SET_UNIT:New():FilterDeads():FilterCrashes()
-DetectedItem.Index=DetectedItemIndex or self.DetectedItemCount
+DetectedItem.Index=DetectedItemIndex or self.DetectedItemMax
 DetectedItem.ItemID=ItemPrefix.."."..self.DetectedItemMax
 DetectedItem.ID=self.DetectedItemMax
 DetectedItem.Removed=false
@@ -19218,6 +19334,7 @@ end
 if DetectedObject then
 if DetectedUnit:IsInZone(DetectedItem.Zone)then
 self:IdentifyDetectedObject(DetectedObject)
+DetectedSet:AddUnit(DetectedUnit)
 else
 DetectedSet:Remove(DetectedUnitName)
 self:AddChangeUnit(DetectedItem,"RU",DetectedUnitTypeName)
@@ -19718,12 +19835,14 @@ if not self.LaserCodesUsed[LaserCode]then
 self.LaserCodesUsed[LaserCode]=LaserCodeIndex
 local Spot=RecceUnit:LaseUnit(TargetUnit,LaserCode,Duration)
 local AttackSet=self.AttackSet
+local DesignateName=self.DesignateName
 function Spot:OnAfterDestroyed(From,Event,To)
-self:E("Destroyed Message")
-self.Recce:ToSetGroup("Target "..TargetUnit:GetTypeName().." destroyed. "..TargetSetUnit:Count().." targets left.",5,AttackSet,self.DesignateName)
+self.Recce:MessageToSetGroup("Target "..TargetUnit:GetTypeName().." destroyed. "..TargetSetUnit:Count().." targets left.",
+5,AttackSet,self.DesignateName)
 end
 self.Recces[TargetUnit]=RecceUnit
-RecceUnit:MessageToSetGroup("Marking "..TargetUnit:GetTypeName().." with laser "..RecceUnit:GetSpot().LaserCode.." for "..Duration.."s.",5,self.AttackSet,self.DesignateName)
+RecceUnit:MessageToSetGroup("Marking "..TargetUnit:GetTypeName().." with laser "..RecceUnit:GetSpot().LaserCode.." for "..Duration.."s.",
+5,self.AttackSet,DesignateName)
 MarkingCount=MarkingCount+1
 local TargetUnitType=TargetUnit:GetTypeName()
 if not MarkedTypes[TargetUnitType]then
@@ -19847,7 +19966,7 @@ end
 end
 RAT={
 ClassName="RAT",
-debug=false,
+Debug=false,
 templategroup=nil,
 alias=nil,
 spawninitialized=false,
@@ -19985,11 +20104,12 @@ unregistered=-1,
 onfinal=-100,
 Nclearance=2,
 delay=240,
+messages=true,
 }
 RAT.markerid=0
 RAT.MenuF10=nil
 RAT.id="RAT | "
-RAT.version="2.0.1"
+RAT.version="2.0.2"
 function RAT:New(groupname,alias)
 env.info(RAT.id.."Version "..RAT.version)
 env.info(RAT.id.."Creating new RAT object from template: "..groupname)
@@ -20435,6 +20555,12 @@ switch=true
 end
 self.ATCswitch=switch
 end
+function RAT:ATC_Messages(switch)
+if switch==nil then
+switch=true
+end
+RAT.ATC.messages=switch
+end
 function RAT:ATC_Clearance(n)
 RAT.ATC.Nclearance=n or 2
 end
@@ -20451,7 +20577,7 @@ function RAT:_Debug(switch)
 if switch==nil then
 switch=true
 end
-self.debug=switch
+self.Debug=switch
 end
 function RAT:StatusReports(switch)
 if switch==nil then
@@ -20493,7 +20619,7 @@ local DCSunit=DCSgroup:getUnit(1)
 local DCSdesc=DCSunit:getDesc()
 local DCScategory=DCSgroup:getCategory()
 local DCStype=DCSunit:getTypeName()
-if self.debug then
+if self.Debug then
 self:E({"DCSdesc",DCSdesc})
 end
 if DCScategory==Group.Category.AIRPLANE then
@@ -20674,7 +20800,7 @@ end
 if _takeoff==RAT.wp.air and(self.continuejourney or self.commute)then
 _lastwp=lastwp
 end
-if self.debug then
+if self.Debug then
 env.info(RAT.id..string.format("self.takeoff, takeoff, _takeoff = %s, %s, %s",tostring(self.takeoff),tostring(takeoff),tostring(_takeoff)))
 env.info(RAT.id..string.format("self.landing, landing, _landing = %s, %s, %s",tostring(self.landing),tostring(landing),tostring(_landing)))
 end
@@ -20961,7 +21087,7 @@ text=text..string.format("Alpha descent = %6.2f Deg\n",math.deg(AlphaDescent))
 text=text..string.format("Phi (slope)   = %6.2f Deg\n",math.deg(phi))
 text=text..string.format("Phi climb     = %6.2f Deg\n",math.deg(phi_climb))
 text=text..string.format("Phi descent   = %6.2f Deg\n",math.deg(phi_descent))
-if self.debug then
+if self.Debug then
 local h_climb_max=FLmax-H_departure
 local h_descent_max=FLmax-Hh_holding
 local d_climb_max=h_climb_max/math.tan(AlphaClimb)
@@ -21121,7 +21247,7 @@ else
 text="Chosen departure airport: "..departure:GetName().." (ID "..departure:GetID()..")"
 end
 env.info(RAT.id..text)
-if self.debug then
+if self.Debug then
 MESSAGE:New(text,30):ToAll()
 end
 else
@@ -21200,7 +21326,7 @@ else
 text=string.format("Chosen destination airport: %s (ID %d).",destination:GetName(),destination:GetID())
 end
 env.info(RAT.id..text)
-if self.debug then
+if self.Debug then
 MESSAGE:New(text,30):ToAll()
 end
 else
@@ -21254,7 +21380,7 @@ local _p=airbase:getPosition().p
 local _name=airbase:getName()
 local _myab=AIRBASE:FindByName(_name)
 table.insert(self.airports_map,_myab)
-if self.debug then
+if self.Debug then
 local text1="MOOSE: Airport ID = ".._myab:GetID().." and Name = ".._myab:GetName()..", Category = ".._myab:GetCategory()..", TypeName = ".._myab:GetTypeName()
 env.info(RAT.id..text1)
 end
@@ -21356,7 +21482,7 @@ if not airborne then
 text=text..string.format("\nTime on ground  = %6.0f seconds\n",Tg)
 text=text..string.format("Position change = %8.1f m since %3.0f seconds.",Dg,dTlast)
 end
-if self.debug then
+if self.Debug then
 env.info(RAT.id..text)
 end
 if message then
@@ -21382,7 +21508,7 @@ self:_Despawn(self.ratcraft[i].group)
 end
 end
 else
-if self.debug then
+if self.Debug then
 local text=string.format("Group %i does not exist.",i)
 env.info(RAT.id..text)
 end
@@ -21401,12 +21527,12 @@ local unit=group:GetUnit(1)
 if unit then
 life=unit:GetLife()/unit:GetLife0()*100
 else
-if self.debug then
+if self.Debug then
 env.error(RAT.id.."Unit does not exist in RAT_Getlife(). Returning zero.")
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error(RAT.id.."Group does not exist in RAT_Getlife(). Returning zero.")
 end
 end
@@ -21444,7 +21570,7 @@ self:_SetStatus(SpawnGroup,status)
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnBirthDay().")
 end
 end
@@ -21469,7 +21595,7 @@ self:_SetStatus(SpawnGroup,status)
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_EngineStartup().")
 end
 end
@@ -21492,7 +21618,7 @@ end
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnTakeoff().")
 end
 end
@@ -21518,7 +21644,7 @@ end
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnLand().")
 end
 end
@@ -21544,7 +21670,7 @@ self:_Despawn(SpawnGroup)
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnEngineShutdown().")
 end
 end
@@ -21562,7 +21688,7 @@ self:_SetStatus(SpawnGroup,status)
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnDead().")
 end
 end
@@ -21581,7 +21707,7 @@ self:_SetStatus(SpawnGroup,status)
 end
 end
 else
-if self.debug then
+if self.Debug then
 env.error("Group does not exist in RAT:_OnCrash().")
 end
 end
@@ -21671,7 +21797,7 @@ else
 text=text..string.format("No airport/zone specified\n")
 end
 text=text.."******************************************************\n"
-if self.debug then
+if self.Debug then
 env.info(RAT.id..text)
 end
 local RoutePoint={}
@@ -21746,7 +21872,7 @@ text=text..string.format("Distance from WP %i-->%i = %6.1f km. Heading = %03d : 
 end
 text=text..string.format("Total distance = %6.1f km\n",total/1000)
 text=text..string.format("******************************************************\n")
-if self.debug then
+if self.Debug then
 end
 env.info(RAT.id..text)
 return total
@@ -21811,7 +21937,7 @@ MESSAGE:New(text,10):ToAllIf(rat.reportstatus)
 env.info(RAT.id..text)
 if landing==RAT.wp.air then
 text=string.format("Activating despawn switch for flight %s! Group will be detroyed soon.",group:GetName())
-MESSAGE:New(text,30):ToAllIf(rat.debug)
+MESSAGE:New(text,30):ToAllIf(rat.Debug)
 env.info(RAT.id..text)
 rat.ratcraft[sdx].despawnme=true
 end
@@ -21851,7 +21977,7 @@ local h3=b*math.cos(math.pi/2-(alpha+phi))
 local text=string.format("\nFLmax = FL%3.0f = %6.1f m.\n",h1/RAT.unit.FL2m,h1)
 text=text..string.format("FLmax = FL%3.0f = %6.1f m.\n",h2/RAT.unit.FL2m,h2)
 text=text..string.format("FLmax = FL%3.0f = %6.1f m.",h3/RAT.unit.FL2m,h3)
-if self.debug then
+if self.Debug then
 env.info(RAT.id..text)
 end
 return h3+h0
@@ -21967,7 +22093,7 @@ else
 max=value+value*fac
 end
 local r=math.random(min,max)
-if self.debug then
+if self.Debug then
 local text=string.format("Random: value = %6.2f, fac = %4.2f, min = %6.2f, max = %6.2f, r = %6.2f",value,fac,min,max,r)
 env.info(RAT.id..text)
 end
@@ -21992,7 +22118,7 @@ end
 function RAT:_PlaceMarkers(waypoints,index)
 for i=1,#waypoints do
 self:_SetMarker(self.waypointdescriptions[i],waypoints[i],index)
-if self.debug then
+if self.Debug then
 local text=string.format("Marker at waypoint #%d: %s for flight #%d",i,self.waypointdescriptions[i],index)
 env.info(RAT.id..text)
 end
@@ -22001,7 +22127,7 @@ end
 function RAT:_SetMarker(text,wp,index)
 RAT.markerid=RAT.markerid+1
 self.markerids[#self.markerids+1]=RAT.markerid
-if self.debug then
+if self.Debug then
 env.info(RAT.id..self.SpawnTemplatePrefix..": placing marker with ID "..RAT.markerid..": "..text)
 end
 local vec={x=wp.x,y=wp.alt,z=wp.y}
@@ -22180,7 +22306,7 @@ local flagvalue=trigger.misc.getUserFlag(flight)
 local text1=string.format("ATC %s: Flight %s cleared for landing (flag=%d).",airport,flight,flagvalue)
 local text2=string.format("ATC %s: Flight %s you are cleared for landing.",airport,flight)
 env.info(RAT.id..text1)
-MESSAGE:New(text2,10):ToAll()
+MESSAGE:New(text2,10):ToAllIf(RAT.ATC.messages)
 end
 function RAT:_ATCFlightLanded(name)
 if RAT.ATC.flight[name]then
@@ -22201,7 +22327,7 @@ local text4=string.format("ATC %s: Flight %s landed. Welcome to %s.",dest,name,d
 env.info(RAT.id..text1)
 env.info(RAT.id..text2)
 env.info(RAT.id..text3)
-MESSAGE:New(text4,10):ToAll()
+MESSAGE:New(text4,10):ToAllIf(RAT.ATC.messages)
 end
 end
 function RAT:_ATCQueue()
@@ -25624,6 +25750,18 @@ self.PlayerHits=self.PlayerHits or{}
 self.PlayerHits[EventData.TgtDCSUnitName]=EventData.IniPlayerName
 end
 end
+function ACT_ACCOUNT_DEADS:onfuncEventDead(EventData)
+self:T({"EventDead",EventData})
+if EventData.IniDCSUnit then
+self:Event(EventData)
+end
+end
+function ACT_ACCOUNT_DEADS:onfuncEventCrash(EventData)
+self:T({"EventDead",EventData})
+if EventData.IniDCSUnit then
+self:Event(EventData)
+end
+end
 end
 do
 ACT_ASSIST={
@@ -26586,13 +26724,13 @@ local TaskName=string.format("%s",self:GetName())
 local MissionMenu=Mission:GetMenu(TaskGroup)
 self.MenuPlanned=self.MenuPlanned or{}
 self.MenuPlanned[TaskGroup]=MENU_GROUP:New(TaskGroup,"Join Planned Task",MissionMenu,Mission.MenuReportTasksPerStatus,Mission,TaskGroup,"Planned"):SetTime(MenuTime):SetTag("Tasking")
-local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskType,self.MenuPlanned[TaskGroup]):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
-local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskText,TaskTypeMenu):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
-local ReportTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Report Task Status"),TaskTypeMenu,self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
+local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskType,self.MenuPlanned[TaskGroup]):SetTime(MenuTime):SetTag("Tasking")
+local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskText,TaskTypeMenu):SetTime(MenuTime):SetTag("Tasking")
+local ReportTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Report Task Status"),TaskTypeMenu,self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 if not Mission:IsGroupAssigned(TaskGroup)then
 self:F({"Replacing Join Task menu"})
-local JoinTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Join Task"),TaskTypeMenu,self.MenuAssignToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
-local MarkTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Mark Task on Map"),TaskTypeMenu,self.MenuMarkToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
+local JoinTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Join Task"),TaskTypeMenu,self.MenuAssignToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
+local MarkTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Mark Task on Map"),TaskTypeMenu,self.MenuMarkToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 end
 return self
 end
@@ -26610,8 +26748,8 @@ local TaskName=string.format("%s",self:GetName())
 local MissionMenu=Mission:GetMenu(TaskGroup)
 self.MenuAssigned=self.MenuAssigned or{}
 self.MenuAssigned[TaskGroup]=MENU_GROUP:New(TaskGroup,string.format("Assigned Task %s",TaskName),MissionMenu):SetTime(MenuTime):SetTag("Tasking")
-local TaskTypeMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Report Task Status"),self.MenuAssigned[TaskGroup],self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
-local TaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Abort Group from Task"),self.MenuAssigned[TaskGroup],self.MenuTaskAbort,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking"):SetRemoveParent(true)
+local TaskTypeMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Report Task Status"),self.MenuAssigned[TaskGroup],self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
+local TaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Abort Group from Task"),self.MenuAssigned[TaskGroup],self.MenuTaskAbort,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 return self
 end
 function TASK:RemoveMenu(MenuTime)
@@ -26634,10 +26772,10 @@ local PlannedMenu=self.MenuPlanned[TaskGroup]
 self.MenuAssigned=self.MenuAssigned or{}
 local AssignedMenu=self.MenuAssigned[TaskGroup]
 if PlannedMenu then
-PlannedMenu:Remove(MenuTime,"Tasking")
+self.MenuPlanned[TaskGroup]=PlannedMenu:Remove(MenuTime,"Tasking")
 end
 if AssignedMenu then
-AssignedMenu:Remove(MenuTime,"Tasking")
+self.MenuAssigned[TaskGroup]=AssignedMenu:Remove(MenuTime,"Tasking")
 end
 end
 function TASK:RemoveAssignedMenuForGroup(TaskGroup)
@@ -27216,7 +27354,7 @@ local DetectedItem=DetectedItem
 local DetectedSet=DetectedItem.Set
 local DetectedZone=DetectedItem.Zone
 local DetectedItemID=DetectedItem.ID
-local TaskIndex=DetectedItem.Index
+local TaskIndex=DetectedItem.ID
 local DetectedItemChanged=DetectedItem.Changed
 self:E({DetectedItemChanged=DetectedItemChanged,DetectedItemID=DetectedItemID,TaskIndex=TaskIndex})
 local Task=self.Tasks[TaskIndex]
@@ -27503,22 +27641,20 @@ else
 end
 end
 end
+function TASK_A2G:ReportOrder(ReportGroup)
+local Coordinate=self:GetInfo("Coordinate")
+local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
+return Distance
 end
-do
-TASK_A2G_SEAD={
-ClassName="TASK_A2G_SEAD",
-}
-function TASK_A2G_SEAD:New(Mission,SetGroup,TaskName,TargetSetUnit,TaskBriefing)
-local self=BASE:Inherit(self,TASK_A2G:New(Mission,SetGroup,TaskName,TargetSetUnit,"SEAD",TaskBriefing))
-self:F()
-Mission:AddTask(self)
-self:SetBriefing(
-TaskBriefing or
-"Execute a Suppression of Enemy Air Defenses."
-)
-return self
+function TASK_A2G:onafterGoal(TaskUnit,From,Event,To)
+local TargetSetUnit=self.TargetSetUnit
+if TargetSetUnit:Count()==0 then
+self:Success()
 end
-function TASK_A2G_SEAD:UpdateTaskInfo()
+self:__Goal(-10)
+end
+function TASK_A2G:UpdateTaskInfo()
+if self:IsStatePlanned()or self:IsStateAssigned()then
 local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
 self:SetInfo("Coordinate",TargetCoordinate,0)
 local ThreatLevel,ThreatText
@@ -27546,17 +27682,29 @@ local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
 self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
 end
 end
-function TASK_A2G_SEAD:ReportOrder(ReportGroup)
-local Coordinate=self:GetInfo("Coordinate")
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
+if self:IsStatePlanned()then
+self.InitialThreat=self:GetInfo("Threat")
+self.InitialTargets=self:GetInfo("Targets")
 end
-function TASK_A2G_SEAD:onafterGoal(TaskUnit,From,Event,To)
-local TargetSetUnit=self.TargetSetUnit
-if TargetSetUnit:Count()==0 then
-self:Success()
+if not self:IsStatePlanned()and not self:IsStateAssigned()then
+self:SetInfo("Targets",self.InitialTargets,10)
+self:SetInfo("Threat",self.InitialThreat,10)
 end
-self:__Goal(-10)
+end
+end
+do
+TASK_A2G_SEAD={
+ClassName="TASK_A2G_SEAD",
+}
+function TASK_A2G_SEAD:New(Mission,SetGroup,TaskName,TargetSetUnit,TaskBriefing)
+local self=BASE:Inherit(self,TASK_A2G:New(Mission,SetGroup,TaskName,TargetSetUnit,"SEAD",TaskBriefing))
+self:F()
+Mission:AddTask(self)
+self:SetBriefing(
+TaskBriefing or
+"Execute a Suppression of Enemy Air Defenses."
+)
+return self
 end
 function TASK_A2G_SEAD:SetScoreOnProgress(PlayerName,Score,TaskUnit)
 self:F({PlayerName,Score,TaskUnit})
@@ -27591,53 +27739,6 @@ TaskBriefing or
 )
 return self
 end
-function TASK_A2G_BAI:UpdateTaskInfo()
-self:E({self.Detection,self.DetectedItemIndex})
-local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
-self:SetInfo("Coordinate",TargetCoordinate,0)
-local ThreatLevel,ThreatText
-if self.Detection then
-ThreatLevel,ThreatText=self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)
-else
-ThreatLevel,ThreatText=self.TargetSetUnit:CalculateThreatLevelA2G()
-end
-self:SetInfo("Threat",ThreatText.." ["..string.rep("■",ThreatLevel).."]",11)
-if self.Detection then
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local ReportTypes=REPORT:New()
-local TargetTypes={}
-for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
-local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
-if not TargetTypes[TargetType]then
-TargetTypes[TargetType]=TargetType
-ReportTypes:Add(TargetType)
-end
-end
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
-else
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
-end
-local TargetCoordinate=self:GetInfo("Coordinate")
-local Velocity=self.TargetSetUnit:GetVelocityVec3()
-local Heading=self.TargetSetUnit:GetHeading()
-TargetCoordinate:SetHeading(Heading)
-TargetCoordinate:SetVelocity(Velocity)
-self:SetInfo("Position","Targets are"..TargetCoordinate:GetMovingText()..".",12)
-end
-function TASK_A2G_BAI:ReportOrder(ReportGroup)
-local Coordinate=self:GetInfo("Coordinate")
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
-end
-function TASK_A2G_BAI:onafterGoal(TaskUnit,From,Event,To)
-local TargetSetUnit=self.TargetSetUnit
-if TargetSetUnit:Count()==0 then
-self:Success()
-end
-self:__Goal(-10)
-end
 function TASK_A2G_BAI:SetScoreOnProgress(PlayerName,Score,TaskUnit)
 self:F({PlayerName,Score,TaskUnit})
 local ProcessUnit=self:GetUnitProcess(TaskUnit)
@@ -27671,46 +27772,6 @@ TaskBriefing or
 "Beware of friendlies at the vicinity! "
 )
 return self
-end
-function TASK_A2G_CAS:UpdateTaskInfo()
-local TargetCoordinate=(self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex))or self.TargetSetUnit:GetFirst():GetCoordinate()
-self:SetInfo("Coordinate",TargetCoordinate,0)
-local ThreatLevel,ThreatText
-if self.Detection then
-ThreatLevel,ThreatText=self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)
-else
-ThreatLevel,ThreatText=self.TargetSetUnit:CalculateThreatLevelA2G()
-end
-self:SetInfo("Threat",ThreatText.." ["..string.rep("■",ThreatLevel).."]",11)
-if self.Detection then
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local ReportTypes=REPORT:New()
-local TargetTypes={}
-for TargetUnitName,TargetUnit in pairs(self.TargetSetUnit:GetSet())do
-local TargetType=self.Detection:GetDetectedUnitTypeName(TargetUnit)
-if not TargetTypes[TargetType]then
-TargetTypes[TargetType]=TargetType
-ReportTypes:Add(TargetType)
-end
-end
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,ReportTypes:Text(", ")),10)
-else
-local DetectedItemsCount=self.TargetSetUnit:Count()
-local DetectedItemsTypes=self.TargetSetUnit:GetTypeNames()
-self:SetInfo("Targets",string.format("%d of %s",DetectedItemsCount,DetectedItemsTypes),10)
-end
-end
-function TASK_A2G_CAS:ReportOrder(ReportGroup)
-local Coordinate=self:GetInfo("Coordinate")
-local Distance=ReportGroup:GetCoordinate():Get2DDistance(Coordinate)
-return Distance
-end
-function TASK_A2G_CAS:onafterGoal(TaskUnit,From,Event,To)
-local TargetSetUnit=self.TargetSetUnit
-if TargetSetUnit:Count()==0 then
-self:Success()
-end
-self:__Goal(-10)
 end
 function TASK_A2G_CAS:SetScoreOnProgress(PlayerName,Score,TaskUnit)
 self:F({PlayerName,Score,TaskUnit})

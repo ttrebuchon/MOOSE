@@ -652,6 +652,12 @@ Various methods exist to configure:</p>
 </td>
 		</tr>
 		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(SCORING).ScoringPlayerScan">SCORING.ScoringPlayerScan</a></td>
+		<td class="summary">
+
+</td>
+		</tr>
+		<tr>
 		<td class="name" nowrap="nowrap"><a href="##(SCORING).ScoringZones">SCORING.ScoringZones</a></td>
 		<td class="summary">
 
@@ -727,6 +733,12 @@ Various methods exist to configure:</p>
 		<td class="name" nowrap="nowrap"><a href="##(SCORING).SetScaleDestroyScore">SCORING:SetScaleDestroyScore(Scale)</a></td>
 		<td class="summary">
 <p>Set the scale for scoring valid destroys (enemy destroys).</p>
+</td>
+		</tr>
+		<tr>
+		<td class="name" nowrap="nowrap"><a href="##(SCORING).SetScoringMenu">SCORING:SetScoringMenu(ScoringGroup)</a></td>
+		<td class="summary">
+<p>Sets the scoring menu.</p>
 </td>
 		</tr>
 		<tr>
@@ -1922,6 +1934,25 @@ self</p>
 <dt>
 
 		<em></em>
+<a id="#(SCORING).ScoringPlayerScan" >
+<strong>SCORING.ScoringPlayerScan</strong>
+</a>
+</dt>
+<dd>
+	
+
+
+	
+<p> During mission startup, especially for single player, 
+ iterate the database for the player that has joined, and add him to the scoring, and set the menu.
+ But this can only be started one second after the mission has started, so i need to schedule this ...</p>
+
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+		<em></em>
 <a id="#(SCORING).ScoringZones" >
 <strong>SCORING.ScoringZones</strong>
 </a>
@@ -2244,6 +2275,32 @@ The scale of the score given.</p>
 
 				</li>
 		</ul>
+</dd>
+</dl>
+		<dl class="function">
+<dt>
+
+<a id="#(SCORING).SetScoringMenu" >
+<strong>SCORING:SetScoringMenu(ScoringGroup)</strong>
+</a>
+</dt>
+<dd>
+	
+<p>Sets the scoring menu.</p>
+
+		<h3>Parameter</h3>
+		<ul>
+				<li>
+				
+<p><code><em> ScoringGroup </em></code>: </p>
+
+				</li>
+		</ul>
+		<h3>Return value</h3>
+				
+<p><em><a href="##(SCORING)">#SCORING</a>:</em></p>
+
+
 </dd>
 </dl>
 		<dl class="function">
