@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171203_0807' )
+env.info( 'Moose Generation Timestamp: 20171203_0825' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -40607,8 +40607,10 @@ do -- DESIGNATE
           self.Designating[DesignateIndex] = nil
           self.AttackSet:ForEachGroup(
             function( AttackGroup )
-              local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
-              self.CC:GetPositionable():MessageToGroup( "Targets out of LOS\n" .. DetectionText, 10, AttackGroup, self.DesignateName )
+              if AttackGroup:IsAlive() then
+                local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
+                self.CC:GetPositionable():MessageToGroup( "Targets out of LOS\n" .. DetectionText, 10, AttackGroup, self.DesignateName )
+              end
             end
           )
         else
