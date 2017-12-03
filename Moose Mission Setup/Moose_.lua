@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171130_1605')
+env.info('Moose Generation Timestamp: 20171203_0807')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -11059,20 +11059,20 @@ self.ObjectName=ObjectName
 return self
 end
 function OBJECT:GetID()
-self:F2(self.ObjectName)
 local DCSObject=self:GetDCSObject()
 if DCSObject then
 local ObjectID=DCSObject:getID()
 return ObjectID
 end
+BASE:E({"Cannot GetID",Name=self.ObjectName,Class=self:GetClassName()})
 return nil
 end
 function OBJECT:Destroy()
-self:F2(self.ObjectName)
 local DCSObject=self:GetDCSObject()
 if DCSObject then
 DCSObject:destroy()
 end
+BASE:E({"Cannot Destroy",Name=self.ObjectName,Class=self:GetClassName()})
 return nil
 end
 IDENTIFIABLE={
@@ -11482,7 +11482,13 @@ self:F2({Message,Duration})
 local DCSObject=self:GetDCSObject()
 if DCSObject then
 if DCSObject:isExist()then
+if MessageGroup:IsAlive()then
 self:GetMessage(Message,Duration,Name):ToGroup(MessageGroup)
+else
+BASE:E({"Message not sent to Group; Group is not alive...",Message=Message,MessageGroup=MessageGroup})
+end
+else
+BASE:E({"Message not sent to Group; Positionable is not alive ...",Message=Message,Positionable=self,MessageGroup=MessageGroup})
 end
 end
 return nil
@@ -13990,7 +13996,6 @@ function UNIT:IsInZone(Zone)
 self:F2({self.UnitName,Zone})
 if self:IsAlive()then
 local IsInZone=Zone:IsVec3InZone(self:GetVec3())
-self:E({Unit=self.UnitName,IsInZone=IsInZone})
 return IsInZone
 end
 return false
@@ -26554,10 +26559,8 @@ do
 function TASK:IsGroupAssigned(TaskGroup)
 local TaskGroupName=TaskGroup:GetName()
 if self.AssignedGroups[TaskGroupName]then
-self:T({"Task is assigned to:",TaskGroup:GetName()})
 return true
 end
-self:T({"Task is not assigned to:",TaskGroup:GetName()})
 return false
 end
 function TASK:SetGroupAssigned(TaskGroup)
@@ -26731,7 +26734,6 @@ local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskType,self.MenuPlanned[TaskGroup]
 local TaskTypeMenu=MENU_GROUP:New(TaskGroup,TaskText,TaskTypeMenu):SetTime(MenuTime):SetTag("Tasking")
 local ReportTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Report Task Status"),TaskTypeMenu,self.MenuTaskStatus,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 if not Mission:IsGroupAssigned(TaskGroup)then
-self:F({"Replacing Join Task menu"})
 local JoinTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Join Task"),TaskTypeMenu,self.MenuAssignToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 local MarkTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,string.format("Mark Task on Map"),TaskTypeMenu,self.MenuMarkToGroup,self,TaskGroup):SetTime(MenuTime):SetTag("Tasking")
 end
@@ -26973,16 +26975,20 @@ end
 self:GetMission():__Start(1)
 self:__Goal(-10,PlayerUnit,PlayerName)
 self:SetMenu()
+self:E({"--> Task Assigned",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"--> Task Player Names",PlayerNames=self:GetPlayerNames()})
 end
 end
 function TASK:onenterSuccess(From,Event,To)
-self:E("Task Success")
+self:E({"<-> Task Replanned",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"<-> Task Player Names",PlayerNames=self:GetPlayerNames()})
 self:GetMission():GetCommandCenter():MessageToCoalition("Task "..self:GetName().." is successful! Good job!")
 self:UnAssignFromGroups()
 self:GetMission():__MissionGoals(1)
 end
 function TASK:onenterAborted(From,Event,To)
-self:E("Task Aborted")
+self:E({"<-- Task Aborted",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"<-- Task Player Names",PlayerNames=self:GetPlayerNames()})
 if From~="Aborted"then
 self:GetMission():GetCommandCenter():MessageToCoalition("Task "..self:GetName().." has been aborted! Task may be replanned.")
 self:__Replan(5)
@@ -26990,7 +26996,8 @@ self:SetMenu()
 end
 end
 function TASK:onenterCancelled(From,Event,To)
-self:E("Task Cancelled")
+self:E({"<-- Task Cancelled",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"<-- Player Names",PlayerNames=self:GetPlayerNames()})
 if From~="Cancelled"then
 self:GetMission():GetCommandCenter():MessageToCoalition("Task "..self:GetName().." has been cancelled! The tactical situation has changed.")
 self:UnAssignFromGroups()
@@ -26998,12 +27005,14 @@ self:SetMenu()
 end
 end
 function TASK:onafterReplan(From,Event,To)
-self:E("Task Replanned")
+self:E({"Task Replanned",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"Task Player Names",PlayerNames=self:GetPlayerNames()})
 self:GetMission():GetCommandCenter():MessageToCoalition("Replanning Task "..self:GetName()..".")
 self:SetMenu()
 end
 function TASK:onenterFailed(From,Event,To)
-self:E("Task Failed")
+self:E({"Task Failed",TaskName=self:GetName(),Mission=self:GetMission():GetName()})
+self:E({"Task Player Names",PlayerNames=self:GetPlayerNames()})
 self:GetMission():GetCommandCenter():MessageToCoalition("Task "..self:GetName().." has failed!")
 self:UnAssignFromGroups()
 end

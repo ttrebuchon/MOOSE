@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171130_1605' )
+env.info( 'Moose Generation Timestamp: 20171203_0807' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -22971,7 +22971,6 @@ end
 -- @return Dcs.DCSWrapper.Object#Object.ID ObjectID
 -- @return #nil The DCS Object is not existing or alive.  
 function OBJECT:GetID()
-  self:F2( self.ObjectName )
 
   local DCSObject = self:GetDCSObject()
   
@@ -22980,6 +22979,8 @@ function OBJECT:GetID()
     return ObjectID
   end 
 
+  BASE:E( { "Cannot GetID", Name = self.ObjectName, Class = self:GetClassName() } )
+
   return nil
 end
 
@@ -22987,7 +22988,6 @@ end
 -- @param #OBJECT self
 -- @return #nil The DCS Unit is not existing or alive.  
 function OBJECT:Destroy()
-  self:F2( self.ObjectName )
 
   local DCSObject = self:GetDCSObject()
   
@@ -22995,6 +22995,8 @@ function OBJECT:Destroy()
     --BASE:CreateEventCrash( timer.getTime(), DCSObject )
     DCSObject:destroy()
   end
+
+  BASE:E( { "Cannot Destroy", Name = self.ObjectName, Class = self:GetClassName() } )
 
   return nil
 end
@@ -23847,9 +23849,16 @@ function POSITIONABLE:MessageToGroup( Message, Duration, MessageGroup, Name )
   local DCSObject = self:GetDCSObject()
   if DCSObject then
     if DCSObject:isExist() then
-      self:GetMessage( Message, Duration, Name ):ToGroup( MessageGroup )
+      if MessageGroup:IsAlive() then
+        self:GetMessage( Message, Duration, Name ):ToGroup( MessageGroup )
+      else
+        BASE:E( { "Message not sent to Group; Group is not alive...", Message = Message, MessageGroup = MessageGroup } )
+      end
+    else
+      BASE:E( { "Message not sent to Group; Positionable is not alive ...", Message = Message, Positionable = self, MessageGroup = MessageGroup } )
     end
   end
+  
 
   return nil
 end
@@ -29004,7 +29013,6 @@ function UNIT:IsInZone( Zone )
   if self:IsAlive() then
     local IsInZone = Zone:IsVec3InZone( self:GetVec3() )
   
-    self:E( { Unit = self.UnitName, IsInZone = IsInZone } )
     return IsInZone 
   end
   return false
@@ -59357,11 +59365,11 @@ do -- Group Assignment
     local TaskGroupName = TaskGroup:GetName()
     
     if self.AssignedGroups[TaskGroupName] then
-      self:T( { "Task is assigned to:", TaskGroup:GetName() } )
+      --self:T( { "Task is assigned to:", TaskGroup:GetName() } )
       return true
     end
     
-    self:T( { "Task is not assigned to:", TaskGroup:GetName() } )
+    --self:T( { "Task is not assigned to:", TaskGroup:GetName() } )
     return false
   end
   
@@ -59682,7 +59690,7 @@ function TASK:SetPlannedMenuForGroup( TaskGroup, MenuTime )
   local ReportTaskMenu = MENU_GROUP_COMMAND:New( TaskGroup, string.format( "Report Task Status" ), TaskTypeMenu, self.MenuTaskStatus, self, TaskGroup ):SetTime( MenuTime ):SetTag( "Tasking" )
   
   if not Mission:IsGroupAssigned( TaskGroup ) then
-    self:F( { "Replacing Join Task menu" } )
+    --self:F( { "Replacing Join Task menu" } )
     local JoinTaskMenu = MENU_GROUP_COMMAND:New( TaskGroup, string.format( "Join Task" ), TaskTypeMenu, self.MenuAssignToGroup, self, TaskGroup ):SetTime( MenuTime ):SetTag( "Tasking" )
     local MarkTaskMenu = MENU_GROUP_COMMAND:New( TaskGroup, string.format( "Mark Task on Map" ), TaskTypeMenu, self.MenuMarkToGroup, self, TaskGroup ):SetTime( MenuTime ):SetTag( "Tasking" )
   end
@@ -60170,7 +60178,6 @@ end
 -- @param #string To
 function TASK:onenterAssigned( From, Event, To, PlayerUnit, PlayerName )
 
-
   --- This test is required, because the state transition will be fired also when the state does not change in case of an event.  
   if From ~= "Assigned" then
     self:E( { From, Event, To, PlayerUnit:GetName(), PlayerName } )
@@ -60192,6 +60199,10 @@ function TASK:onenterAssigned( From, Event, To, PlayerUnit, PlayerName )
     self:__Goal( -10, PlayerUnit, PlayerName )  -- Polymorphic
      
     self:SetMenu()
+
+    self:E( { "--> Task Assigned", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+    self:E( { "--> Task Player Names", PlayerNames = self:GetPlayerNames() } )
+
   end
 end
 
@@ -60203,7 +60214,8 @@ end
 -- @param #string To
 function TASK:onenterSuccess( From, Event, To )
 
-  self:E( "Task Success" )
+  self:E( { "<-> Task Replanned", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+  self:E( { "<-> Task Player Names", PlayerNames = self:GetPlayerNames() } )
   
   self:GetMission():GetCommandCenter():MessageToCoalition( "Task " .. self:GetName() .. " is successful! Good job!" )
   self:UnAssignFromGroups()
@@ -60220,7 +60232,8 @@ end
 -- @param #string To
 function TASK:onenterAborted( From, Event, To )
 
-  self:E( "Task Aborted" )
+  self:E( { "<-- Task Aborted", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+  self:E( { "<-- Task Player Names", PlayerNames = self:GetPlayerNames() } )
   
   if From ~= "Aborted" then
     self:GetMission():GetCommandCenter():MessageToCoalition( "Task " .. self:GetName() .. " has been aborted! Task may be replanned." )
@@ -60237,7 +60250,8 @@ end
 -- @param #string To
 function TASK:onenterCancelled( From, Event, To )
 
-  self:E( "Task Cancelled" )
+  self:E( { "<-- Task Cancelled", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+  self:E( { "<-- Player Names", PlayerNames = self:GetPlayerNames() } )
   
   if From ~= "Cancelled" then
     self:GetMission():GetCommandCenter():MessageToCoalition( "Task " .. self:GetName() .. " has been cancelled! The tactical situation has changed." )
@@ -60254,7 +60268,8 @@ end
 -- @param #string To
 function TASK:onafterReplan( From, Event, To )
 
-  self:E( "Task Replanned" )
+  self:E( { "Task Replanned", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+  self:E( { "Task Player Names", PlayerNames = self:GetPlayerNames() } )
   
   self:GetMission():GetCommandCenter():MessageToCoalition( "Replanning Task " .. self:GetName() .. "." )
   
@@ -60269,7 +60284,8 @@ end
 -- @param #string To
 function TASK:onenterFailed( From, Event, To )
 
-  self:E( "Task Failed" )
+  self:E( { "Task Failed", TaskName = self:GetName(), Mission = self:GetMission():GetName() } )
+  self:E( { "Task Player Names", PlayerNames = self:GetPlayerNames() } )
 
   self:GetMission():GetCommandCenter():MessageToCoalition( "Task " .. self:GetName() .. " has failed!" )
   
