@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171203_0825')
+env.info('Moose Generation Timestamp: 20171204_1402')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -3897,6 +3897,8 @@ self:ClearParentMenu(self.MenuText)
 return nil
 end
 end
+else
+BASE:E({"Cannot Remove MENU_MISSION",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText})
 end
 return self
 end
@@ -3943,6 +3945,8 @@ self:ClearParentMenu(self.MenuText)
 return nil
 end
 end
+else
+BASE:E({"Cannot Remove MENU_MISSION_COMMAND",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText})
 end
 return self
 end
@@ -3995,6 +3999,8 @@ self:ClearParentMenu(self.MenuText)
 return nil
 end
 end
+else
+BASE:E({"Cannot Remove MENU_COALITION",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText,Coalition=self.Coalition})
 end
 return self
 end
@@ -4042,6 +4048,8 @@ self:ClearParentMenu(self.MenuText)
 return nil
 end
 end
+else
+BASE:E({"Cannot Remove MENU_COALITION_COMMAND",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText,Coalition=self.Coalition})
 end
 return self
 end
@@ -4100,7 +4108,7 @@ return nil
 end
 end
 else
-error("Remove: Not a correct path")
+BASE:E({"Cannot Remove MENU_GROUP",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText,Group=self.Group})
 return nil
 end
 return self
@@ -4148,6 +4156,8 @@ self:ClearParentMenu(self.MenuText)
 return nil
 end
 end
+else
+BASE:E({"Cannot Remove MENU_GROUP_COMMAND",Path=Path,ParentMenu=self.ParentMenu,MenuText=self.MenuText,Group=self.Group})
 end
 return self
 end
@@ -5684,6 +5694,17 @@ function SET_GROUP:New()
 local self=BASE:Inherit(self,SET_BASE:New(_DATABASE.GROUPS))
 return self
 end
+function SET_BASE:GetSet()
+self:F2()
+for GroupName,GroupObject in pairs(self.Set)do
+if GroupObject then
+if not GroupObject:IsAlive()then
+self:Remove(GroupName)
+end
+end
+end
+return self.Set
+end
 function SET_GROUP:AddGroupsByName(AddGroupNames)
 local AddGroupNamesArray=(type(AddGroupNames)=="table")and AddGroupNames or{AddGroupNames}
 for AddGroupID,AddGroupName in pairs(AddGroupNamesArray)do
@@ -5821,12 +5842,12 @@ return Event.IniDCSGroupName,self.Database[Event.IniDCSGroupName]
 end
 function SET_GROUP:ForEachGroup(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_GROUP:ForEachGroupCompletelyInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,GroupObject)
 if GroupObject:IsCompletelyInZone(ZoneObject)then
 return true
@@ -5838,7 +5859,7 @@ return self
 end
 function SET_GROUP:ForEachGroupPartlyInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,GroupObject)
 if GroupObject:IsPartlyInZone(ZoneObject)then
 return true
@@ -5850,7 +5871,7 @@ return self
 end
 function SET_GROUP:ForEachGroupNotInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,GroupObject)
 if GroupObject:IsNotInZone(ZoneObject)then
 return true
@@ -6160,13 +6181,13 @@ return IsNotInZone
 end
 function SET_UNIT:ForEachUnitInZone(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 end
 function SET_UNIT:ForEachUnit(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_UNIT:ForEachUnitPerThreatLevel(FromThreatLevel,ToThreatLevel,IteratorFunction,...)
@@ -6186,7 +6207,7 @@ for ThreatLevel=FromThreatLevel,ToThreatLevel,ThreatLevelIncrement do
 self:E({ThreatLevel=ThreatLevel})
 local ThreatLevelItem=ThreatLevelSet[ThreatLevel]
 if ThreatLevelItem then
-self:ForEach(IteratorFunction,arg,ThreatLevelItem.Set)
+self:ForEach(IteratorFunction,arg,ThreatLevelItem:GetSet())
 end
 end
 end
@@ -6194,7 +6215,7 @@ return self
 end
 function SET_UNIT:ForEachUnitCompletelyInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,UnitObject)
 if UnitObject:IsInZone(ZoneObject)then
 return true
@@ -6206,7 +6227,7 @@ return self
 end
 function SET_UNIT:ForEachUnitNotInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,UnitObject)
 if UnitObject:IsNotInZone(ZoneObject)then
 return true
@@ -6659,18 +6680,18 @@ return IsNotInZone
 end
 function SET_STATIC:ForEachStaticInZone(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 end
 function SET_STATIC:ForEachStatic(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_STATIC:ForEachStaticCompletelyInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,StaticObject)
 if StaticObject:IsInZone(ZoneObject)then
 return true
@@ -6682,7 +6703,7 @@ return self
 end
 function SET_STATIC:ForEachStaticNotInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,StaticObject)
 if StaticObject:IsNotInZone(ZoneObject)then
 return true
@@ -6978,12 +6999,12 @@ return Event.IniDCSUnitName,self.Database[Event.IniDCSUnitName]
 end
 function SET_CLIENT:ForEachClient(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_CLIENT:ForEachClientInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,ClientObject)
 if ClientObject:IsInZone(ZoneObject)then
 return true
@@ -6995,7 +7016,7 @@ return self
 end
 function SET_CLIENT:ForEachClientNotInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,ClientObject)
 if ClientObject:IsNotInZone(ZoneObject)then
 return true
@@ -7195,12 +7216,12 @@ return Event.IniDCSUnitName,self.Database[Event.IniDCSUnitName]
 end
 function SET_PLAYER:ForEachPlayer(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_PLAYER:ForEachPlayerInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,ClientObject)
 if ClientObject:IsInZone(ZoneObject)then
 return true
@@ -7212,7 +7233,7 @@ return self
 end
 function SET_PLAYER:ForEachPlayerNotInZone(ZoneObject,IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set,
+self:ForEach(IteratorFunction,arg,self:GetSet(),
 function(ZoneObject,ClientObject)
 if ClientObject:IsNotInZone(ZoneObject)then
 return true
@@ -7370,7 +7391,7 @@ return Event.IniDCSUnitName,self.Database[Event.IniDCSUnitName]
 end
 function SET_AIRBASE:ForEachAirbase(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_AIRBASE:FindNearestAirbaseFromPointVec2(PointVec2)
@@ -7516,7 +7537,7 @@ return Event.IniDCSUnitName,self.Database[Event.IniDCSUnitName]
 end
 function SET_CARGO:ForEachCargo(IteratorFunction,...)
 self:F2(arg)
-self:ForEach(IteratorFunction,arg,self.Set)
+self:ForEach(IteratorFunction,arg,self:GetSet())
 return self
 end
 function SET_CARGO:FindNearestCargoFromPointVec2(PointVec2)
@@ -11213,6 +11234,7 @@ local PositionablePosition=DCSPositionable:getPosition().p
 self:T3(PositionablePosition)
 return PositionablePosition
 end
+BASE:E({"Cannot GetPositionVec3",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetVec2()
@@ -11226,6 +11248,7 @@ PositionableVec2.y=PositionableVec3.z
 self:T2(PositionableVec2)
 return PositionableVec2
 end
+BASE:E({"Cannot GetVec2",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetPointVec2()
@@ -11237,6 +11260,7 @@ local PositionablePointVec2=POINT_VEC2:NewFromVec3(PositionableVec3)
 self:T2(PositionablePointVec2)
 return PositionablePointVec2
 end
+BASE:E({"Cannot GetPointVec2",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetPointVec3()
@@ -11248,6 +11272,7 @@ local PositionablePointVec3=POINT_VEC3:NewFromVec3(PositionableVec3)
 self:T2(PositionablePointVec3)
 return PositionablePointVec3
 end
+BASE:E({"Cannot GetPointVec3",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetCoordinate()
@@ -11261,6 +11286,7 @@ PositionableCoordinate:SetVelocity(self:GetVelocityMPS())
 self:T2(PositionableCoordinate)
 return PositionableCoordinate
 end
+BASE:E({"Cannot GetCoordinate",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetRandomVec3(Radius)
@@ -11281,6 +11307,7 @@ self:E("Radius is nil, returning the PointVec3 of the POSITIONABLE",Positionable
 return PositionablePointVec3
 end
 end
+BASE:E({"Cannot GetRandomVec3",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetVec3()
@@ -11291,6 +11318,7 @@ local PositionableVec3=DCSPositionable:getPosition().p
 self:T3(PositionableVec3)
 return PositionableVec3
 end
+BASE:E({"Cannot GetVec3",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetBoundingBox()
@@ -11303,6 +11331,7 @@ local PositionableBox=PositionableDesc.box
 return PositionableBox
 end
 end
+BASE:E({"Cannot GetBoundingBox",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetAltitude()
@@ -11312,6 +11341,7 @@ if DCSPositionable then
 local PositionablePointVec3=DCSPositionable:getPoint()
 return PositionablePointVec3.y
 end
+BASE:E({"Cannot GetAltitude",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:IsAboveRunway()
@@ -11324,6 +11354,7 @@ local IsAboveRunway=SurfaceType==land.SurfaceType.RUNWAY
 self:T2(IsAboveRunway)
 return IsAboveRunway
 end
+BASE:E({"Cannot IsAboveRunway",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetHeading()
@@ -11340,6 +11371,7 @@ self:T2(PositionableHeading)
 return PositionableHeading
 end
 end
+BASE:E({"Cannot GetHeading",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:InAir()
@@ -11353,6 +11385,7 @@ if DCSPositionable then
 local Velocity=VELOCITY:New(self)
 return Velocity
 end
+BASE:E({"Cannot GetVelocity",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetVelocityVec3()
@@ -11363,6 +11396,7 @@ local PositionableVelocityVec3=DCSPositionable:getVelocity()
 self:T3(PositionableVelocityVec3)
 return PositionableVelocityVec3
 end
+BASE:E({"Cannot GetVelocityVec3",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function POSITIONABLE:GetHeight()
@@ -13196,6 +13230,7 @@ local GroupCallSign=DCSGroup:getUnit(1):getCallsign()
 self:T3(GroupCallSign)
 return GroupCallSign
 end
+BASE:E({"Cannot GetCallsign",Positionable=self,Alive=self:IsAlive()})
 return nil
 end
 function GROUP:GetVec2()
@@ -13220,6 +13255,7 @@ local FirstUnitPointVec2=FirstUnit:GetPointVec2()
 self:T3(FirstUnitPointVec2)
 return FirstUnitPointVec2
 end
+BASE:E({"Cannot GetPointVec2",Group=self,Alive=self:IsAlive()})
 return nil
 end
 function GROUP:GetCoordinate()
@@ -13230,6 +13266,7 @@ local FirstUnitCoordinate=FirstUnit:GetCoordinate()
 self:T3(FirstUnitCoordinate)
 return FirstUnitCoordinate
 end
+BASE:E({"Cannot GetCoordinate",Group=self,Alive=self:IsAlive()})
 return nil
 end
 function GROUP:GetRandomVec3(Radius)
@@ -13240,6 +13277,7 @@ local FirstUnitRandomPointVec3=FirstUnit:GetRandomVec3(Radius)
 self:T3(FirstUnitRandomPointVec3)
 return FirstUnitRandomPointVec3
 end
+BASE:E({"Cannot GetRandomVec3",Group=self,Alive=self:IsAlive()})
 return nil
 end
 function GROUP:GetHeading()
@@ -13252,6 +13290,7 @@ HeadingAccumulator=HeadingAccumulator+self:GetUnit(i):GetHeading()
 end
 return math.floor(HeadingAccumulator/GroupSize)
 end
+BASE:E({"Cannot GetHeading",Group=self,Alive=self:IsAlive()})
 return nil
 end
 function GROUP:GetFuel()
@@ -13269,6 +13308,7 @@ end
 local GroupFuel=TotalFuel/GroupSize
 return GroupFuel
 end
+BASE:E({"Cannot GetFuel",Group=self,Alive=self:IsAlive()})
 return 0
 end
 do
@@ -19588,7 +19628,7 @@ self:F("Removing")
 self.Designating[DesignateIndex]=nil
 self.AttackSet:ForEachGroup(
 function(AttackGroup)
-if AttackGroup:IsAlive()then
+if AttackGroup:IsAlive()==true then
 local DetectionText=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
 self.CC:GetPositionable():MessageToGroup("Targets out of LOS\n"..DetectionText,10,AttackGroup,self.DesignateName)
 end
@@ -27358,8 +27398,6 @@ for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetSet())do
 Mission:GetCommandCenter():MessageToGroup(string.format("Obsolete A2G task %s for %s removed.",TaskText,Mission:GetName()),TaskGroup)
 end
 Task=self:RemoveTask(TaskIndex)
-Mission:RemoveTask(Task)
-self.Tasks[TaskIndex]=nil
 end
 end
 end

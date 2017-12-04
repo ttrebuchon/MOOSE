@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171203_0825' )
+env.info( 'Moose Generation Timestamp: 20171204_1402' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -7019,6 +7019,8 @@ do -- MENU_MISSION
           return nil
         end
       end
+    else
+      BASE:E( { "Cannot Remove MENU_MISSION", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText } )
     end
   
     return self
@@ -7104,6 +7106,8 @@ do -- MENU_MISSION_COMMAND
           return nil
         end
       end
+    else
+      BASE:E( { "Cannot Remove MENU_MISSION_COMMAND", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText } )
     end
   
     return self
@@ -7240,6 +7244,8 @@ do -- MENU_COALITION
           return nil
         end
       end
+    else
+      BASE:E( { "Cannot Remove MENU_COALITION", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText, Coalition = self.Coalition } )
     end
   
     return self
@@ -7330,6 +7336,8 @@ do -- MENU_COALITION_COMMAND
           return nil
         end
       end
+    else
+      BASE:E( { "Cannot Remove MENU_COALITION_COMMAND", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText, Coalition = self.Coalition } )
     end
   
     return self
@@ -7498,7 +7506,7 @@ do
         end
       end
     else
-      error( "Remove: Not a correct path" )
+      BASE:E( { "Cannot Remove MENU_GROUP", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText, Group = self.Group } )
       return nil
     end
   
@@ -7589,6 +7597,8 @@ do
           return nil
         end
       end
+    else
+      BASE:E( { "Cannot Remove MENU_GROUP_COMMAND", Path = Path, ParentMenu = self.ParentMenu, MenuText = self.MenuText, Group = self.Group } )
     end
     
     return self
@@ -10899,6 +10909,25 @@ function SET_GROUP:New()
   return self
 end
 
+--- Gets the Set.
+-- @param #SET_GROUP self
+-- @return #SET_GROUP self
+function SET_BASE:GetSet()
+  self:F2()
+  
+  -- Clean the Set before returning with only the alive Groups.
+  for GroupName, GroupObject in pairs( self.Set ) do
+    if GroupObject then
+      if not GroupObject:IsAlive() then
+        self:Remove( GroupName )
+      end
+    end
+  end
+  
+  return self.Set
+end
+
+
 --- Add GROUP(s) to SET_GROUP.
 -- @param Core.Set#SET_GROUP self
 -- @param #string AddGroupNames A single name or an array of GROUP names.
@@ -11155,7 +11184,7 @@ end
 function SET_GROUP:ForEachGroup( IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set )
+  self:ForEach( IteratorFunction, arg, self:GetSet() )
 
   return self
 end
@@ -11168,7 +11197,7 @@ end
 function SET_GROUP:ForEachGroupCompletelyInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Group#GROUP GroupObject
     function( ZoneObject, GroupObject )
@@ -11190,7 +11219,7 @@ end
 function SET_GROUP:ForEachGroupPartlyInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Group#GROUP GroupObject
     function( ZoneObject, GroupObject )
@@ -11212,7 +11241,7 @@ end
 function SET_GROUP:ForEachGroupNotInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Group#GROUP GroupObject
     function( ZoneObject, GroupObject )
@@ -11888,7 +11917,7 @@ do -- SET_UNIT
     function SET_UNIT:ForEachUnitInZone( IteratorFunction, ... )
       self:F2( arg )
       
-      self:ForEach( IteratorFunction, arg, self.Set )
+      self:ForEach( IteratorFunction, arg, self:GetSet() )
     
       return self
     end
@@ -11904,7 +11933,7 @@ do -- SET_UNIT
   function SET_UNIT:ForEachUnit( IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set )
+    self:ForEach( IteratorFunction, arg, self:GetSet() )
   
     return self
   end
@@ -11947,7 +11976,7 @@ do -- SET_UNIT
         self:E( { ThreatLevel = ThreatLevel } )
         local ThreatLevelItem = ThreatLevelSet[ThreatLevel]
         if ThreatLevelItem then
-          self:ForEach( IteratorFunction, arg, ThreatLevelItem.Set )
+          self:ForEach( IteratorFunction, arg, ThreatLevelItem:GetSet() )
         end
       end
     end
@@ -11965,7 +11994,7 @@ do -- SET_UNIT
   function SET_UNIT:ForEachUnitCompletelyInZone( ZoneObject, IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set,
+    self:ForEach( IteratorFunction, arg, self:GetSet(),
       --- @param Core.Zone#ZONE_BASE ZoneObject
       -- @param Wrapper.Unit#UNIT UnitObject
       function( ZoneObject, UnitObject )
@@ -11987,7 +12016,7 @@ do -- SET_UNIT
   function SET_UNIT:ForEachUnitNotInZone( ZoneObject, IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set,
+    self:ForEach( IteratorFunction, arg, self:GetSet(),
       --- @param Core.Zone#ZONE_BASE ZoneObject
       -- @param Wrapper.Unit#UNIT UnitObject
       function( ZoneObject, UnitObject )
@@ -12800,7 +12829,7 @@ do -- SET_STATIC
     function SET_STATIC:ForEachStaticInZone( IteratorFunction, ... )
       self:F2( arg )
       
-      self:ForEach( IteratorFunction, arg, self.Set )
+      self:ForEach( IteratorFunction, arg, self:GetSet() )
     
       return self
     end
@@ -12816,7 +12845,7 @@ do -- SET_STATIC
   function SET_STATIC:ForEachStatic( IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set )
+    self:ForEach( IteratorFunction, arg, self:GetSet() )
   
     return self
   end
@@ -12830,7 +12859,7 @@ do -- SET_STATIC
   function SET_STATIC:ForEachStaticCompletelyInZone( ZoneObject, IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set,
+    self:ForEach( IteratorFunction, arg, self:GetSet(),
       --- @param Core.Zone#ZONE_BASE ZoneObject
       -- @param Wrapper.Static#STATIC StaticObject
       function( ZoneObject, StaticObject )
@@ -12852,7 +12881,7 @@ do -- SET_STATIC
   function SET_STATIC:ForEachStaticNotInZone( ZoneObject, IteratorFunction, ... )
     self:F2( arg )
     
-    self:ForEach( IteratorFunction, arg, self.Set,
+    self:ForEach( IteratorFunction, arg, self:GetSet(),
       --- @param Core.Zone#ZONE_BASE ZoneObject
       -- @param Wrapper.Static#STATIC StaticObject
       function( ZoneObject, StaticObject )
@@ -13382,7 +13411,7 @@ end
 function SET_CLIENT:ForEachClient( IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set )
+  self:ForEach( IteratorFunction, arg, self:GetSet() )
 
   return self
 end
@@ -13395,7 +13424,7 @@ end
 function SET_CLIENT:ForEachClientInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Client#CLIENT ClientObject
     function( ZoneObject, ClientObject )
@@ -13417,7 +13446,7 @@ end
 function SET_CLIENT:ForEachClientNotInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Client#CLIENT ClientObject
     function( ZoneObject, ClientObject )
@@ -13781,7 +13810,7 @@ end
 function SET_PLAYER:ForEachPlayer( IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set )
+  self:ForEach( IteratorFunction, arg, self:GetSet() )
 
   return self
 end
@@ -13794,7 +13823,7 @@ end
 function SET_PLAYER:ForEachPlayerInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Client#CLIENT ClientObject
     function( ZoneObject, ClientObject )
@@ -13816,7 +13845,7 @@ end
 function SET_PLAYER:ForEachPlayerNotInZone( ZoneObject, IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set,
+  self:ForEach( IteratorFunction, arg, self:GetSet(),
     --- @param Core.Zone#ZONE_BASE ZoneObject
     -- @param Wrapper.Client#CLIENT ClientObject
     function( ZoneObject, ClientObject )
@@ -14109,7 +14138,7 @@ end
 function SET_AIRBASE:ForEachAirbase( IteratorFunction, ... )
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set )
+  self:ForEach( IteratorFunction, arg, self:GetSet() )
 
   return self
 end
@@ -14414,7 +14443,7 @@ end
 function SET_CARGO:ForEachCargo( IteratorFunction, ... ) --R2.1
   self:F2( arg )
   
-  self:ForEach( IteratorFunction, arg, self.Set )
+  self:ForEach( IteratorFunction, arg, self:GetSet() )
 
   return self
 end
@@ -23334,6 +23363,8 @@ function POSITIONABLE:GetPositionVec3()
     return PositionablePosition
   end
   
+  BASE:E( { "Cannot GetPositionVec3", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23357,6 +23388,8 @@ function POSITIONABLE:GetVec2()
     return PositionableVec2
   end
   
+  BASE:E( { "Cannot GetVec2", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23378,6 +23411,8 @@ function POSITIONABLE:GetPointVec2()
     return PositionablePointVec2
   end
   
+  BASE:E( { "Cannot GetPointVec2", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23398,6 +23433,8 @@ function POSITIONABLE:GetPointVec3()
     self:T2( PositionablePointVec3 )
     return PositionablePointVec3
   end
+
+  BASE:E( { "Cannot GetPointVec3", Positionable = self, Alive = self:IsAlive() } )
   
   return nil
 end
@@ -23420,6 +23457,8 @@ function POSITIONABLE:GetCoordinate()
     self:T2( PositionableCoordinate )
     return PositionableCoordinate
   end
+  
+  BASE:E( { "Cannot GetCoordinate", Positionable = self, Alive = self:IsAlive() } )
   
   return nil
 end
@@ -23455,6 +23494,8 @@ function POSITIONABLE:GetRandomVec3( Radius )
     end
   end
   
+  BASE:E( { "Cannot GetRandomVec3", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23473,6 +23514,8 @@ function POSITIONABLE:GetVec3()
     return PositionableVec3
   end
   
+  BASE:E( { "Cannot GetVec3", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23494,6 +23537,8 @@ function POSITIONABLE:GetBoundingBox() --R2.1
     end
   end
   
+  BASE:E( { "Cannot GetBoundingBox", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23512,6 +23557,8 @@ function POSITIONABLE:GetAltitude()
     return PositionablePointVec3.y
   end
   
+  BASE:E( { "Cannot GetAltitude", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end 
 
@@ -23533,6 +23580,8 @@ function POSITIONABLE:IsAboveRunway()
     self:T2( IsAboveRunway )
     return IsAboveRunway
   end
+
+  BASE:E( { "Cannot IsAboveRunway", Positionable = self, Alive = self:IsAlive() } )
 
   return nil
 end
@@ -23560,6 +23609,8 @@ function POSITIONABLE:GetHeading()
     end
   end
   
+  BASE:E( { "Cannot GetHeading", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23590,6 +23641,8 @@ function POSITIONABLE:GetVelocity()
     return Velocity
   end
   
+  BASE:E( { "Cannot GetVelocity", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -23610,6 +23663,8 @@ function POSITIONABLE:GetVelocityVec3()
     return PositionableVelocityVec3
   end
   
+  BASE:E( { "Cannot GetVelocityVec3", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -27389,6 +27444,8 @@ function GROUP:GetCallsign()
     return GroupCallSign
   end
 
+  BASE:E( { "Cannot GetCallsign", Positionable = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -27431,6 +27488,8 @@ function GROUP:GetPointVec2()
     return FirstUnitPointVec2
   end
   
+  BASE:E( { "Cannot GetPointVec2", Group = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -27448,6 +27507,8 @@ function GROUP:GetCoordinate()
     return FirstUnitCoordinate
   end
   
+  BASE:E( { "Cannot GetCoordinate", Group = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -27470,6 +27531,8 @@ function GROUP:GetRandomVec3(Radius)
     return FirstUnitRandomPointVec3
   end
   
+  BASE:E( { "Cannot GetRandomVec3", Group = self, Alive = self:IsAlive() } )
+
   return nil
 end
 
@@ -27490,6 +27553,8 @@ function GROUP:GetHeading()
     return math.floor(HeadingAccumulator / GroupSize)
   end
   
+  BASE:E( { "Cannot GetHeading", Group = self, Alive = self:IsAlive() } )
+
   return nil
   
 end
@@ -27516,6 +27581,8 @@ function GROUP:GetFuel()
     return GroupFuel
   end
   
+  BASE:E( { "Cannot GetFuel", Group = self, Alive = self:IsAlive() } )
+
   return 0
 end
 
@@ -40606,8 +40673,9 @@ do -- DESIGNATE
           -- This Detection is obsolete, remove from the designate scope
           self.Designating[DesignateIndex] = nil
           self.AttackSet:ForEachGroup(
+            --- @param Wrapper.Group#GROUP AttackGroup
             function( AttackGroup )
-              if AttackGroup:IsAlive() then
+              if AttackGroup:IsAlive() == true then
                 local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
                 self.CC:GetPositionable():MessageToGroup( "Targets out of LOS\n" .. DetectionText, 10, AttackGroup, self.DesignateName )
               end
@@ -61104,8 +61172,6 @@ do -- TASK_A2G_DISPATCHER
               Mission:GetCommandCenter():MessageToGroup( string.format( "Obsolete A2G task %s for %s removed.", TaskText, Mission:GetName() ), TaskGroup )
             end
             Task = self:RemoveTask( TaskIndex )
-            Mission:RemoveTask( Task )
-            self.Tasks[TaskIndex] = nil
           end
         end
       end
