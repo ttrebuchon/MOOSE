@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171204_1402')
+env.info('Moose Generation Timestamp: 20171205_1041')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -18565,6 +18565,7 @@ end
 return self
 end
 function DETECTION_BASE:IsFriendliesNearBy(DetectedItem)
+self:F({"FriendliesNearBy Test",DetectedItem.FriendliesNearBy})
 return DetectedItem.FriendliesNearBy~=nil or false
 end
 function DETECTION_BASE:GetFriendliesNearBy(DetectedItem)
@@ -18589,15 +18590,15 @@ end
 function DETECTION_BASE:GetPlayersNearBy(DetectedItem)
 return DetectedItem.PlayersNearBy
 end
-function DETECTION_BASE:ReportFriendliesNearBy(ReportGroupData)
-self:F2()
-local DetectedItem=ReportGroupData.DetectedItem
-local DetectedSet=ReportGroupData.DetectedItem.Set
+function DETECTION_BASE:ReportFriendliesNearBy(TargetData)
+self:F({"Search Friendlies",DetectedItem=TargetData.DetectedItem})
+local DetectedItem=TargetData.DetectedItem
+local DetectedSet=TargetData.DetectedItem.Set
 local DetectedUnit=DetectedSet:GetFirst()
 DetectedItem.FriendliesNearBy=nil
 if DetectedUnit and DetectedUnit:IsAlive()then
 local DetectedUnitCoord=DetectedUnit:GetCoordinate()
-local InterceptCoord=ReportGroupData.InterceptCoord or DetectedUnitCoord
+local InterceptCoord=TargetData.InterceptCoord or DetectedUnitCoord
 local SphereSearch={
 id=world.VolumeType.SPHERE,
 params={
@@ -18618,33 +18619,31 @@ local FoundUnitName=FoundDCSUnit:getName()
 local FoundUnitGroupName=FoundDCSUnit:getGroup():getName()
 local EnemyUnitName=DetectedUnit:GetName()
 local FoundUnitInReportSetGroup=ReportSetGroup:FindGroup(FoundUnitGroupName)~=nil
-self:T({"Friendlies search:",FoundUnitName,FoundUnitCoalition,EnemyUnitName,EnemyCoalition,FoundUnitInReportSetGroup})
 if FoundUnitInReportSetGroup==true then
 for PrefixID,Prefix in pairs(self.FriendlyPrefixes or{})do
-self:F({"FriendlyPrefix:",Prefix})
+self:F({"Friendly Prefix:",Prefix=Prefix})
 if string.find(FoundUnitName,Prefix:gsub("-","%%-"),1)then
 FoundUnitInReportSetGroup=false
 break
 end
 end
 end
-self:F({"Friendlies search:",FoundUnitName,FoundUnitCoalition,EnemyUnitName,EnemyCoalition,FoundUnitInReportSetGroup})
+self:F({"Friendlies near Target:",FoundUnitName,FoundUnitCoalition,EnemyUnitName,EnemyCoalition,FoundUnitInReportSetGroup})
 if FoundUnitCoalition~=EnemyCoalition and FoundUnitInReportSetGroup==false then
 local FriendlyUnit=UNIT:Find(FoundDCSUnit)
 local FriendlyUnitName=FriendlyUnit:GetName()
 local FriendlyUnitCategory=FriendlyUnit:GetDesc().category
-self:T({FriendlyUnitCategory=FriendlyUnitCategory,FriendliesCategory=self.FriendliesCategory})
 DetectedItem.FriendliesNearBy=DetectedItem.FriendliesNearBy or{}
 DetectedItem.FriendliesNearBy[FriendlyUnitName]=FriendlyUnit
 local Distance=DetectedUnitCoord:Get2DDistance(FriendlyUnit:GetCoordinate())
 DetectedItem.FriendliesDistance=DetectedItem.FriendliesDistance or{}
 DetectedItem.FriendliesDistance[Distance]=FriendlyUnit
-self:T({FriendlyUnitName=FriendlyUnitName,Distance=Distance})
+self:T({"Friendlies Found:",FriendlyUnitName=FriendlyUnitName,Distance=Distance,FriendlyUnitCategory=FriendlyUnitCategory,FriendliesCategory=self.FriendliesCategory})
 return true
 end
 return true
 end
-world.searchObjects(Object.Category.UNIT,SphereSearch,FindNearByFriendlies,ReportGroupData)
+world.searchObjects(Object.Category.UNIT,SphereSearch,FindNearByFriendlies,TargetData)
 DetectedItem.PlayersNearBy=nil
 local DetectionZone=ZONE_UNIT:New("DetectionPlayers",DetectedUnit,self.FriendliesRange)
 _DATABASE:ForEachPlayer(
@@ -19434,7 +19433,12 @@ local DetectedZone=DetectedItem.Zone
 local DetectedZoneCoord=DetectedZone:GetCoordinate()
 self:SetDetectedItemCoordinate(DetectedItem,DetectedZoneCoord,DetectedFirstUnit)
 self:CalculateIntercept(DetectedItem)
+local OldFriendliesNearby=self:IsFriendliesNearBy(DetectedItem)
 self:ReportFriendliesNearBy({DetectedItem=DetectedItem,ReportSetGroup=self.DetectionSetGroup})
+local NewFriendliesNearby=self:IsFriendliesNearBy(DetectedItem)
+if OldFriendliesNearby~=NewFriendliesNearby then
+DetectedItem.Changed=true
+end
 self:SetDetectedItemThreatLevel(DetectedItem)
 self:NearestFAC(DetectedItem)
 if DETECTION_AREAS._SmokeDetectedUnits or self._SmokeDetectedUnits then
