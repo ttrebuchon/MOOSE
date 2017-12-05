@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171205_1041' )
+env.info( 'Moose Generation Timestamp: 20171205_1431' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -37790,7 +37790,7 @@ do -- DETECTION_BASE
 --              end
 --            end
     
-            if self.AcceptRange and Distance > self.AcceptRange then
+            if self.AcceptRange and Distance * 1000 > self.AcceptRange then
               DetectionAccepted = false
             end
             
@@ -58516,6 +58516,7 @@ function MISSION:GetMenu( TaskGroup ) -- R2.1 -- Changed Menu Structure
   
   GroupMenu.BriefingMenu = GroupMenu.BriefingMenu or MENU_GROUP_COMMAND:New( TaskGroup, "Mission Briefing", self.MissionMenu, self.MenuReportBriefing, self, TaskGroup )
 
+  GroupMenu.MarkTasks = GroupMenu.MarkTasks or                                  MENU_GROUP_COMMAND:New( TaskGroup, "Mark Task Locations on Map", self.MissionMenu, self.MarkTargetLocations, self, TaskGroup )
   GroupMenu.TaskReportsMenu = GroupMenu.TaskReportsMenu or                      MENU_GROUP:New( TaskGroup, "Task Reports", self.MissionMenu )
   GroupMenu.ReportTasksMenu = GroupMenu.ReportTasksMenu or                      MENU_GROUP_COMMAND:New( TaskGroup, "Report Tasks", GroupMenu.TaskReportsMenu, self.MenuReportTasksSummary, self, TaskGroup )
   GroupMenu.ReportPlannedTasksMenu = GroupMenu.ReportPlannedTasksMenu or        MENU_GROUP_COMMAND:New( TaskGroup, "Report Planned Tasks", GroupMenu.TaskReportsMenu, self.MenuReportTasksPerStatus, self, TaskGroup, "Planned" )
@@ -58863,6 +58864,32 @@ function MISSION:ReportPlayersProgress( ReportGroup )
 end
 
 
+--- Mark all the target locations on the Map.
+-- @param #MISSION self
+-- @param Wrapper.Group#GROUP ReportGroup
+-- @return #string
+function MISSION:MarkTargetLocations( ReportGroup )
+
+  local Report = REPORT:New()
+
+  -- List the name of the mission.
+  local Name = self:GetName()
+  
+  -- Determine the status of the mission.
+  local Status = "<" .. self:GetState() .. ">"
+  
+  Report:Add( string.format( '%s - %s - All Tasks are marked on the map. Select a Task from the Mission Menu and Join the Task!!!', Name, Status ) )
+
+  -- Determine how many tasks are remaining.
+  for TaskID, Task in UTILS.spairs( self:GetTasks(), function( t, a, b ) return t[a]:ReportOrder( ReportGroup ) <  t[b]:ReportOrder( ReportGroup ) end  ) do
+    local Task = Task -- Tasking.Task#TASK
+    Task:MenuMarkToGroup( ReportGroup )
+  end
+  
+  return Report:Text()
+end
+
+
 --- Create a summary report of the Mission (one line).
 -- @param #MISSION self
 -- @param Wrapper.Group#GROUP ReportGroup
@@ -58966,6 +58993,17 @@ function MISSION:MenuReportBriefing( ReportGroup )
   local Report = self:ReportBriefing()
   
   self:GetCommandCenter():MessageTypeToGroup( Report, ReportGroup, MESSAGE.Type.Briefing )
+end
+
+
+--- Mark all the targets of the Mission on the Map.
+-- @param #MISSION self
+-- @param Wrapper.Group#GROUP ReportGroup
+function MISSION:MenuMarkTargetLocations( ReportGroup )
+
+  local Report = self:MarkTargetLocations( ReportGroup )
+  
+  self:GetCommandCenter():MessageTypeToGroup( Report, ReportGroup, MESSAGE.Type.Overview )
 end
 
 

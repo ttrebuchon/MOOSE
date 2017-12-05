@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171205_1041')
+env.info('Moose Generation Timestamp: 20171205_1431')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -18276,7 +18276,7 @@ local Distance=((DetectedObjectVec3.x-DetectionGroupVec3.x)^2+
 local DetectedUnitCategory=DetectedObject:getDesc().category
 self:F({"Detected Target:",DetectionGroupName,DetectedObjectName,DetectedObjectType,Distance,DetectedUnitCategory})
 DetectionAccepted=self._.FilterCategories[DetectedUnitCategory]~=nil and DetectionAccepted or false
-if self.AcceptRange and Distance>self.AcceptRange then
+if self.AcceptRange and Distance*1000>self.AcceptRange then
 DetectionAccepted=false
 end
 if self.AcceptZones then
@@ -26223,6 +26223,7 @@ self.MissionGroupMenu[TaskGroup]=self.MissionGroupMenu[TaskGroup]or{}
 local GroupMenu=self.MissionGroupMenu[TaskGroup]
 self.MissionMenu=self.MissionMenu or MENU_COALITION:New(self.MissionCoalition,self:GetName(),CommandCenterMenu)
 GroupMenu.BriefingMenu=GroupMenu.BriefingMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Mission Briefing",self.MissionMenu,self.MenuReportBriefing,self,TaskGroup)
+GroupMenu.MarkTasks=GroupMenu.MarkTasks or MENU_GROUP_COMMAND:New(TaskGroup,"Mark Task Locations on Map",self.MissionMenu,self.MarkTargetLocations,self,TaskGroup)
 GroupMenu.TaskReportsMenu=GroupMenu.TaskReportsMenu or MENU_GROUP:New(TaskGroup,"Task Reports",self.MissionMenu)
 GroupMenu.ReportTasksMenu=GroupMenu.ReportTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksSummary,self,TaskGroup)
 GroupMenu.ReportPlannedTasksMenu=GroupMenu.ReportPlannedTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Planned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Planned")
@@ -26396,6 +26397,17 @@ end
 end
 return Report:Text()
 end
+function MISSION:MarkTargetLocations(ReportGroup)
+local Report=REPORT:New()
+local Name=self:GetName()
+local Status="<"..self:GetState()..">"
+Report:Add(string.format('%s - %s - All Tasks are marked on the map. Select a Task from the Mission Menu and Join the Task!!!',Name,Status))
+for TaskID,Task in UTILS.spairs(self:GetTasks(),function(t,a,b)return t[a]:ReportOrder(ReportGroup)<t[b]:ReportOrder(ReportGroup)end)do
+local Task=Task
+Task:MenuMarkToGroup(ReportGroup)
+end
+return Report:Text()
+end
 function MISSION:ReportSummary(ReportGroup)
 local Report=REPORT:New()
 local Name=self:GetName()
@@ -26445,6 +26457,10 @@ end
 function MISSION:MenuReportBriefing(ReportGroup)
 local Report=self:ReportBriefing()
 self:GetCommandCenter():MessageTypeToGroup(Report,ReportGroup,MESSAGE.Type.Briefing)
+end
+function MISSION:MenuMarkTargetLocations(ReportGroup)
+local Report=self:MarkTargetLocations(ReportGroup)
+self:GetCommandCenter():MessageTypeToGroup(Report,ReportGroup,MESSAGE.Type.Overview)
 end
 function MISSION:MenuReportTasksSummary(ReportGroup)
 local Report=self:ReportSummary(ReportGroup)
