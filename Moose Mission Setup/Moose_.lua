@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171205_1431')
+env.info('Moose Generation Timestamp: 20171207_1853')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -3065,7 +3065,7 @@ end
 function EVENT:onEvent(Event)
 local ErrorHandler=function(errmsg)
 env.info("Error in SCHEDULER function:"..errmsg)
-if debug~=nil then
+if BASE.Debug~=nil then
 env.info(debug.traceback())
 end
 return errmsg
@@ -20164,7 +20164,7 @@ RAT.MenuF10=nil
 RAT.id="RAT | "
 RAT.version="2.0.2"
 function RAT:New(groupname,alias)
-local self=BASE:Inherit(self,SPAWN:NewWithAlias(groupname,alias))
+self=BASE:Inherit(self,SPAWN:NewWithAlias(groupname,alias))
 self:F(RAT.id.."Version "..RAT.version)
 self:F(RAT.id.."Creating new RAT object from template: "..groupname)
 alias=alias or groupname
@@ -20189,7 +20189,7 @@ self.spawninitialized=true
 end
 self.ngroups=naircraft or 1
 if self.ATCswitch and not RAT.ATC.init then
-RAT:_ATCInit(self.airports_map)
+self:_ATCInit(self.airports_map)
 end
 if self.f10menu and not RAT.MenuF10 then
 RAT.MenuF10=MENU_MISSION:New("RAT")
@@ -20737,9 +20737,9 @@ local group=self:SpawnWithIndex(self.SpawnIndex)
 self.alive=self.alive+1
 if self.ATCswitch and landing==RAT.wp.landing then
 if self.returnzone then
-RAT:_ATCAddFlight(group:GetName(),departure:GetName())
+self:_ATCAddFlight(group:GetName(),departure:GetName())
 else
-RAT:_ATCAddFlight(group:GetName(),destination:GetName())
+self:_ATCAddFlight(group:GetName(),destination:GetName())
 end
 end
 if self.placemarkers then
@@ -21974,7 +21974,7 @@ local WPholding=rat.ratcraft[sdx].wpholding
 local WPfinal=rat.ratcraft[sdx].wpfinal
 local text
 text=string.format("Flight %s passing waypoint #%d %s.",group:GetName(),wp,rat.waypointdescriptions[wp])
-self:T(RAT.id..text)
+BASE.T(rat,RAT.id..text)
 local status=rat.waypointstatus[wp]
 rat:_SetStatus(group,status)
 if wp==WPholding then
@@ -21982,7 +21982,7 @@ text=string.format("Flight %s to %s ATC: Holding and awaiting landing clearance.
 MESSAGE:New(text,10):ToAllIf(rat.reportstatus)
 if rat.ATCswitch then
 MENU_MISSION_COMMAND:New("Clear for landing",rat.Menu[rat.SubMenuName].groups[sdx],rat.ClearForLanding,rat,group:GetName())
-rat:_ATCRegisterFlight(group:GetName(),Tnow)
+rat._ATCRegisterFlight(rat,group:GetName(),Tnow)
 end
 end
 if wp==WPfinal then
