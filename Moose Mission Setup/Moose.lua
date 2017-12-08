@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171207_1853' )
+env.info( 'Moose Generation Timestamp: 20171208_1528' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -19479,9 +19479,9 @@ function SPAWN:SpawnWithIndex( SpawnIndex )
 			-- If there is a SpawnFunction hook defined, call it.
 			if self.SpawnFunctionHook then
 			  -- delay calling this for .1 seconds so that it hopefully comes after the BIRTH event of the group.
-			  self.SpawnHookScheduler = SCHEDULER:New()
-			  self.SpawnHookScheduler:Schedule( nil, self.SpawnFunctionHook, { self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments)}, 0.1 )
-			  -- self.SpawnFunctionHook( self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments ) )
+			  --self.SpawnHookScheduler = SCHEDULER:New()
+			  --self.SpawnHookScheduler:Schedule( nil, self.SpawnFunctionHook, { self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments)}, 0.1 )
+			  self.SpawnFunctionHook( self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments ) )
 			end
 			-- TODO: Need to fix this by putting an "R" in the name of the group when the group repeats.
 			--if self.Repeat then
@@ -19713,7 +19713,7 @@ function SPAWN:SpawnAtAirbase( SpawnAirbase, Takeoff, TakeoffAltitude ) -- R2.2
       
       if Takeoff == GROUP.Takeoff.Air then
         for UnitID, UnitSpawned in pairs( GroupSpawned:GetUnits() ) do
-          SCHEDULER:New( nil, BASE.CreateEventTakeoff, { GroupSpawned, timer.getTime(), UnitSpawned:GetDCSObject() } , 1 )
+          SCHEDULER:New( nil, BASE.CreateEventTakeoff, { timer.getTime(), UnitSpawned:GetDCSObject() } , 1 )
         end
       end
 
@@ -20434,6 +20434,7 @@ function SPAWN:_GetSpawnIndex( SpawnIndex )
   
   if ( self.SpawnMaxGroups == 0 ) or ( SpawnIndex <= self.SpawnMaxGroups ) then
     if ( self.SpawnMaxUnitsAlive == 0 ) or ( self.AliveUnits + #self.SpawnTemplate.units <= self.SpawnMaxUnitsAlive ) or self.UnControlled == true then
+      self:F( { SpawnCount = self.SpawnCount, SpawnIndex = SpawnIndex } )
       if SpawnIndex and SpawnIndex >= self.SpawnCount + 1 then
         self.SpawnCount = self.SpawnCount + 1
         SpawnIndex = self.SpawnCount
@@ -24379,7 +24380,7 @@ CONTROLLABLE = {
 -- @return #CONTROLLABLE self
 function CONTROLLABLE:New( ControllableName )
   local self = BASE:Inherit( self, POSITIONABLE:New( ControllableName ) ) -- #CONTROLLABLE
-  self:F2( ControllableName )
+  --self:F( ControllableName )
   self.ControllableName = ControllableName
   
   self.TaskScheduler = SCHEDULER:New( self )
@@ -27098,8 +27099,8 @@ end
 -- @param #string GroupName The Group name
 -- @return #GROUP self
 function GROUP:Register( GroupName )
-  self = BASE:Inherit( self, CONTROLLABLE:New( GroupName ) )
-  self:F2( GroupName )
+  local self = BASE:Inherit( self, CONTROLLABLE:New( GroupName ) ) -- #GROUP
+  self:F( GroupName )
   self.GroupName = GroupName
   
   self:SetEventPriority( 4 )

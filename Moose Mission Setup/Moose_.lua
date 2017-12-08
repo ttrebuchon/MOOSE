@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171207_1853')
+env.info('Moose Generation Timestamp: 20171208_1528')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -9545,8 +9545,7 @@ SpawnGroup:SetAIOnOff(self.AIOnOff)
 end
 self:T3(SpawnTemplate.name)
 if self.SpawnFunctionHook then
-self.SpawnHookScheduler=SCHEDULER:New()
-self.SpawnHookScheduler:Schedule(nil,self.SpawnFunctionHook,{self.SpawnGroups[self.SpawnIndex].Group,unpack(self.SpawnFunctionArguments)},0.1)
+self.SpawnFunctionHook(self.SpawnGroups[self.SpawnIndex].Group,unpack(self.SpawnFunctionArguments))
 end
 end
 self.SpawnGroups[self.SpawnIndex].Spawned=true
@@ -9642,7 +9641,7 @@ SpawnTemplate.y=PointVec3.z
 local GroupSpawned=self:SpawnWithIndex(self.SpawnIndex)
 if Takeoff==GROUP.Takeoff.Air then
 for UnitID,UnitSpawned in pairs(GroupSpawned:GetUnits())do
-SCHEDULER:New(nil,BASE.CreateEventTakeoff,{GroupSpawned,timer.getTime(),UnitSpawned:GetDCSObject()},1)
+SCHEDULER:New(nil,BASE.CreateEventTakeoff,{timer.getTime(),UnitSpawned:GetDCSObject()},1)
 end
 end
 return GroupSpawned
@@ -10022,6 +10021,7 @@ function SPAWN:_GetSpawnIndex(SpawnIndex)
 self:F2({self.SpawnTemplatePrefix,SpawnIndex,self.SpawnMaxGroups,self.SpawnMaxUnitsAlive,self.AliveUnits,#self.SpawnTemplate.units})
 if(self.SpawnMaxGroups==0)or(SpawnIndex<=self.SpawnMaxGroups)then
 if(self.SpawnMaxUnitsAlive==0)or(self.AliveUnits+#self.SpawnTemplate.units<=self.SpawnMaxUnitsAlive)or self.UnControlled==true then
+self:F({SpawnCount=self.SpawnCount,SpawnIndex=SpawnIndex})
 if SpawnIndex and SpawnIndex>=self.SpawnCount+1 then
 self.SpawnCount=self.SpawnCount+1
 SpawnIndex=self.SpawnCount
@@ -11683,7 +11683,6 @@ WayPointFunctions={},
 }
 function CONTROLLABLE:New(ControllableName)
 local self=BASE:Inherit(self,POSITIONABLE:New(ControllableName))
-self:F2(ControllableName)
 self.ControllableName=ControllableName
 self.TaskScheduler=SCHEDULER:New(self)
 return self
@@ -13036,8 +13035,8 @@ self:SetEventPriority(4)
 return self
 end
 function GROUP:Register(GroupName)
-self=BASE:Inherit(self,CONTROLLABLE:New(GroupName))
-self:F2(GroupName)
+local self=BASE:Inherit(self,CONTROLLABLE:New(GroupName))
+self:F(GroupName)
 self.GroupName=GroupName
 self:SetEventPriority(4)
 return self
