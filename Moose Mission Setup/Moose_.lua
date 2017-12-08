@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171208_1849')
+env.info('Moose Generation Timestamp: 20171208_1917')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -9545,7 +9545,7 @@ SpawnGroup:SetAIOnOff(self.AIOnOff)
 end
 self:T3(SpawnTemplate.name)
 if self.SpawnFunctionHook then
-self.SpawnHookScheduler=SCHEDULER:New()
+self.SpawnHookScheduler=SCHEDULER:New(self)
 self.SpawnHookScheduler:Schedule(nil,self.SpawnFunctionHook,{self.SpawnGroups[self.SpawnIndex].Group,unpack(self.SpawnFunctionArguments)},0.1)
 end
 end

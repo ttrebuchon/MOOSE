@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171208_1849' )
+env.info( 'Moose Generation Timestamp: 20171208_1917' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -19479,7 +19479,7 @@ function SPAWN:SpawnWithIndex( SpawnIndex )
 			-- If there is a SpawnFunction hook defined, call it.
 			if self.SpawnFunctionHook then
 			  -- delay calling this for .1 seconds so that it hopefully comes after the BIRTH event of the group.
-			  self.SpawnHookScheduler = SCHEDULER:New()
+			  self.SpawnHookScheduler = SCHEDULER:New( self )
 			  self.SpawnHookScheduler:Schedule( nil, self.SpawnFunctionHook, { self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments)}, 0.1 )
 			  --self.SpawnFunctionHook( self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments ) )
 			end
