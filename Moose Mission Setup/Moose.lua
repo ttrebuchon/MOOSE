@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171208_1917' )
+env.info( 'Moose Generation Timestamp: 20171209_1329' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -3131,6 +3131,7 @@ BASE = {
   Events = {},
   States = {},
   Debug = debug,
+  Scheduler = nil,
 }
 
 
@@ -3638,10 +3639,15 @@ do -- Scheduling
     ObjectName = self.ClassName .. self.ClassID
     
     self:F3( { "ScheduleOnce: ", ObjectName,  Start } )
-    self.SchedulerObject = self
+    
+    if not self.Scheduler then
+      self.Scheduler = SCHEDULER:New( self )
+    end
+    
+    self.Scheduler.SchedulerObject = self.Scheduler
     
     local ScheduleID = _SCHEDULEDISPATCHER:AddSchedule( 
-      self, 
+      self.Scheduler, 
       SchedulerFunction,
       { ... },
       Start,
@@ -3672,10 +3678,15 @@ do -- Scheduling
     ObjectName = self.ClassName .. self.ClassID
     
     self:F3( { "ScheduleRepeat: ", ObjectName, Start, Repeat, RandomizeFactor, Stop } )
-    self.SchedulerObject = self
+
+    if not self.Scheduler then
+      self.Scheduler = SCHEDULER:New( self )
+    end
+    
+    self.Scheduler.SchedulerObject = self.Scheduler
     
     local ScheduleID = _SCHEDULEDISPATCHER:AddSchedule( 
-      self, 
+      self.Scheduler, 
       SchedulerFunction,
       { ... },
       Start,
@@ -3696,7 +3707,7 @@ do -- Scheduling
   
     self:F3( { "ScheduleStop:" } )
     
-  _SCHEDULEDISPATCHER:Stop( self, self._.Schedules[SchedulerFunction] )
+  _SCHEDULEDISPATCHER:Stop( self.Scheduler, self._.Schedules[SchedulerFunction] )
   end
 
 end
@@ -4750,7 +4761,7 @@ function SCHEDULEDISPATCHER:AddSchedule( Scheduler, ScheduleFunction, ScheduleAr
   self:T3( self.Schedule[Scheduler][CallID] )
 
   self.Schedule[Scheduler][CallID].CallHandler = function( CallID )
-    self:F2( CallID )
+    --self:E( CallID )
 
     local ErrorHandler = function( errmsg )
       env.info( "Error in timer function: " .. errmsg )
@@ -4774,7 +4785,7 @@ function SCHEDULEDISPATCHER:AddSchedule( Scheduler, ScheduleFunction, ScheduleAr
       
       --self:T3( { Schedule = Schedule } )
 
-      local ScheduleObject = Scheduler.SchedulerObject
+      local SchedulerObject = Scheduler.SchedulerObject
       --local ScheduleObjectName = Scheduler.SchedulerObject:GetNameAndClassID()
       local ScheduleFunction = Schedule.Function
       local ScheduleArguments = Schedule.Arguments
@@ -4785,9 +4796,10 @@ function SCHEDULEDISPATCHER:AddSchedule( Scheduler, ScheduleFunction, ScheduleAr
       local ScheduleID = Schedule.ScheduleID
       
       local Status, Result
-      if ScheduleObject then
+      --self:E( { SchedulerObject = SchedulerObject } )
+      if SchedulerObject then
         local function Timer()
-          return ScheduleFunction( ScheduleObject, unpack( ScheduleArguments ) ) 
+          return ScheduleFunction( SchedulerObject, unpack( ScheduleArguments ) ) 
         end
         Status, Result = xpcall( Timer, ErrorHandler )
       else
@@ -18847,6 +18859,7 @@ function SPAWN:New( SpawnTemplatePrefix )
 	end
 
   self:SetEventPriority( 5 )
+  self.SpawnHookScheduler = SCHEDULER:New( nil )
 
 	return self
 end
@@ -18892,6 +18905,7 @@ function SPAWN:NewWithAlias( SpawnTemplatePrefix, SpawnAliasPrefix )
 	end
 	
   self:SetEventPriority( 5 )
+  self.SpawnHookScheduler = SCHEDULER:New( nil )
 	
 	return self
 end
@@ -19479,9 +19493,7 @@ function SPAWN:SpawnWithIndex( SpawnIndex )
 			-- If there is a SpawnFunction hook defined, call it.
 			if self.SpawnFunctionHook then
 			  -- delay calling this for .1 seconds so that it hopefully comes after the BIRTH event of the group.
-			  self.SpawnHookScheduler = SCHEDULER:New( self )
 			  self.SpawnHookScheduler:Schedule( nil, self.SpawnFunctionHook, { self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments)}, 0.1 )
-			  --self.SpawnFunctionHook( self.SpawnGroups[self.SpawnIndex].Group, unpack( self.SpawnFunctionArguments ) )
 			end
 			-- TODO: Need to fix this by putting an "R" in the name of the group when the group repeats.
 			--if self.Repeat then
