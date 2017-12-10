@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171210_2020')
+env.info('Moose Generation Timestamp: 20171210_2209')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -26207,7 +26207,7 @@ function MISSION:GetRootMenu(TaskGroup)
 local CommandCenter=self:GetCommandCenter()
 local CommandCenterMenu=CommandCenter:GetMenu()
 local MissionName=self:GetName()
-self.MissionMenu=self.MissionMenu or MENU_COALITION:New(self.MissionCoalition,self:GetName(),CommandCenterMenu)
+self.MissionMenu=MENU_COALITION:New(self.MissionCoalition,self:GetName(),CommandCenterMenu)
 return self.MissionMenu
 end
 function MISSION:GetMenu(TaskGroup)
@@ -26217,19 +26217,19 @@ local MissionName=self:GetName()
 self.MissionGroupMenu=self.MissionGroupMenu or{}
 self.MissionGroupMenu[TaskGroup]=self.MissionGroupMenu[TaskGroup]or{}
 local GroupMenu=self.MissionGroupMenu[TaskGroup]
-self.MissionMenu=self.MissionMenu or MENU_COALITION:New(self.MissionCoalition,self:GetName(),CommandCenterMenu)
-GroupMenu.BriefingMenu=GroupMenu.BriefingMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Mission Briefing",self.MissionMenu,self.MenuReportBriefing,self,TaskGroup)
-GroupMenu.MarkTasks=GroupMenu.MarkTasks or MENU_GROUP_COMMAND:New(TaskGroup,"Mark Task Locations on Map",self.MissionMenu,self.MarkTargetLocations,self,TaskGroup)
-GroupMenu.TaskReportsMenu=GroupMenu.TaskReportsMenu or MENU_GROUP:New(TaskGroup,"Task Reports",self.MissionMenu)
-GroupMenu.ReportTasksMenu=GroupMenu.ReportTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksSummary,self,TaskGroup)
-GroupMenu.ReportPlannedTasksMenu=GroupMenu.ReportPlannedTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Planned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Planned")
-GroupMenu.ReportAssignedTasksMenu=GroupMenu.ReportAssignedTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Assigned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Assigned")
-GroupMenu.ReportSuccessTasksMenu=GroupMenu.ReportSuccessTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Successful Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Success")
-GroupMenu.ReportFailedTasksMenu=GroupMenu.ReportFailedTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Failed Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Failed")
-GroupMenu.ReportHeldTasksMenu=GroupMenu.ReportHeldTasksMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Held Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Hold")
-GroupMenu.PlayerReportsMenu=GroupMenu.PlayerReportsMenu or MENU_GROUP:New(TaskGroup,"Statistics Reports",self.MissionMenu)
-GroupMenu.ReportMissionHistory=GroupMenu.ReportPlayersHistory or MENU_GROUP_COMMAND:New(TaskGroup,"Report Mission Progress",GroupMenu.PlayerReportsMenu,self.MenuReportPlayersProgress,self,TaskGroup)
-GroupMenu.ReportPlayersPerTaskMenu=GroupMenu.ReportPlayersPerTaskMenu or MENU_GROUP_COMMAND:New(TaskGroup,"Report Players per Task",GroupMenu.PlayerReportsMenu,self.MenuReportPlayersPerTask,self,TaskGroup)
+self.MissionMenu=MENU_COALITION:New(self.MissionCoalition,self:GetName(),CommandCenterMenu)
+GroupMenu.BriefingMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Mission Briefing",self.MissionMenu,self.MenuReportBriefing,self,TaskGroup)
+GroupMenu.MarkTasks=MENU_GROUP_COMMAND:New(TaskGroup,"Mark Task Locations on Map",self.MissionMenu,self.MarkTargetLocations,self,TaskGroup)
+GroupMenu.TaskReportsMenu=MENU_GROUP:New(TaskGroup,"Task Reports",self.MissionMenu)
+GroupMenu.ReportTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksSummary,self,TaskGroup)
+GroupMenu.ReportPlannedTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Planned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Planned")
+GroupMenu.ReportAssignedTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Assigned Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Assigned")
+GroupMenu.ReportSuccessTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Successful Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Success")
+GroupMenu.ReportFailedTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Failed Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Failed")
+GroupMenu.ReportHeldTasksMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Held Tasks",GroupMenu.TaskReportsMenu,self.MenuReportTasksPerStatus,self,TaskGroup,"Hold")
+GroupMenu.PlayerReportsMenu=MENU_GROUP:New(TaskGroup,"Statistics Reports",self.MissionMenu)
+GroupMenu.ReportMissionHistory=MENU_GROUP_COMMAND:New(TaskGroup,"Report Mission Progress",GroupMenu.PlayerReportsMenu,self.MenuReportPlayersProgress,self,TaskGroup)
+GroupMenu.ReportPlayersPerTaskMenu=MENU_GROUP_COMMAND:New(TaskGroup,"Report Players per Task",GroupMenu.PlayerReportsMenu,self.MenuReportPlayersPerTask,self,TaskGroup)
 return self.MissionMenu
 end
 function MISSION:GetTask(TaskName)
@@ -26757,7 +26757,7 @@ function TASK:SetMenu(MenuTime)
 self:F({self:GetName(),MenuTime})
 for TaskGroupID,TaskGroupData in pairs(self.SetGroup:GetSet())do
 local TaskGroup=TaskGroupData
-if TaskGroup:IsAlive()and TaskGroup:GetPlayerNames()then
+if TaskGroup:IsAlive()==true and TaskGroup:GetPlayerNames()then
 local Mission=self:GetMission()
 local MissionMenu=Mission:GetMenu(TaskGroup)
 if MissionMenu then
@@ -26819,7 +26819,9 @@ function TASK:RemoveMenu(MenuTime)
 self:F({self:GetName(),MenuTime})
 for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetSet())do
 local TaskGroup=TaskGroup
+if TaskGroup:IsAlive()==true and TaskGroup:GetPlayerNames()then
 self:RefreshMenus(TaskGroup,MenuTime)
+end
 end
 end
 function TASK:RefreshMenus(TaskGroup,MenuTime)
