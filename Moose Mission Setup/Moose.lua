@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171210_1902' )
+env.info( 'Moose Generation Timestamp: 20171210_2020' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -3647,7 +3647,7 @@ do -- Scheduling
     self.Scheduler.SchedulerObject = self.Scheduler
     
     local ScheduleID = _SCHEDULEDISPATCHER:AddSchedule( 
-      self.Scheduler, 
+      self, 
       SchedulerFunction,
       { ... },
       Start,
@@ -3686,7 +3686,7 @@ do -- Scheduling
     self.Scheduler.SchedulerObject = self.Scheduler
     
     local ScheduleID = _SCHEDULEDISPATCHER:AddSchedule( 
-      self.Scheduler, 
+      self, 
       SchedulerFunction,
       { ... },
       Start,
