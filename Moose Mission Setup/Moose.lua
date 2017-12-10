@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171209_1329' )
+env.info( 'Moose Generation Timestamp: 20171210_1902' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10924,20 +10924,20 @@ end
 --- Gets the Set.
 -- @param #SET_GROUP self
 -- @return #SET_GROUP self
-function SET_BASE:GetSet()
-  self:F2()
-  
-  -- Clean the Set before returning with only the alive Groups.
-  for GroupName, GroupObject in pairs( self.Set ) do
-    if GroupObject then
-      if not GroupObject:IsAlive() then
-        self:Remove( GroupName )
-      end
-    end
-  end
-  
-  return self.Set
-end
+--function SET_BASE:GetSet()
+--  self:F2()
+--  
+--  -- Clean the Set before returning with only the alive Groups.
+--  for GroupName, GroupObject in pairs( self.Set ) do
+--    if GroupObject then
+--      if not GroupObject:IsAlive() then
+--        self:Remove( GroupName )
+--      end
+--    end
+--  end
+--  
+--  return self.Set
+--end
 
 
 --- Add GROUP(s) to SET_GROUP.
@@ -26785,9 +26785,9 @@ function CONTROLLABLE:OptionAlarmStateGreen()
     local Controller = self:_GetController()
 
     if self:IsGround() then
-      Controller:setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.GREEN)
+      Controller:setOption( AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.GREEN )
     elseif self:IsShip() then 
-      Controller:setOption(AI.Option.Naval.id.ALARM_STATE, AI.Option.Naval.val.ALARM_STATE.GREEN)
+      Controller:setOption( AI.Option.Naval.id.ALARM_STATE, AI.Option.Naval.val.ALARM_STATE.GREEN )
     end
 
     return self
@@ -30827,7 +30827,7 @@ end
 -- @param #SCORING self
 -- @return #SCORING
 function SCORING:SetScoringMenu( ScoringGroup )
-    local Menu = MENU_GROUP:New( ScoringGroup, 'Scoring' )
+    local Menu = MENU_GROUP:New( ScoringGroup, 'Scoring and Statistics' )
     local ReportGroupSummary = MENU_GROUP_COMMAND:New( ScoringGroup, 'Summary report players in group', Menu, SCORING.ReportScoreGroupSummary, self, ScoringGroup )
     local ReportGroupDetailed = MENU_GROUP_COMMAND:New( ScoringGroup, 'Detailed report players in group', Menu, SCORING.ReportScoreGroupDetailed, self, ScoringGroup )
     local ReportToAllSummary = MENU_GROUP_COMMAND:New( ScoringGroup, 'Summary report all players', Menu, SCORING.ReportScoreAllSummary, self, ScoringGroup )

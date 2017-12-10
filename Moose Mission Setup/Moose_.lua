@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171209_1329')
+env.info('Moose Generation Timestamp: 20171210_1902')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5699,17 +5699,6 @@ structure=Group.Category.STRUCTURE,
 function SET_GROUP:New()
 local self=BASE:Inherit(self,SET_BASE:New(_DATABASE.GROUPS))
 return self
-end
-function SET_BASE:GetSet()
-self:F2()
-for GroupName,GroupObject in pairs(self.Set)do
-if GroupObject then
-if not GroupObject:IsAlive()then
-self:Remove(GroupName)
-end
-end
-end
-return self.Set
 end
 function SET_GROUP:AddGroupsByName(AddGroupNames)
 local AddGroupNamesArray=(type(AddGroupNames)=="table")and AddGroupNames or{AddGroupNames}
@@ -14728,7 +14717,7 @@ self.CoalitionChangePenalty=CoalitionChangePenalty
 return self
 end
 function SCORING:SetScoringMenu(ScoringGroup)
-local Menu=MENU_GROUP:New(ScoringGroup,'Scoring')
+local Menu=MENU_GROUP:New(ScoringGroup,'Scoring and Statistics')
 local ReportGroupSummary=MENU_GROUP_COMMAND:New(ScoringGroup,'Summary report players in group',Menu,SCORING.ReportScoreGroupSummary,self,ScoringGroup)
 local ReportGroupDetailed=MENU_GROUP_COMMAND:New(ScoringGroup,'Detailed report players in group',Menu,SCORING.ReportScoreGroupDetailed,self,ScoringGroup)
 local ReportToAllSummary=MENU_GROUP_COMMAND:New(ScoringGroup,'Summary report all players',Menu,SCORING.ReportScoreAllSummary,self,ScoringGroup)
