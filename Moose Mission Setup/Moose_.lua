@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171210_2209')
+env.info('Moose Generation Timestamp: 20171211_1109')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5700,6 +5700,18 @@ function SET_GROUP:New()
 local self=BASE:Inherit(self,SET_BASE:New(_DATABASE.GROUPS))
 return self
 end
+function SET_GROUP:GetAliveSet()
+self:F2()
+local AliveSet=SET_GROUP:New()
+for GroupName,GroupObject in pairs(self.Set)do
+if GroupObject then
+if GroupObject:IsAlive()then
+AliveSet:Add(GroupName,GroupObject)
+end
+end
+end
+return AliveSet
+end
 function SET_GROUP:AddGroupsByName(AddGroupNames)
 local AddGroupNamesArray=(type(AddGroupNames)=="table")and AddGroupNames or{AddGroupNames}
 for AddGroupID,AddGroupName in pairs(AddGroupNamesArray)do
@@ -5838,6 +5850,11 @@ end
 function SET_GROUP:ForEachGroup(IteratorFunction,...)
 self:F2(arg)
 self:ForEach(IteratorFunction,arg,self:GetSet())
+return self
+end
+function SET_GROUP:ForEachGroupAlive(IteratorFunction,...)
+self:F2(arg)
+self:ForEach(IteratorFunction,arg,self:GetAliveSet())
 return self
 end
 function SET_GROUP:ForEachGroupCompletelyInZone(ZoneObject,IteratorFunction,...)
@@ -19019,7 +19036,7 @@ local DetectedItemCoordText=DetectedItemCoordinate:ToString(AttackGroup,Settings
 local ThreatLevelA2G=self:GetDetectedItemThreatLevel(Index)
 local Report=REPORT:New()
 Report:Add(DetectedItemID..", "..DetectedItemCoordText)
-Report:Add(string.format("Threat: [%s]",string.rep("■",ThreatLevelA2G)))
+Report:Add(string.format("Threat: [%s]",string.rep("■",ThreatLevelA2G),string.rep("□",10-ThreatLevelA2G)))
 Report:Add(string.format("Type: %s%s",UnitCategoryText,UnitDistanceText))
 return Report
 end
@@ -19152,7 +19169,7 @@ local DetectedItemCoordinate=self:GetDetectedItemCoordinate(DetectedTypeName)
 local DetectedItemCoordText=DetectedItemCoordinate:ToString(AttackGroup,Settings)
 local Report=REPORT:New()
 Report:Add(DetectedItemID..", "..DetectedItemCoordText)
-Report:Add(string.format("Threat: [%s]",string.rep("■",ThreatLevelA2G)))
+Report:Add(string.format("Threat: [%s%s]",string.rep("■",ThreatLevelA2G),string.rep("□",10-ThreatLevelA2G)))
 Report:Add(string.format("Type: %2d of %s",DetectedItemsCount,DetectedItemType))
 return Report
 end
@@ -19219,7 +19236,7 @@ local DetectedItemsCount=DetectedSet:Count()
 local DetectedItemsTypes=DetectedSet:GetTypeNames()
 local Report=REPORT:New()
 Report:Add(DetectedItemID..", "..DetectedItemCoordText)
-Report:Add(string.format("Threat: [%s]",string.rep("■",ThreatLevelA2G)))
+Report:Add(string.format("Threat: [%s]",string.rep("■",ThreatLevelA2G),string.rep("□",10-ThreatLevelA2G)))
 Report:Add(string.format("Type: %2d of %s",DetectedItemsCount,DetectedItemsTypes))
 return Report
 end
@@ -19507,7 +19524,7 @@ return self
 end
 function DESIGNATE:SetFlashStatusMenu(FlashMenu)
 self.FlashStatusMenu={}
-self.AttackSet:ForEachGroup(
+self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 self.FlashStatusMenu[AttackGroup]=FlashMenu
 end
@@ -19626,7 +19643,7 @@ self:F({IsDetected=IsDetected,DetectedItem})
 if IsDetected==false then
 self:F("Removing")
 self.Designating[DesignateIndex]=nil
-self.AttackSet:ForEachGroup(
+self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 if AttackGroup:IsAlive()==true then
 local DetectionText=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
@@ -19648,7 +19665,7 @@ if IsDetected==true then
 self:F({DistanceRecce=DetectedItem.DistanceRecce})
 if DetectedItem.DistanceRecce<=self.MaximumDistanceDesignations then
 if self.Designating[DesignateIndex]==nil then
-self.AttackSet:ForEachGroup(
+self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 local DetectionText=self.Detection:DetectedItemReportSummary(DesignateIndex,AttackGroup):Text(", ")
 self.CC:GetPositionable():MessageToGroup("Targets detected at \n"..DetectionText,10,AttackGroup,self.DesignateName)
@@ -19677,7 +19694,7 @@ return self
 end
 function DESIGNATE:SendStatus(MenuAttackGroup,Duration)
 Duration=Duration or 10
-self.AttackSet:ForEachGroup(
+self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 if self.FlashStatusMenu[AttackGroup]or(MenuAttackGroup and(AttackGroup:GetName()==MenuAttackGroup:GetName()))then
 local DetectedReport=REPORT:New("Targets ready for Designation:")
@@ -19693,7 +19710,7 @@ end
 local CC=self.CC:GetPositionable()
 CC:MessageToGroup(DetectedReport:Text("\n"),Duration,AttackGroup,self.DesignateName)
 local DesignationReport=REPORT:New("Marking Targets:\n")
-self.RecceSet:ForEachGroup(
+self.RecceSet:ForEachGroupAlive(
 function(RecceGroup)
 local RecceUnits=RecceGroup:GetUnits()
 for UnitID,RecceData in pairs(RecceUnits)do
@@ -19712,7 +19729,7 @@ return self
 end
 function DESIGNATE:SetDesignateMenu()
 self.AttackSet:Flush()
-self.AttackSet:ForEachGroup(
+self.AttackSet:ForEachGroupAlive(
 function(AttackGroup)
 self.MenuDesignate=self.MenuDesignate or{}
 local MissionMenu=nil
@@ -26715,14 +26732,14 @@ function TASK:MessageToGroups(Message)
 self:F({Message=Message})
 local Mission=self:GetMission()
 local CC=Mission:GetCommandCenter()
-for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetSet())do
+for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetAliveSet())do
 local TaskGroup=TaskGroup
 CC:MessageToGroup(Message,TaskGroup,TaskGroup:GetName())
 end
 end
 function TASK:SendBriefingToAssignedGroups()
 self:F2()
-for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetSet())do
+for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetAliveSet())do
 if self:IsGroupAssigned(TaskGroup)then
 TaskGroup:Message(self.TaskBriefing,60)
 end
@@ -26730,7 +26747,7 @@ end
 end
 function TASK:UnAssignFromGroups()
 self:F2()
-for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetSet())do
+for TaskGroupName,TaskGroup in pairs(self.SetGroup:GetAliveSet())do
 if self:IsGroupAssigned(TaskGroup)then
 self:UnAssignFromGroup(TaskGroup)
 end
@@ -26738,7 +26755,7 @@ end
 end
 function TASK:HasAliveUnits()
 self:F()
-for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetSet())do
+for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetAliveSet())do
 if self:IsStateAssigned()then
 if self:IsGroupAssigned(TaskGroup)then
 for TaskUnitID,TaskUnit in pairs(TaskGroup:GetUnits())do
@@ -26755,7 +26772,7 @@ return false
 end
 function TASK:SetMenu(MenuTime)
 self:F({self:GetName(),MenuTime})
-for TaskGroupID,TaskGroupData in pairs(self.SetGroup:GetSet())do
+for TaskGroupID,TaskGroupData in pairs(self.SetGroup:GetAliveSet())do
 local TaskGroup=TaskGroupData
 if TaskGroup:IsAlive()==true and TaskGroup:GetPlayerNames()then
 local Mission=self:GetMission()
@@ -26817,7 +26834,7 @@ return self
 end
 function TASK:RemoveMenu(MenuTime)
 self:F({self:GetName(),MenuTime})
-for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetSet())do
+for TaskGroupID,TaskGroup in pairs(self.SetGroup:GetAliveSet())do
 local TaskGroup=TaskGroup
 if TaskGroup:IsAlive()==true and TaskGroup:GetPlayerNames()then
 self:RefreshMenus(TaskGroup,MenuTime)
@@ -27154,7 +27171,7 @@ return Report:Text()
 end
 function TASK:GetPlayerCount()
 local PlayerCount=0
-for TaskGroupID,PlayerGroup in pairs(self:GetGroups():GetSet())do
+for TaskGroupID,PlayerGroup in pairs(self:GetGroups():GetAliveSet())do
 local PlayerGroup=PlayerGroup
 if self:IsGroupAssigned(PlayerGroup)then
 local PlayerNames=PlayerGroup:GetPlayerNames()
@@ -27165,7 +27182,7 @@ return PlayerCount
 end
 function TASK:GetPlayerNames()
 local PlayerNameMap={}
-for TaskGroupID,PlayerGroup in pairs(self:GetGroups():GetSet())do
+for TaskGroupID,PlayerGroup in pairs(self:GetGroups():GetAliveSet())do
 local PlayerGroup=PlayerGroup
 if self:IsGroupAssigned(PlayerGroup)then
 local PlayerNames=PlayerGroup:GetPlayerNames()
@@ -27733,7 +27750,7 @@ ThreatLevel,ThreatText=self.Detection:GetDetectedItemThreatLevel(self.DetectedIt
 else
 ThreatLevel,ThreatText=self.TargetSetUnit:CalculateThreatLevelA2G()
 end
-self:SetInfo("Threat",ThreatText.." ["..string.rep("■",ThreatLevel).."]",11)
+self:SetInfo("Threat",ThreatText.." ["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
 if self.Detection then
 local DetectedItemsCount=self.TargetSetUnit:Count()
 local ReportTypes=REPORT:New()
@@ -28263,7 +28280,8 @@ end
 function TASK_A2A_INTERCEPT:UpdateTaskInfo()
 local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
 self:SetInfo("Coordinate",TargetCoordinate,0)
-self:SetInfo("Threat","["..string.rep("■",self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()).."]",11)
+local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
+self:SetInfo("Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
 if self.Detection then
 local DetectedItemsCount=self.TargetSetUnit:Count()
 local ReportTypes=REPORT:New()
@@ -28332,7 +28350,8 @@ end
 function TASK_A2A_SWEEP:UpdateTaskInfo()
 local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
 self:SetInfo("Coordinate",TargetCoordinate,0)
-self:SetInfo("Assumed Threat","["..string.rep("■",self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()).."]",11)
+local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
+self:SetInfo("Assumed Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
 if self.Detection then
 local DetectedItemsCount=self.TargetSetUnit:Count()
 local ReportTypes=REPORT:New()
@@ -28400,7 +28419,8 @@ end
 function TASK_A2A_ENGAGE:UpdateTaskInfo()
 local TargetCoordinate=self.Detection and self.Detection:GetDetectedItemCoordinate(self.DetectedItemIndex)or self.TargetSetUnit:GetFirst():GetCoordinate()
 self:SetInfo("Coordinate",TargetCoordinate,0)
-self:SetInfo("Threat","["..string.rep("■",self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()).."]",11)
+local ThreatLevel=self.Detection and self.Detection:GetDetectedItemThreatLevel(self.DetectedItemIndex)or self.TargetSetUnit:CalculateThreatLevelA2G()
+self:SetInfo("Threat","["..string.rep("■",ThreatLevel)..string.rep("□",10-ThreatLevel).."]",11)
 if self.Detection then
 local DetectedItemsCount=self.TargetSetUnit:Count()
 local ReportTypes=REPORT:New()

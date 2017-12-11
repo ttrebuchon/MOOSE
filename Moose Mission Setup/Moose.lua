@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171210_2209' )
+env.info( 'Moose Generation Timestamp: 20171211_1109' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10924,20 +10924,22 @@ end
 --- Gets the Set.
 -- @param #SET_GROUP self
 -- @return #SET_GROUP self
---function SET_BASE:GetSet()
---  self:F2()
---  
---  -- Clean the Set before returning with only the alive Groups.
---  for GroupName, GroupObject in pairs( self.Set ) do
---    if GroupObject then
---      if not GroupObject:IsAlive() then
---        self:Remove( GroupName )
---      end
---    end
---  end
---  
---  return self.Set
---end
+function SET_GROUP:GetAliveSet()
+  self:F2()
+  
+  local AliveSet = SET_GROUP:New()
+  
+  -- Clean the Set before returning with only the alive Groups.
+  for GroupName, GroupObject in pairs( self.Set ) do
+    if GroupObject then
+      if GroupObject:IsAlive() then
+        AliveSet:Add( GroupName, GroupObject )
+      end
+    end
+  end
+  
+  return AliveSet
+end
 
 
 --- Add GROUP(s) to SET_GROUP.
@@ -11189,7 +11191,7 @@ function SET_GROUP:FindInDatabase( Event )
   return Event.IniDCSGroupName, self.Database[Event.IniDCSGroupName]
 end
 
---- Iterate the SET_GROUP and call an iterator function for each **alive** GROUP, providing the GROUP and optional parameters.
+--- Iterate the SET_GROUP and call an iterator function for each GROUP object, providing the GROUP and optional parameters.
 -- @param #SET_GROUP self
 -- @param #function IteratorFunction The function that will be called when there is an alive GROUP in the SET_GROUP. The function needs to accept a GROUP parameter.
 -- @return #SET_GROUP self
@@ -11197,6 +11199,18 @@ function SET_GROUP:ForEachGroup( IteratorFunction, ... )
   self:F2( arg )
   
   self:ForEach( IteratorFunction, arg, self:GetSet() )
+
+  return self
+end
+
+--- Iterate the SET_GROUP and call an iterator function for each **alive** GROUP object, providing the GROUP and optional parameters.
+-- @param #SET_GROUP self
+-- @param #function IteratorFunction The function that will be called when there is an alive GROUP in the SET_GROUP. The function needs to accept a GROUP parameter.
+-- @return #SET_GROUP self
+function SET_GROUP:ForEachGroupAlive( IteratorFunction, ... )
+  self:F2( arg )
+  
+  self:ForEach( IteratorFunction, arg, self:GetAliveSet() )
 
   return self
 end
@@ -39195,7 +39209,7 @@ do -- DETECTION_UNITS
         
       local Report = REPORT:New()
       Report:Add(DetectedItemID .. ", " .. DetectedItemCoordText)
-      Report:Add( string.format( "Threat: [%s]", string.rep(  "■", ThreatLevelA2G ) ) )
+      Report:Add( string.format( "Threat: [%s]", string.rep(  "■", ThreatLevelA2G ), string.rep(  "□", 10-ThreatLevelA2G ) ) )
       Report:Add( string.format("Type: %s%s", UnitCategoryText, UnitDistanceText ) )
       return Report
     end
@@ -39427,7 +39441,7 @@ do -- DETECTION_TYPES
 
       local Report = REPORT:New()
       Report:Add(DetectedItemID .. ", " .. DetectedItemCoordText)
-      Report:Add( string.format( "Threat: [%s]", string.rep(  "■", ThreatLevelA2G ) ) )
+      Report:Add( string.format( "Threat: [%s%s]", string.rep(  "■", ThreatLevelA2G ), string.rep(  "□", 10-ThreatLevelA2G ) ) )
       Report:Add( string.format("Type: %2d of %s", DetectedItemsCount, DetectedItemType ) )
       return Report
     end
@@ -39578,7 +39592,7 @@ do -- DETECTION_AREAS
       
       local Report = REPORT:New()
       Report:Add(DetectedItemID .. ", " .. DetectedItemCoordText)
-      Report:Add( string.format( "Threat: [%s]", string.rep(  "■", ThreatLevelA2G ) ) )
+      Report:Add( string.format( "Threat: [%s]", string.rep(  "■", ThreatLevelA2G ), string.rep(  "□", 10-ThreatLevelA2G ) ) )
       Report:Add( string.format("Type: %2d of %s", DetectedItemsCount, DetectedItemsTypes ) )
       
       return Report
@@ -40430,7 +40444,7 @@ do -- DESIGNATE
 
     self.FlashStatusMenu = {}
 
-    self.AttackSet:ForEachGroup(
+    self.AttackSet:ForEachGroupAlive(
     
       --- @param Wrapper.Group#GROUP GroupReport
       function( AttackGroup )
@@ -40694,7 +40708,7 @@ do -- DESIGNATE
           self:F("Removing")
           -- This Detection is obsolete, remove from the designate scope
           self.Designating[DesignateIndex] = nil
-          self.AttackSet:ForEachGroup(
+          self.AttackSet:ForEachGroupAlive(
             --- @param Wrapper.Group#GROUP AttackGroup
             function( AttackGroup )
               if AttackGroup:IsAlive() == true then
@@ -40720,7 +40734,7 @@ do -- DESIGNATE
           if DetectedItem.DistanceRecce <= self.MaximumDistanceDesignations then
             if self.Designating[DesignateIndex] == nil then
               -- ok, we added one item to the designate scope.
-              self.AttackSet:ForEachGroup(
+              self.AttackSet:ForEachGroupAlive(
                 function( AttackGroup )
                   local DetectionText = self.Detection:DetectedItemReportSummary( DesignateIndex, AttackGroup ):Text( ", " )
                   self.CC:GetPositionable():MessageToGroup( "Targets detected at \n" .. DetectionText, 10, AttackGroup, self.DesignateName )
@@ -40766,7 +40780,7 @@ do -- DESIGNATE
 
     Duration = Duration or 10
     
-    self.AttackSet:ForEachGroup(
+    self.AttackSet:ForEachGroupAlive(
     
       --- @param Wrapper.Group#GROUP GroupReport
       function( AttackGroup )
@@ -40791,7 +40805,7 @@ do -- DESIGNATE
           
           local DesignationReport = REPORT:New( "Marking Targets:\n" )
       
-          self.RecceSet:ForEachGroup(
+          self.RecceSet:ForEachGroupAlive(
             function( RecceGroup )
               local RecceUnits = RecceGroup:GetUnits()
               for UnitID, RecceData in pairs( RecceUnits ) do
@@ -40818,7 +40832,7 @@ do -- DESIGNATE
 
     self.AttackSet:Flush()
 
-    self.AttackSet:ForEachGroup(
+    self.AttackSet:ForEachGroupAlive(
     
       --- @param Wrapper.Group#GROUP GroupReport
       function( AttackGroup )
@@ -59688,7 +59702,7 @@ function TASK:MessageToGroups( Message )
   local Mission = self:GetMission()
   local CC = Mission:GetCommandCenter()
   
-  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetAliveSet() ) do
     local TaskGroup = TaskGroup -- Wrapper.Group#GROUP
     CC:MessageToGroup( Message, TaskGroup, TaskGroup:GetName() )
   end
@@ -59700,7 +59714,7 @@ end
 function TASK:SendBriefingToAssignedGroups()
   self:F2()
   
-  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetAliveSet() ) do
 
     if self:IsGroupAssigned( TaskGroup ) then    
       TaskGroup:Message( self.TaskBriefing, 60 )
@@ -59714,7 +59728,7 @@ end
 function TASK:UnAssignFromGroups()
   self:F2()
   
-  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupName, TaskGroup in pairs( self.SetGroup:GetAliveSet() ) do
     if self:IsGroupAssigned(TaskGroup) then
       self:UnAssignFromGroup( TaskGroup )
     end
@@ -59729,7 +59743,7 @@ end
 function TASK:HasAliveUnits()
   self:F()
   
-  for TaskGroupID, TaskGroup in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupID, TaskGroup in pairs( self.SetGroup:GetAliveSet() ) do
     if self:IsStateAssigned() then
       if self:IsGroupAssigned( TaskGroup ) then
         for TaskUnitID, TaskUnit in pairs( TaskGroup:GetUnits() ) do
@@ -59754,7 +59768,7 @@ function TASK:SetMenu( MenuTime ) --R2.1 Mission Reports and Task Reports added.
   self:F( { self:GetName(), MenuTime } )
 
   --self.SetGroup:Flush()
-  for TaskGroupID, TaskGroupData in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupID, TaskGroupData in pairs( self.SetGroup:GetAliveSet() ) do
     local TaskGroup = TaskGroupData -- Wrapper.Group#GROUP
     if TaskGroup:IsAlive() == true and TaskGroup:GetPlayerNames() then
     
@@ -59868,7 +59882,7 @@ end
 function TASK:RemoveMenu( MenuTime )
   self:F( { self:GetName(), MenuTime } )
 
-  for TaskGroupID, TaskGroup in pairs( self.SetGroup:GetSet() ) do
+  for TaskGroupID, TaskGroup in pairs( self.SetGroup:GetAliveSet() ) do
     local TaskGroup = TaskGroup -- Wrapper.Group#GROUP 
     if TaskGroup:IsAlive() == true and TaskGroup:GetPlayerNames() then
       self:RefreshMenus( TaskGroup, MenuTime )
@@ -60577,7 +60591,7 @@ function TASK:GetPlayerCount() --R2.1 Get a count of the players.
   local PlayerCount = 0
 
   -- Loop each Unit active in the Task, and find Player Names.
-  for TaskGroupID, PlayerGroup in pairs( self:GetGroups():GetSet() ) do
+  for TaskGroupID, PlayerGroup in pairs( self:GetGroups():GetAliveSet() ) do
     local PlayerGroup = PlayerGroup -- Wrapper.Group#GROUP
     if self:IsGroupAssigned( PlayerGroup ) then
       local PlayerNames = PlayerGroup:GetPlayerNames()
@@ -60597,7 +60611,7 @@ function TASK:GetPlayerNames() --R2.1 Get a map of the players.
   local PlayerNameMap = {}
 
   -- Loop each Unit active in the Task, and find Player Names.
-  for TaskGroupID, PlayerGroup in pairs( self:GetGroups():GetSet() ) do
+  for TaskGroupID, PlayerGroup in pairs( self:GetGroups():GetAliveSet() ) do
     local PlayerGroup = PlayerGroup -- Wrapper.Group#GROUP
     if self:IsGroupAssigned( PlayerGroup ) then
       local PlayerNames = PlayerGroup:GetPlayerNames()
@@ -61766,7 +61780,7 @@ do -- TASK_A2G
       else
         ThreatLevel, ThreatText = self.TargetSetUnit:CalculateThreatLevelA2G()
       end
-      self:SetInfo( "Threat", ThreatText .. " [" .. string.rep(  "■", ThreatLevel ) .. "]", 11 )
+      self:SetInfo( "Threat", ThreatText .. " [" .. string.rep(  "■", ThreatLevel ) .. string.rep(  "□", 10 - ThreatLevel ) .. "]", 11 )
   
       if self.Detection then
         local DetectedItemsCount = self.TargetSetUnit:Count()
@@ -63054,7 +63068,8 @@ do -- TASK_A2A_INTERCEPT
     local TargetCoordinate = self.Detection and self.Detection:GetDetectedItemCoordinate( self.DetectedItemIndex ) or self.TargetSetUnit:GetFirst():GetCoordinate() 
     self:SetInfo( "Coordinate", TargetCoordinate, 0 )
 
-    self:SetInfo( "Threat", "[" .. string.rep(  "■", self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G() ) .. "]", 11 )
+    local ThreatLevel = self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G()
+    self:SetInfo( "Threat", "[" .. string.rep(  "■", ThreatLevel ) .. string.rep( "□", 10 - ThreatLevel ) .. "]", 11 )
 
     if self.Detection then
       local DetectedItemsCount = self.TargetSetUnit:Count()
@@ -63210,7 +63225,8 @@ do -- TASK_A2A_SWEEP
     local TargetCoordinate = self.Detection and self.Detection:GetDetectedItemCoordinate( self.DetectedItemIndex ) or self.TargetSetUnit:GetFirst():GetCoordinate() 
     self:SetInfo( "Coordinate", TargetCoordinate, 0 )
 
-    self:SetInfo( "Assumed Threat", "[" .. string.rep(  "■", self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G() ) .. "]", 11 )
+    local ThreatLevel = self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G()
+    self:SetInfo( "Assumed Threat", "[" .. string.rep(  "■", ThreatLevel ) .. string.rep(  "□", 10 - ThreatLevel ) .. "]", 11 )
 
     if self.Detection then
       local DetectedItemsCount = self.TargetSetUnit:Count()
@@ -63359,7 +63375,8 @@ do -- TASK_A2A_ENGAGE
     local TargetCoordinate = self.Detection and self.Detection:GetDetectedItemCoordinate( self.DetectedItemIndex ) or self.TargetSetUnit:GetFirst():GetCoordinate() 
     self:SetInfo( "Coordinate", TargetCoordinate, 0 )
 
-    self:SetInfo( "Threat", "[" .. string.rep(  "■", self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G() ) .. "]", 11 )
+    local ThreatLevel = self.Detection and self.Detection:GetDetectedItemThreatLevel( self.DetectedItemIndex ) or self.TargetSetUnit:CalculateThreatLevelA2G()
+    self:SetInfo( "Threat", "[" .. string.rep(  "■", ThreatLevel ) .. string.rep(  "□", 10 - ThreatLevel ) .. "]", 11 )
 
     if self.Detection then
       local DetectedItemsCount = self.TargetSetUnit:Count()
