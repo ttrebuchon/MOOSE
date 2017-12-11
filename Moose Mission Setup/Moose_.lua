@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171211_1109')
+env.info('Moose Generation Timestamp: 20171211_1315')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5710,7 +5710,7 @@ AliveSet:Add(GroupName,GroupObject)
 end
 end
 end
-return AliveSet
+return AliveSet.Set or{}
 end
 function SET_GROUP:AddGroupsByName(AddGroupNames)
 local AddGroupNamesArray=(type(AddGroupNames)=="table")and AddGroupNames or{AddGroupNames}

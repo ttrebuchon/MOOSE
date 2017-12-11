@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171211_1109' )
+env.info( 'Moose Generation Timestamp: 20171211_1315' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10938,7 +10938,7 @@ function SET_GROUP:GetAliveSet()
     end
   end
   
-  return AliveSet
+  return AliveSet.Set or {}
 end
 
 
