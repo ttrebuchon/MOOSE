@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171211_1315' )
+env.info( 'Moose Generation Timestamp: 20171211_1333' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -3238,12 +3238,12 @@ function BASE:GetParent( Child, FromClass )
     Parent = nil
   else
   
-    self:E({FromClass = FromClass})
-    self:E({Child = Child.ClassName})
+    --self:E({FromClass = FromClass})
+    --self:E({Child = Child.ClassName})
     if FromClass then
       while( Child.ClassName ~= "BASE" and Child.ClassName ~= FromClass.ClassName ) do
         Child = getParent( Child )
-        self:E({Child.ClassName})
+        --self:E({Child.ClassName})
       end
     end  
     if Child.ClassName == 'BASE' then
@@ -3252,7 +3252,7 @@ function BASE:GetParent( Child, FromClass )
       Parent = getParent( Child )
     end
   end
-  self:E({Parent.ClassName})
+  --self:E({Parent.ClassName})
   return Parent
 end
 
@@ -38314,7 +38314,7 @@ do -- DETECTION_BASE
       DetectedItem.Changes[ChangeCode].ID = ID
       DetectedItem.Changes[ChangeCode].ItemUnitType = ItemUnitType
     
-      self:E( { "Change on Detection Item:", DetectedItem.ID, ChangeCode, ItemUnitType } )
+      self:E( { "Change on Detected Item:", DetectedItemID = DetectedItem.ID, ChangeCode = ChangeCode, ItemUnitType = ItemUnitType } )
      
       return self
     end
@@ -38337,7 +38337,7 @@ do -- DETECTION_BASE
       DetectedItem.Changes[ChangeCode][ChangeUnitType] = DetectedItem.Changes[ChangeCode][ChangeUnitType] + 1
       DetectedItem.Changes[ChangeCode].ID = ID
       
-      self:E( { "Change on Detection Item:", DetectedItem.ID, ChangeCode, ChangeUnitType } )
+      self:E( { "Change on Detected Unit:", DetectedItemID = DetectedItem.ID, ChangeCode = ChangeCode, ChangeUnitType = ChangeUnitType } )
     
       return self
     end
@@ -51255,9 +51255,8 @@ do -- AI_A2A_DISPATCHER
     -- First, count the active AIGroups Units, targetting the DetectedSet
     local DefenderCount = 0
     
-    self:E( "Counting Defenders Engaged for Attacker:" )
     local DetectedSet = AttackerDetection.Set
-    DetectedSet:Flush()
+    --DetectedSet:Flush()
     
     local DefenderTasks = self:GetDefenderTasks()
     for DefenderGroup, DefenderTask in pairs( DefenderTasks ) do
@@ -58582,7 +58581,7 @@ end
 function MISSION:AddTask( Task )
 
   local TaskName = Task:GetTaskName()
-  self:F( TaskName )
+  self:E( { "==> Adding TASK ", MissionName = self:GetName(), TaskName = TaskName } )
 
   self.Tasks[TaskName] = self.Tasks[TaskName] or { n = 0 }
 
@@ -58602,6 +58601,7 @@ end
 function MISSION:RemoveTask( Task )
 
   local TaskName = Task:GetTaskName()
+  self:E( { "<== Removing TASK ", MissionName = self:GetName(), TaskName = TaskName } )
 
   self:F( TaskName )
   self.Tasks[TaskName] = self.Tasks[TaskName] or { n = 0 }
@@ -59954,8 +59954,7 @@ end
 --- @param #TASK self
 -- @param Wrapper.Group#GROUP TaskGroup
 function TASK:MenuMarkToGroup( TaskGroup )
-
-  self:E( "Mark Task menu selected")
+  self:F()
 
   self:UpdateTaskInfo()
   
