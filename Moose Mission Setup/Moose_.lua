@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171211_1333')
+env.info('Moose Generation Timestamp: 20171212_1527')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -4448,7 +4448,6 @@ function ZONE_RADIUS:IsAllInZoneOfCoalition(Coalition)
 return self:CountScannedCoalitions()==1 and self:GetScannedCoalition(Coalition)==true
 end
 function ZONE_RADIUS:IsAllInZoneOfOtherCoalition(Coalition)
-self:E({Coalitions=self.Coalitions,Count=self:CountScannedCoalitions()})
 return self:CountScannedCoalitions()==1 and self:GetScannedCoalition(Coalition)==nil
 end
 function ZONE_RADIUS:IsSomeInZoneOfCoalition(Coalition)
@@ -4853,8 +4852,6 @@ end
 end
 end
 end
-self:E("Scheduling")
-PlayerCheckSchedule=SCHEDULER:New(nil,CheckPlayers,{self},1,1)
 return self
 end
 function DATABASE:FindUnit(UnitName)
@@ -5181,6 +5178,19 @@ self:AddUnit(Event.IniDCSUnitName)
 self:AddGroup(Event.IniDCSGroupName)
 end
 end
+if Event.IniObjectCategory==1 then
+Event.IniUnit=self:FindUnit(Event.IniDCSUnitName)
+local PlayerName=Event.IniUnit:GetPlayerName()
+self:E({"PlayerName:",PlayerName})
+if PlayerName~=""then
+self:E({"Player Joined:",PlayerName})
+if not self.PLAYERS[PlayerName]then
+self:AddPlayer(Event.IniUnitName,PlayerName)
+end
+local Settings=SETTINGS:Set(PlayerName)
+Settings:SetPlayerMenu(Event.IniUnit)
+end
+end
 end
 end
 function DATABASE:_EventOnDeadOrCrash(Event)
@@ -5202,13 +5212,14 @@ self:AccountDestroys(Event)
 end
 function DATABASE:_EventOnPlayerEnterUnit(Event)
 self:F2({Event})
-if Event.IniUnit then
+if Event.IniDCSUnit then
 if Event.IniObjectCategory==1 then
 self:AddUnit(Event.IniDCSUnitName)
+Event.IniUnit=self:FindUnit(Event.IniDCSUnitName)
 self:AddGroup(Event.IniDCSGroupName)
-local PlayerName=Event.IniUnit:GetPlayerName()
+local PlayerName=Event.IniDCSUnit:getPlayerName()
 if not self.PLAYERS[PlayerName]then
-self:AddPlayer(Event.IniUnitName,PlayerName)
+self:AddPlayer(Event.IniDCSUnitName,PlayerName)
 end
 local Settings=SETTINGS:Set(PlayerName)
 Settings:SetPlayerMenu(Event.IniUnit)
@@ -5221,8 +5232,8 @@ if Event.IniUnit then
 if Event.IniObjectCategory==1 then
 local PlayerName=Event.IniUnit:GetPlayerName()
 if self.PLAYERS[PlayerName]then
+self:E({"Player Left:",PlayerName})
 local Settings=SETTINGS:Set(PlayerName)
-Settings:RemovePlayerMenu(Event.IniUnit)
 self:DeletePlayer(Event.IniUnit,PlayerName)
 end
 end

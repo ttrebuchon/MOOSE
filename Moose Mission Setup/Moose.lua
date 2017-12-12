@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171211_1333' )
+env.info( 'Moose Generation Timestamp: 20171212_1527' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -8203,10 +8203,21 @@ function ZONE_RADIUS:GetVec3( Height )
 end
 
 
---- Scan the zone
+--- Scan the zone for the presence of units of the given ObjectCategories.
+-- Note that after a zone has been scanned, the zone can be evaluated by:
+-- 
+--   * @{ZONE_RADIUS.IsAllInZoneOfCoalition}(): Scan the presence of units in the zone of a coalition.
+--   * @{ZONE_RADIUS.IsAllInZoneOfOtherCoalition}(): Scan the presence of units in the zone of an other coalition.
+--   * @{ZONE_RADIUS.IsSomeInZoneOfCoalition}(): Scan if there is some presence of units in the zone of the given coalition.
+--   * @{ZONE_RADIUS.IsNoneInZoneOfCoalition}(): Scan if there isn't any presence of units in the zone of an other coalition than the given one.
+--   * @{ZONE_RADIUS.IsNoneInZone}(): Scan if the zone is empty.
+-- @{#ZONE_RADIUS.
 -- @param #ZONE_RADIUS self
 -- @param ObjectCategories
 -- @param Coalition
+-- @usage
+--    self.Zone:Scan()
+--    local IsAttacked = self.Zone:IsSomeInZoneOfCoalition( self.Coalition )
 function ZONE_RADIUS:Scan( ObjectCategories )
 
   self.ScanData = {}
@@ -8304,27 +8315,41 @@ end
 -- @param #ZONE_RADIUS self
 -- @param Coalition
 -- @return #boolean
+-- @usage
+--    self.Zone:Scan()
+--    local IsGuarded = self.Zone:IsAllInZoneOfCoalition( self.Coalition )
 function ZONE_RADIUS:IsAllInZoneOfCoalition( Coalition )
 
+  --self:E( { Coalitions = self.Coalitions, Count = self:CountScannedCoalitions() } )
   return self:CountScannedCoalitions() == 1 and self:GetScannedCoalition( Coalition ) == true
 end
 
 
 --- Is All in Zone of Other Coalition?
+-- You first need to use the @{#ZONE_RADIUS.Scan} method to scan the zone before it can be evaluated!
+-- Note that once a zone has been scanned, multiple evaluations can be done on the scan result set.
 -- @param #ZONE_RADIUS self
 -- @param Coalition
 -- @return #boolean
+-- @usage
+--    self.Zone:Scan()
+--    local IsCaptured = self.Zone:IsAllInZoneOfOtherCoalition( self.Coalition )
 function ZONE_RADIUS:IsAllInZoneOfOtherCoalition( Coalition )
 
-  self:E( { Coalitions = self.Coalitions, Count = self:CountScannedCoalitions() } )
+  --self:E( { Coalitions = self.Coalitions, Count = self:CountScannedCoalitions() } )
   return self:CountScannedCoalitions() == 1 and self:GetScannedCoalition( Coalition ) == nil
 end
 
 
 --- Is Some in Zone of Coalition?
+-- You first need to use the @{#ZONE_RADIUS.Scan} method to scan the zone before it can be evaluated!
+-- Note that once a zone has been scanned, multiple evaluations can be done on the scan result set.
 -- @param #ZONE_RADIUS self
 -- @param Coalition
 -- @return #boolean
+-- @usage
+--    self.Zone:Scan()
+--    local IsAttacked = self.Zone:IsSomeInZoneOfCoalition( self.Coalition )
 function ZONE_RADIUS:IsSomeInZoneOfCoalition( Coalition )
 
   return self:CountScannedCoalitions() > 1 and self:GetScannedCoalition( Coalition ) == true
@@ -8332,9 +8357,14 @@ end
 
 
 --- Is None in Zone of Coalition?
+-- You first need to use the @{#ZONE_RADIUS.Scan} method to scan the zone before it can be evaluated!
+-- Note that once a zone has been scanned, multiple evaluations can be done on the scan result set.
 -- @param #ZONE_RADIUS self
 -- @param Coalition
 -- @return #boolean
+-- @usage
+--    self.Zone:Scan()
+--    local IsOccupied = self.Zone:IsNoneInZoneOfCoalition( self.Coalition )
 function ZONE_RADIUS:IsNoneInZoneOfCoalition( Coalition )
 
   return self:GetScannedCoalition( Coalition ) == nil
@@ -8342,8 +8372,13 @@ end
 
 
 --- Is None in Zone?
+-- You first need to use the @{#ZONE_RADIUS.Scan} method to scan the zone before it can be evaluated!
+-- Note that once a zone has been scanned, multiple evaluations can be done on the scan result set.
 -- @param #ZONE_RADIUS self
 -- @return #boolean
+-- @usage
+--    self.Zone:Scan()
+--    local IsEmpty = self.Zone:IsNoneInZone()
 function ZONE_RADIUS:IsNoneInZone()
 
   return self:CountScannedCoalitions() == 0
@@ -9116,7 +9151,7 @@ function DATABASE:New()
   self:HandleEvent( EVENTS.DeleteCargo )
   
   -- Follow alive players and clients
-  self:HandleEvent( EVENTS.PlayerEnterUnit, self._EventOnPlayerEnterUnit )
+  self:HandleEvent( EVENTS.PlayerEnterUnit, self._EventOnPlayerEnterUnit ) -- This is not working anymore!, handling this through the birth event.
   self:HandleEvent( EVENTS.PlayerLeaveUnit, self._EventOnPlayerLeaveUnit )
   
   self:_RegisterTemplates()
@@ -9156,8 +9191,8 @@ function DATABASE:New()
     end
   end
   
-  self:E( "Scheduling" )
-  PlayerCheckSchedule = SCHEDULER:New( nil, CheckPlayers, { self }, 1, 1 )
+  --self:E( "Scheduling" )
+  --PlayerCheckSchedule = SCHEDULER:New( nil, CheckPlayers, { self }, 1, 1 )
   
   return self
 end
@@ -9748,7 +9783,19 @@ function DATABASE:_EventOnBirth( Event )
         self:AddGroup( Event.IniDCSGroupName )
       end
     end
-    --self:_EventOnPlayerEnterUnit( Event )
+    if Event.IniObjectCategory == 1 then
+      Event.IniUnit = self:FindUnit( Event.IniDCSUnitName )
+      local PlayerName = Event.IniUnit:GetPlayerName()
+      self:E( { "PlayerName:", PlayerName } )
+      if PlayerName ~= "" then
+        self:E( { "Player Joined:", PlayerName } )
+        if not self.PLAYERS[PlayerName] then
+          self:AddPlayer( Event.IniUnitName, PlayerName )
+        end
+        local Settings = SETTINGS:Set( PlayerName )
+        Settings:SetPlayerMenu( Event.IniUnit )
+      end
+    end
   end
 end
 
@@ -9783,13 +9830,14 @@ end
 function DATABASE:_EventOnPlayerEnterUnit( Event )
   self:F2( { Event } )
 
-  if Event.IniUnit then
+  if Event.IniDCSUnit then
     if Event.IniObjectCategory == 1 then
       self:AddUnit( Event.IniDCSUnitName )
+      Event.IniUnit = self:FindUnit( Event.IniDCSUnitName )
       self:AddGroup( Event.IniDCSGroupName )
-      local PlayerName = Event.IniUnit:GetPlayerName()
+      local PlayerName = Event.IniDCSUnit:getPlayerName()
       if not self.PLAYERS[PlayerName] then
-        self:AddPlayer( Event.IniUnitName, PlayerName )
+        self:AddPlayer( Event.IniDCSUnitName, PlayerName )
       end
       local Settings = SETTINGS:Set( PlayerName )
       Settings:SetPlayerMenu( Event.IniUnit )
@@ -9808,8 +9856,9 @@ function DATABASE:_EventOnPlayerLeaveUnit( Event )
     if Event.IniObjectCategory == 1 then
       local PlayerName = Event.IniUnit:GetPlayerName()
       if self.PLAYERS[PlayerName] then
+        self:E( { "Player Left:", PlayerName } )
         local Settings = SETTINGS:Set( PlayerName )
-        Settings:RemovePlayerMenu( Event.IniUnit )
+        --Settings:RemovePlayerMenu( Event.IniUnit )
         self:DeletePlayer( Event.IniUnit, PlayerName )
       end
     end
