@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171212_1527')
+env.info('Moose Generation Timestamp: 20171212_1609')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5569,8 +5569,6 @@ end
 self:HandleEvent(EVENTS.Birth,self._EventOnBirth)
 self:HandleEvent(EVENTS.Dead,self._EventOnDeadOrCrash)
 self:HandleEvent(EVENTS.Crash,self._EventOnDeadOrCrash)
-self:HandleEvent(EVENTS.PlayerEnterUnit,self._EventOnPlayerEnterUnit)
-self:HandleEvent(EVENTS.PlayerLeaveUnit,self._EventOnPlayerLeaveUnit)
 return self
 end
 function SET_BASE:FilterDeads()
@@ -14625,7 +14623,6 @@ self:HandleEvent(EVENTS.Dead,self._EventOnDeadOrCrash)
 self:HandleEvent(EVENTS.Crash,self._EventOnDeadOrCrash)
 self:HandleEvent(EVENTS.Hit,self._EventOnHit)
 self:HandleEvent(EVENTS.Birth)
-self:HandleEvent(EVENTS.PlayerEnterUnit)
 self:HandleEvent(EVENTS.PlayerLeaveUnit)
 self.ScoringPlayerScan=BASE:ScheduleOnce(1,
 function()
@@ -14870,10 +14867,15 @@ self:ScoreCSV(PlayerName,"","MISSION_"..MissionName:gsub(' ','_'),1,Score)
 end
 end
 end
-function SCORING:OnEventPlayerEnterUnit(Event)
+function SCORING:OnEventBirth(Event)
 if Event.IniUnit then
+if Event.IniObjectCategory==1 then
+local PlayerName=Event.IniUnit:GetPlayerName()
+if PlayerName~=""then
 self:_AddPlayerFromUnit(Event.IniUnit)
 self:SetScoringMenu(Event.IniGroup)
+end
+end
 end
 end
 function SCORING:OnEventPlayerLeaveUnit(Event)

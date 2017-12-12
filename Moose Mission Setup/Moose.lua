@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171212_1527' )
+env.info( 'Moose Generation Timestamp: 20171212_1609' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10569,8 +10569,8 @@ function SET_BASE:_FilterStart()
   self:HandleEvent( EVENTS.Crash, self._EventOnDeadOrCrash )
   
   -- Follow alive players and clients
-  self:HandleEvent( EVENTS.PlayerEnterUnit, self._EventOnPlayerEnterUnit )
-  self:HandleEvent( EVENTS.PlayerLeaveUnit, self._EventOnPlayerLeaveUnit )
+  --self:HandleEvent( EVENTS.PlayerEnterUnit, self._EventOnPlayerEnterUnit )
+  --self:HandleEvent( EVENTS.PlayerLeaveUnit, self._EventOnPlayerLeaveUnit )
   
   
   return self
@@ -30585,7 +30585,7 @@ function SCORING:New( GameName )
   self:HandleEvent( EVENTS.Crash, self._EventOnDeadOrCrash )
   self:HandleEvent( EVENTS.Hit, self._EventOnHit )
   self:HandleEvent( EVENTS.Birth )
-  self:HandleEvent( EVENTS.PlayerEnterUnit )
+  --self:HandleEvent( EVENTS.PlayerEnterUnit )
   self:HandleEvent( EVENTS.PlayerLeaveUnit )
   
   -- During mission startup, especially for single player, 
@@ -31145,10 +31145,26 @@ end
 --- Handles the OnPlayerEnterUnit event for the scoring.
 -- @param #SCORING self
 -- @param Core.Event#EVENTDATA Event
-function SCORING:OnEventPlayerEnterUnit( Event )
+--function SCORING:OnEventPlayerEnterUnit( Event )
+--  if Event.IniUnit then
+--    self:_AddPlayerFromUnit( Event.IniUnit )
+--    self:SetScoringMenu( Event.IniGroup )
+--  end
+--end
+
+--- Handles the OnBirth event for the scoring.
+-- @param #SCORING self
+-- @param Core.Event#EVENTDATA Event
+function SCORING:OnEventBirth( Event )
+  
   if Event.IniUnit then
-    self:_AddPlayerFromUnit( Event.IniUnit )
-    self:SetScoringMenu( Event.IniGroup )
+    if Event.IniObjectCategory == 1 then
+      local PlayerName = Event.IniUnit:GetPlayerName()
+      if PlayerName ~= "" then
+        self:_AddPlayerFromUnit( Event.IniUnit )
+        self:SetScoringMenu( Event.IniGroup )
+      end
+    end
   end
 end
 
