@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171212_1609')
+env.info('Moose Generation Timestamp: 20171212_2052')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5234,6 +5234,7 @@ local PlayerName=Event.IniUnit:GetPlayerName()
 if self.PLAYERS[PlayerName]then
 self:E({"Player Left:",PlayerName})
 local Settings=SETTINGS:Set(PlayerName)
+Settings:RemovePlayerMenu(Event.IniUnit)
 self:DeletePlayer(Event.IniUnit,PlayerName)
 end
 end
