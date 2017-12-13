@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171212_2052')
+env.info('Moose Generation Timestamp: 20171213_1429')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -21790,12 +21790,16 @@ end
 end
 end
 function RAT:_Despawn(group)
+if group~=nil then
 local index=self:GetSpawnIndexFromGroup(group)
+if index~=nil then
 self.ratcraft[index].group=nil
 group:Destroy()
 self.alive=self.alive-1
-if self.f10menu then
+if self.f10menu~=nil and self.SubMenuName~=nil then
 self.Menu[self.SubMenuName]["groups"][index]:Remove()
+end
+end
 end
 end
 function RAT:_Waypoint(index,Type,Coord,Speed,Altitude,Airport)
