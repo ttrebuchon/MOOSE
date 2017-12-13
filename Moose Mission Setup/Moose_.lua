@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171213_1429')
+env.info('Moose Generation Timestamp: 20171213_2320')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5180,6 +5180,7 @@ end
 end
 if Event.IniObjectCategory==1 then
 Event.IniUnit=self:FindUnit(Event.IniDCSUnitName)
+Event.IniGroup=self:FindGroup(Event.IniDCSGroupName)
 local PlayerName=Event.IniUnit:GetPlayerName()
 self:E({"PlayerName:",PlayerName})
 if PlayerName~=""then
@@ -5189,6 +5190,7 @@ self:AddPlayer(Event.IniUnitName,PlayerName)
 end
 local Settings=SETTINGS:Set(PlayerName)
 Settings:SetPlayerMenu(Event.IniUnit)
+MENU_INDEX:Refresh(Event.IniGroup)
 end
 end
 end
