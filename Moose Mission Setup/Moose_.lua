@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171213_2320')
+env.info('Moose Generation Timestamp: 20171215_1334')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -3073,6 +3073,7 @@ end
 return errmsg
 end
 local EventMeta=_EVENTMETA[Event.id]
+self:E({EventMeta.Text,Event})
 if self and
 self.Events and
 self.Events[Event.id]and
@@ -3184,6 +3185,7 @@ Event.IniGroup=GROUP:FindByName(Event.IniDCSGroupName)
 Event.TgtGroup=GROUP:FindByName(Event.TgtDCSGroupName)
 if EventData.EventUnit then
 if EventClass:IsAlive()or
+Event.id==EVENTS.PlayerEnterUnit or
 Event.id==EVENTS.Crash or
 Event.id==EVENTS.Dead then
 local UnitName=EventClass:GetName()
@@ -3216,6 +3218,7 @@ end
 else
 if EventData.EventGroup then
 if EventClass:IsAlive()or
+Event.id==EVENTS.PlayerEnterUnit or
 Event.id==EVENTS.Crash or
 Event.id==EVENTS.Dead then
 local GroupName=EventClass:GetName()
