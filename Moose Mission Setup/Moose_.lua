@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171216_0757')
+env.info('Moose Generation Timestamp: 20171216_0759')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -3073,7 +3073,6 @@ end
 return errmsg
 end
 local EventMeta=_EVENTMETA[Event.id]
-self:E({EventMeta.Text,Event})
 if self and
 self.Events and
 self.Events[Event.id]and

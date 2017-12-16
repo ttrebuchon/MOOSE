@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171216_0757' )
+env.info( 'Moose Generation Timestamp: 20171216_0759' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -5650,7 +5650,7 @@ function EVENT:onEvent( Event )
 
   local EventMeta = _EVENTMETA[Event.id]
 
-  self:E( { EventMeta.Text, Event } )  -- Activate the see all incoming events ...
+  --self:E( { EventMeta.Text, Event } )  -- Activate the see all incoming events ...
 
   if self and 
      self.Events and 
