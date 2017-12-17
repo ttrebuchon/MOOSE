@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171216_0759' )
+env.info( 'Moose Generation Timestamp: 20171217_1749' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -12055,7 +12055,7 @@ do -- SET_UNIT
         self:E( { ThreatLevel = ThreatLevel } )
         local ThreatLevelItem = ThreatLevelSet[ThreatLevel]
         if ThreatLevelItem then
-          self:ForEach( IteratorFunction, arg, ThreatLevelItem:GetSet() )
+          self:ForEach( IteratorFunction, arg, ThreatLevelItem.Set )
         end
       end
     end
