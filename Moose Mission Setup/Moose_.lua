@@ -1,5 +1,5 @@
 env.info('*** MOOSE STATIC INCLUDE START *** ')
-env.info('Moose Generation Timestamp: 20171217_1749')
+env.info('Moose Generation Timestamp: 20171218_1151')
 MOOSE={}
 function MOOSE.Include()
 end
@@ -5492,19 +5492,6 @@ table.insert(Objects,Object)
 end
 return Objects
 end
-function SET_BASE:Add(ObjectName,Object)
-self:F(ObjectName)
-if not self.Set[ObjectName]then
-self.Set[ObjectName]=Object
-table.insert(self.Index,ObjectName)
-end
-end
-function SET_BASE:AddObject(Object)
-self:F2(Object.ObjectName)
-self:T(Object.UnitName)
-self:T(Object.ObjectName)
-self:Add(Object.ObjectName,Object)
-end
 function SET_BASE:Remove(ObjectName)
 local Object=self.Set[ObjectName]
 self:F3({ObjectName,Object})
@@ -5517,6 +5504,20 @@ break
 end
 end
 end
+end
+function SET_BASE:Add(ObjectName,Object)
+self:F(ObjectName)
+if self.Set[ObjectName]then
+self:Remove(ObjectName)
+end
+self.Set[ObjectName]=Object
+table.insert(self.Index,ObjectName)
+end
+function SET_BASE:AddObject(Object)
+self:F2(Object.ObjectName)
+self:T(Object.UnitName)
+self:T(Object.ObjectName)
+self:Add(Object.ObjectName,Object)
 end
 function SET_BASE:Get(ObjectName)
 self:F(ObjectName)
@@ -22697,7 +22698,8 @@ end
 function AI_BALANCER:onenterSpawning(SetGroup,From,Event,To,ClientName)
 local AIGroup=self.SpawnAI:Spawn()
 if AIGroup then
-AIGroup:E("Spawning new AIGroup")
+AIGroup:T({"Spawning new AIGroup",ClientName=ClientName})
+SetGroup:Remove(ClientName)
 SetGroup:Add(ClientName,AIGroup)
 self.SpawnQueue[ClientName]=nil
 self:Spawned(AIGroup)
@@ -22732,7 +22734,8 @@ self.SetClient:ForEachClient(
 function(Client)
 self:T3(Client.ClientName)
 local AIGroup=self.Set:Get(Client.UnitName)
-if Client:IsAlive()then
+if AIGroup then self:T({AIGroup=AIGroup:GetName(),IsAlive=AIGroup:IsAlive()})end
+if Client:IsAlive()==true then
 if AIGroup and AIGroup:IsAlive()==true then
 if self.ToNearestAirbase==false and self.ToHomeAirbase==false then
 self:Destroy(Client.UnitName,AIGroup)
@@ -22764,10 +22767,11 @@ end
 else
 if not AIGroup or not AIGroup:IsAlive()==true then
 self:T("Client "..Client.UnitName.." not alive.")
+self:T({Queue=self.SpawnQueue[Client.UnitName]})
 if not self.SpawnQueue[Client.UnitName]then
 self:__Spawn(math.random(self.Earliest,self.Latest),Client.UnitName)
 self.SpawnQueue[Client.UnitName]=true
-self:E("New AI Spawned for Client "..Client.UnitName)
+self:T("New AI Spawned for Client "..Client.UnitName)
 end
 end
 end

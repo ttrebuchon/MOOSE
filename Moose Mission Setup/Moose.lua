@@ -1,5 +1,5 @@
 env.info( '*** MOOSE STATIC INCLUDE START *** ' )
-env.info( 'Moose Generation Timestamp: 20171217_1749' )
+env.info( 'Moose Generation Timestamp: 20171218_1151' )
 MOOSE = {}
 function MOOSE.Include()
 
@@ -10403,35 +10403,6 @@ function SET_BASE:GetSetObjects()  -- R2.3
 end
 
 
---- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using a given ObjectName as the index.
--- @param #SET_BASE self
--- @param #string ObjectName
--- @param Core.Base#BASE Object
--- @return Core.Base#BASE The added BASE Object.
-function SET_BASE:Add( ObjectName, Object )
-  self:F( ObjectName )
-
-  if not self.Set[ObjectName] then
-    self.Set[ObjectName] = Object
-    table.insert( self.Index, ObjectName )
-  end
-end
-
---- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using the Object Name as the index.
--- @param #SET_BASE self
--- @param Wrapper.Object#OBJECT Object
--- @return Core.Base#BASE The added BASE Object.
-function SET_BASE:AddObject( Object )
-  self:F2( Object.ObjectName )
-  
-  self:T( Object.UnitName )
-  self:T( Object.ObjectName )
-  self:Add( Object.ObjectName, Object )
-  
-end
-
-
-
 --- Removes a @{Base#BASE} object from the @{Set#SET_BASE} and derived classes, based on the Object Name.
 -- @param #SET_BASE self
 -- @param #string ObjectName
@@ -10453,6 +10424,39 @@ function SET_BASE:Remove( ObjectName )
   end
   
 end
+
+
+--- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using a given ObjectName as the index.
+-- @param #SET_BASE self
+-- @param #string ObjectName
+-- @param Core.Base#BASE Object
+-- @return Core.Base#BASE The added BASE Object.
+function SET_BASE:Add( ObjectName, Object )
+  self:F( ObjectName )
+
+  -- Ensure that the existing element is removed from the Set before a new one is inserted to the Set
+  if self.Set[ObjectName] then
+    self:Remove( ObjectName )
+  end
+  self.Set[ObjectName] = Object
+  table.insert( self.Index, ObjectName )
+end
+
+--- Adds a @{Base#BASE} object in the @{Set#SET_BASE}, using the Object Name as the index.
+-- @param #SET_BASE self
+-- @param Wrapper.Object#OBJECT Object
+-- @return Core.Base#BASE The added BASE Object.
+function SET_BASE:AddObject( Object )
+  self:F2( Object.ObjectName )
+  
+  self:T( Object.UnitName )
+  self:T( Object.ObjectName )
+  self:Add( Object.ObjectName, Object )
+  
+end
+
+
+
 
 --- Gets a @{Base#BASE} object from the @{Set#SET_BASE} and derived classes, based on the Object Name.
 -- @param #SET_BASE self
@@ -46563,9 +46567,10 @@ function AI_BALANCER:onenterSpawning( SetGroup, From, Event, To, ClientName )
   -- OK, Spawn a new group from the default SpawnAI object provided.
   local AIGroup = self.SpawnAI:Spawn() -- Wrapper.Group#GROUP
   if AIGroup then
-    AIGroup:E( "Spawning new AIGroup" )
+    AIGroup:T( { "Spawning new AIGroup", ClientName = ClientName } )
     --TODO: need to rework UnitName thing ...
     
+    SetGroup:Remove( ClientName ) -- Ensure that the previously allocated AIGroup to ClientName is removed in the Set.
     SetGroup:Add( ClientName, AIGroup )
     self.SpawnQueue[ClientName] = nil
     
@@ -46624,7 +46629,8 @@ function AI_BALANCER:onenterMonitoring( SetGroup )
       self:T3(Client.ClientName)
 
       local AIGroup = self.Set:Get( Client.UnitName ) -- Wrapper.Group#GROUP
-      if Client:IsAlive() then
+      if AIGroup then self:T( { AIGroup = AIGroup:GetName(), IsAlive = AIGroup:IsAlive() } ) end
+      if Client:IsAlive() == true then
 
         if AIGroup and AIGroup:IsAlive() == true then
 
@@ -46669,11 +46675,12 @@ function AI_BALANCER:onenterMonitoring( SetGroup )
       else
         if not AIGroup or not AIGroup:IsAlive() == true then
           self:T( "Client " .. Client.UnitName .. " not alive." )
+          self:T( { Queue = self.SpawnQueue[Client.UnitName] } )
           if not self.SpawnQueue[Client.UnitName] then
             -- Spawn a new AI taking into account the spawn interval Earliest, Latest
             self:__Spawn( math.random( self.Earliest, self.Latest ), Client.UnitName )
             self.SpawnQueue[Client.UnitName] = true
-            self:E( "New AI Spawned for Client " .. Client.UnitName )
+            self:T( "New AI Spawned for Client " .. Client.UnitName )
           end
         end
       end
