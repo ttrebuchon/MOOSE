@@ -29,10 +29,10 @@
 --   * FlightControl (Design & Programming)
 --
 -- ### Contributions:
--- 
+--
 --   * funkyfranky
 --   * Applevangelist
---   
+--
 -- ===
 --
 -- @module Core.Point
@@ -264,7 +264,7 @@ do -- COORDINATE
     TakeOffGround     = "TakeOffGround",
     TurningPoint      = "Turning Point",
     Land              = "Land",
-    LandingReFuAr     = "LandingReFuAr",    
+    LandingReFuAr     = "LandingReFuAr",
   }
 
 
@@ -277,7 +277,7 @@ do -- COORDINATE
   function COORDINATE:New( x, y, z )
 
     local self=BASE:Inherit(self, BASE:New()) -- #COORDINATE
-    
+
     self.x = x
     self.y = y
     self.z = z
@@ -329,22 +329,22 @@ do -- COORDINATE
 
     return self
   end
-  
+
   --- Create a new COORDINATE object from a waypoint. This uses the components
-  -- 
+  --
   --  * `waypoint.x`
   --  * `waypoint.alt`
   --  * `waypoint.y`
-  --  
+  --
   -- @param #COORDINATE self
   -- @param DCS#Waypoint Waypoint The waypoint.
   -- @return #COORDINATE self
   function COORDINATE:NewFromWaypoint(Waypoint)
 
     local self=self:New(Waypoint.x, Waypoint.alt, Waypoint.y) -- #COORDINATE
-    
+
     return self
-  end  
+  end
 
   --- Return the coordinates itself. Sounds stupid but can be useful for compatibility.
   -- @param #COORDINATE self
@@ -878,9 +878,9 @@ do -- COORDINATE
 
     -- Get the vector from A to B
     local vec=UTILS.VecSubstract(ToCoordinate, self)
-    
+
     if f>1 then
-      local norm=UTILS.VecNorm(vec)      
+      local norm=UTILS.VecNorm(vec)
       f=Fraction/norm
     end
 
@@ -894,7 +894,7 @@ do -- COORDINATE
 
     -- Create a new coordiante object.
     local coord=COORDINATE:New(vec.x,vec.y,vec.z)
-    
+
     return coord
   end
 
@@ -1135,7 +1135,7 @@ do -- COORDINATE
     local Settings = Settings or _SETTINGS -- Core.Settings#SETTINGS
     local Language = Language or "EN"
     local Precision = Precision or 0
-    
+
     local DistanceText
 
     if Settings:IsMetric() then
@@ -1908,7 +1908,7 @@ do -- COORDINATE
     self.firename = name or "Fire-"..math.random(1,10000)
     trigger.action.effectSmokeBig( self:GetVec3(), preset, density, self.firename )
   end
-  
+
   --- Stop big smoke and fire at the coordinate.
   -- @param #COORDINATE self
   -- @param #string name (Optional) Name of the fire to stop it, if not using the same COORDINATE object.
@@ -2182,21 +2182,21 @@ do -- COORDINATE
       if ReadOnly==nil then
         ReadOnly=false
       end
-      
+
       local vec3=self:GetVec3()
-      
+
       Radius=Radius or 1000
-      
+
       Coalition=Coalition or -1
-      
+
       Color=Color or {1,0,0}
       Color[4]=Alpha or 1.0
-      
+
       LineType=LineType or 1
-      
+
       FillColor=FillColor or UTILS.DeepCopy(Color)
       FillColor[4]=FillAlpha or 0.15
-      
+
       trigger.action.circleToAll(Coalition, MarkID, vec3, Radius, Color, FillColor, LineType, ReadOnly, Text or "")
       return MarkID
     end
@@ -2221,19 +2221,19 @@ do -- COORDINATE
       if ReadOnly==nil then
         ReadOnly=false
       end
-      
+
       local vec3=Endpoint:GetVec3()
-      
+
       Coalition=Coalition or -1
-      
+
       Color=Color or {1,0,0}
       Color[4]=Alpha or 1.0
-      
+
       LineType=LineType or 1
-      
+
       FillColor=FillColor or UTILS.DeepCopy(Color)
       FillColor[4]=FillAlpha or 0.15
-      
+
       trigger.action.rectToAll(Coalition, MarkID, self:GetVec3(), vec3, Color, FillColor, LineType, ReadOnly, Text or "")
       return MarkID
     end
@@ -2257,22 +2257,22 @@ do -- COORDINATE
       if ReadOnly==nil then
         ReadOnly=false
       end
-      
+
       local point1=self:GetVec3()
       local point2=Coord2:GetVec3()
       local point3=Coord3:GetVec3()
       local point4=Coord4:GetVec3()
-      
+
       Coalition=Coalition or -1
-      
+
       Color=Color or {1,0,0}
       Color[4]=Alpha or 1.0
-      
+
       LineType=LineType or 1
-      
+
       FillColor=FillColor or UTILS.DeepCopy(Color)
       FillColor[4]=FillAlpha or 0.15
-      
+
       trigger.action.quadToAll(Coalition, MarkID, point1, point2, point3, point4, Color, FillColor, LineType, ReadOnly, Text or "")
       return MarkID
     end
@@ -2333,8 +2333,8 @@ do -- COORDINATE
         trigger.action.markupToAll(7, Coalition, MarkID, vecs[1], vecs[2], vecs[3], vecs[4], vecs[5], vecs[6], vecs[7], vecs[8], vecs[9], vecs[10], Color, FillColor, LineType, ReadOnly, Text or "")
       elseif #vecs==11 then
         trigger.action.markupToAll(7, Coalition, MarkID, vecs[1], vecs[2], vecs[3], vecs[4], vecs[5], vecs[6], vecs[7], vecs[8], vecs[9], vecs[10],
-                                                         vecs[11], 
-                                                         Color, FillColor, LineType, ReadOnly, Text or "")        
+                                                         vecs[11],
+                                                         Color, FillColor, LineType, ReadOnly, Text or "")
       elseif #vecs==12 then
         trigger.action.markupToAll(7, Coalition, MarkID, vecs[1], vecs[2], vecs[3], vecs[4], vecs[5], vecs[6], vecs[7], vecs[8], vecs[9], vecs[10],
                                                          vecs[11], vecs[12],
@@ -2346,7 +2346,7 @@ do -- COORDINATE
       elseif #vecs==14 then
         trigger.action.markupToAll(7, Coalition, MarkID, vecs[1], vecs[2], vecs[3], vecs[4], vecs[5], vecs[6], vecs[7], vecs[8], vecs[9], vecs[10],
                                                          vecs[11], vecs[12], vecs[13], vecs[14],
-                                                         Color, FillColor, LineType, ReadOnly, Text or "")                                                                                                                                                                                                           
+                                                         Color, FillColor, LineType, ReadOnly, Text or "")
       elseif #vecs==15 then
         trigger.action.markupToAll(7, Coalition, MarkID, vecs[1], vecs[2], vecs[3], vecs[4], vecs[5], vecs[6], vecs[7], vecs[8], vecs[9], vecs[10],
                                                          vecs[11], vecs[12], vecs[13], vecs[14], vecs[15],
@@ -2377,15 +2377,15 @@ do -- COORDINATE
         ReadOnly=false
       end
       Coalition=Coalition or -1
-      
+
       Color=Color or {1,0,0}
       Color[4]=Alpha or 1.0
-      
+
       FillColor=FillColor or UTILS.DeepCopy(Color)
       FillColor[4]=FillAlpha or 0.3
-      
+
       FontSize=FontSize or 14
-      
+
       trigger.action.textToAll(Coalition, MarkID, self:GetVec3(), Color, FillColor, FontSize, ReadOnly, Text or "Hello World")
       return MarkID
     end
@@ -2407,19 +2407,19 @@ do -- COORDINATE
       if ReadOnly==nil then
         ReadOnly=false
       end
-      
+
       local vec3=Endpoint:GetVec3()
-      
+
       Coalition=Coalition or -1
-      
+
       Color=Color or {1,0,0}
       Color[4]=Alpha or 1.0
-      
+
       LineType=LineType or 1
-      
+
       FillColor=FillColor or UTILS.DeepCopy(Color)
       FillColor[4]=FillAlpha or 0.15
-      
+
       --trigger.action.textToAll(Coalition, MarkID, self:GetVec3(), Color, FillColor, FontSize, ReadOnly, Text or "Hello World")
       trigger.action.arrowToAll(Coalition, MarkID, vec3, self:GetVec3(), Color, FillColor, LineType, ReadOnly, Text or "")
       return MarkID
@@ -2794,7 +2794,7 @@ do -- COORDINATE
     local Altitude = self:GetAltitudeText()
     return "BRA, " .. self:GetBRAText( AngleRadians, Distance, Settings, Language )
   end
-  
+
   --- Create a BRAA NATO call string to this COORDINATE from the FromCOORDINATE. Note - BRA delivered if no aspect can be obtained and "Merged" if range < 3nm
   -- @param #COORDINATE self
   -- @param #COORDINATE FromCoordinate The coordinate to measure the distance and the bearing from.
@@ -2805,35 +2805,35 @@ do -- COORDINATE
   -- @param #boolean Zeros If using SSML, be aware that Google TTS will say "oh" and not "zero" for "0"; if Zeros is set to true, "0" will be replaced with "zero"
   -- @return #string The BRAA text.
   function COORDINATE:ToStringBRAANATO(FromCoordinate,Bogey,Spades,SSML,Angels,Zeros)
-    
+
     -- Thanks to @Pikey
     local BRAANATO = "Merged."
 
     local currentCoord = FromCoordinate
     local DirectionVec3 = FromCoordinate:GetDirectionVec3( self )
     local AngleRadians =  self:GetAngleRadians( DirectionVec3 )
-    
+
     local bearing = UTILS.Round( UTILS.ToDegree( AngleRadians ),0 )
-    
+
     local rangeMetres = self:Get2DDistance(currentCoord)
     local rangeNM = UTILS.Round( UTILS.MetersToNM(rangeMetres), 0)
-    
+
     local aspect = self:ToStringAspect(currentCoord)
 
     local alt = UTILS.Round(UTILS.MetersToFeet(self.y)/1000,0)--*1000
-    
+
     local alttext = string.format("%d thousand",alt)
-    
+
     if Angels then
       alttext = string.format("Angels %d",alt)
     end
-    
+
     if alt < 1 then
       alttext = "very low"
     end
-    
+
     local track = UTILS.BearingToCardinal(bearing) or "North"
-    
+
     if rangeNM > 3 then
       if SSML then -- google says "oh" instead of zero, be aware
         if Zeros then
@@ -2844,13 +2844,13 @@ do -- COORDINATE
           if aspect == "" then
             BRAANATO = string.format("brah %s, %d miles, %s, Track %s", AngleDegText, rangeNM, alttext, track)
           else
-            BRAANATO = string.format("brah %s, %d miles, %s, %s, Track %s", AngleDegText, rangeNM, alttext, aspect, track)      
-          end  
+            BRAANATO = string.format("brah %s, %d miles, %s, %s, Track %s", AngleDegText, rangeNM, alttext, aspect, track)
+          end
         else
           if aspect == "" then
             BRAANATO = string.format("brah <say-as interpret-as='characters'>%03d</say-as>, %d miles, %s, Track %s", bearing, rangeNM, alttext, track)
           else
-            BRAANATO = string.format("brah <say-as interpret-as='characters'>%03d</say-as>, %d miles, %s, %s, Track %s", bearing, rangeNM, alttext, aspect, track)      
+            BRAANATO = string.format("brah <say-as interpret-as='characters'>%03d</say-as>, %d miles, %s, %s, Track %s", bearing, rangeNM, alttext, aspect, track)
           end
         end
         if Bogey and Spades then
@@ -2866,7 +2866,7 @@ do -- COORDINATE
         if aspect == "" then
           BRAANATO = string.format("BRA %03d, %d miles, %s, Track %s",bearing, rangeNM, alttext, track)
         else
-          BRAANATO = string.format("BRAA %03d, %d miles, %s, %s, Track %s",bearing, rangeNM, alttext, aspect, track)      
+          BRAANATO = string.format("BRAA %03d, %d miles, %s, %s, Track %s",bearing, rangeNM, alttext, aspect, track)
         end
         if Bogey and Spades then
           BRAANATO = BRAANATO..", Bogey, Spades."
@@ -2879,10 +2879,10 @@ do -- COORDINATE
         end
       end
     end
-      
-    return BRAANATO 
+
+    return BRAANATO
   end
-  
+
   --- Return a BULLS string out of the BULLS of the coalition to the COORDINATE.
   -- @param #COORDINATE self
   -- @param DCS#coalition.side Coalition The coalition.

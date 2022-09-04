@@ -164,7 +164,7 @@
 --
 -- ## Specifying Coordinates
 --
--- It is also possible to specify coordinates rather than unit or static objects as bombing target locations. This has the advantage, that even when the unit/static object is dead, the specified 
+-- It is also possible to specify coordinates rather than unit or static objects as bombing target locations. This has the advantage, that even when the unit/static object is dead, the specified
 -- coordinate will still be a valid impact point. This can be done via the @{#RANGE.AddBombingTargetCoordinate}(*coord*, *name*, *goodhitrange*) function.
 --
 -- # Fine Tuning
@@ -233,11 +233,11 @@
 -- The next time you start the mission, these results are also automatically loaded.
 --
 -- Strafing results are currently **not** saved.
--- 
+--
 -- # FSM Events
--- 
+--
 -- This class creates additional events that can be used by mission designers for custom reactions
--- 
+--
 -- * `EnterRange` when a player enters a range zone. See @{#RANGE.OnAfterEnterRange}
 -- * `ExitRange`  when a player leaves a range zone. See @{#RANGE.OnAfterExitRange}
 -- * `Impact` on impact of a player's weapon on a bombing target. See @{#RANGE.OnAfterImpact}
@@ -448,6 +448,13 @@ RANGE.TargetType = {
 -- @field #string clock Time of the run.
 -- @field #string rangename Name of the range.
 -- @field #boolean invalid Invalid pass.
+
+--- Strafe result.
+-- @type RANGE.StrafeResult
+-- @field #string player Player name.
+-- @field #string airframe Aircraft type of player.
+-- @field #number time Time via timer.getAbsTime() in seconds of impact.
+-- @field #string date OS date.
 
 --- Sound file data.
 -- @type RANGE.Soundfile
@@ -968,9 +975,9 @@ end
 -- @param #string Host Host. Default "127.0.0.1".
 -- @return #RANGE self
 function RANGE:SetFunkManOn(Port, Host)
-  
+
   self.funkmanSocket=SOCKET:New(Port, Host)
-  
+
   return self
 end
 
@@ -1836,7 +1843,7 @@ function RANGE:OnEventShot( EventData )
 
   -- Get player unit and name.
   local _unit, _playername = self:_GetPlayerUnitAndName( _unitName )
-  
+
   -- Attack parameters.
   local attackHdg=_unit:GetHeading()
   local attackAlt=_unit:GetHeight()
@@ -2153,10 +2160,10 @@ function RANGE:onafterImpact( From, Event, To, result, player )
 
   -- Unit.
   if player.unitname then
-  
+
     -- Get unit.
     local unit = UNIT:FindByName( player.unitname )
-  
+
     -- Send message.
     self:_DisplayMessageToGroup( unit, text, nil, true )
     self:T( self.id .. text )
@@ -2166,7 +2173,7 @@ function RANGE:onafterImpact( From, Event, To, result, player )
   if self.autosave then
     self:Save()
   end
-  
+
   -- Send result to FunkMan, which creates fancy MatLab figures and sends them to Discord via a bot.
   if self.funkmanSocket then
     self.funkmanSocket:SendTable(result)
@@ -2438,7 +2445,7 @@ function RANGE:_DisplayMyStrafePitResults( _unitName )
     local _message = string.format( "My Top %d Strafe Pit Results:\n", self.ndisplayresult )
 
     -- Get player results.
-    local _results = self.strafePlayerResults[_playername] 
+    local _results = self.strafePlayerResults[_playername]
 
     -- Create message.
     if _results == nil then
@@ -2743,7 +2750,7 @@ function RANGE:_DisplayRangeInfo( _unitname )
           end
         end
         text = text .. string.format( "Instructor %.3f MHz (Relay=%s)\n", self.instructorfreq, alive )
-      end  
+      end
       if self.rangecontrol then
         local alive = "N/A"
         if self.rangecontrolrelayname then
@@ -2970,10 +2977,10 @@ function RANGE:_CheckInZone( _unitName )
   local unitheading = 0 -- RangeBoss
 
   if _unit and _playername then
-  
+
     -- Player data.
     local playerData=self.PlayerSettings[_playername] -- #RANGE.PlayerData
-    
+
     --- Function to check if unit is in zone and facing in the right direction and is below the max alt.
     local function checkme( targetheading, _zone )
       local zone = _zone -- Core.Zone#ZONE
@@ -2987,7 +2994,7 @@ function RANGE:_CheckInZone( _unitName )
       if towardspit then
 
         local vec3 = _unit:GetVec3()
-        local vec2 = { x = vec3.x, y = vec3.z } -- DCS#Vec2        
+        local vec2 = { x = vec3.x, y = vec3.z } -- DCS#Vec2
         local landheight = land.getHeight( vec2 )
         local unitalt = vec3.y - landheight
 
@@ -3046,9 +3053,9 @@ function RANGE:_CheckInZone( _unitName )
 
           -- Result.
           local _result = self.strafeStatus[_unitID] --#RANGE.StrafeStatus
-          
+
           local _sound = nil -- #RANGE.Soundfile
-          
+
           --[[ --RangeBoss commented out in order to implement strafe quality based on accuracy percentage, not the number of rounds on target
           -- Judge this pass. Text is displayed on summary.
           if _result.hits >= _result.zone.goodPass*2 then
@@ -3065,7 +3072,7 @@ function RANGE:_CheckInZone( _unitName )
             _sound=RANGE.Sound.RCPoorPass
           end
           ]]
-          
+
           -- Calculate accuracy of run. Number of hits wrt number of rounds fired.
           local shots = _result.ammo - _ammo
           local accur = 0
@@ -3075,7 +3082,7 @@ function RANGE:_CheckInZone( _unitName )
               accur = 100
             end
           end
-          
+
           -- Results text and sound message.
           local resulttext=""
           if _result.pastfoulline == true then --
@@ -3109,7 +3116,7 @@ function RANGE:_CheckInZone( _unitName )
 
           -- Send message.
           self:_DisplayMessageToGroup( _unit, _text )
-          
+
           -- Strafe result.
           local result = {} -- #RANGE.StrafeResult
           result.command=SOCKET.DataType.STRAFERESULT
@@ -3126,14 +3133,14 @@ function RANGE:_CheckInZone( _unitName )
           result.rangename = self.rangename
           result.airframe=playerData.airframe
           result.invalid = _result.pastfoulline
-          
+
           -- Griger Results.
           self:StrafeResult(playerData, result)
- 
+
           -- Save trap sheet.
           if playerData and playerData.targeton and self.targetsheet then
             self:_SaveTargetSheet( _playername, result )
-          end        
+          end
 
           -- Voice over.
           if self.rangecontrol then
@@ -3190,7 +3197,7 @@ function RANGE:_CheckInZone( _unitName )
 
           -- Send message.
           self:_DisplayMessageToGroup( _unit, _msg, 10, true )
-          
+
           -- Trigger event that player is rolling in.
           self:RollingIn(playerData, target)
 

@@ -35,9 +35,9 @@
 -- This class is very easy to use. Just setup a SEAD object by using @{#SEAD.New}() and SAMs will evade and take defensive action when being fired upon.
 -- Once a HARM attack is detected, SEAD will shut down the radars of the attacked SAM site and take evasive action by moving the SAM
 -- vehicles around (*if* they are drivable, that is). There's a component of randomness in detection and evasion, which is based on the
--- skill set of the SAM set (the higher the skill, the more likely). When a missile is fired from far away, the SAM will stay active for a 
+-- skill set of the SAM set (the higher the skill, the more likely). When a missile is fired from far away, the SAM will stay active for a
 -- period of time to stay defensive, before it takes evasive actions.
--- 
+--
 -- # Constructor:
 --
 -- Use the @{#SEAD.New}() constructor to create a new SEAD object.
@@ -130,19 +130,19 @@ function SEAD:New( SEADGroupPrefixes, Padding )
   if padding < 10 then padding = 10 end
   self.Padding = padding
   self.UseEmissionsOnOff = true
-  
+
   self.debug = false
-  
+
   self.CallBack = nil
   self.UseCallBack = false
-    
+
   self:HandleEvent( EVENTS.Shot, self.HandleEventShot )
-  
+
   -- Start State.
   self:SetStartState("Running")
   self:AddTransition("*",             "ManageEvasion",                "*")
   self:AddTransition("*",             "CalculateHitZone",             "*")
-  
+
   self:I("*** SEAD - Started Version 0.4.3")
   return self
 end
@@ -206,9 +206,9 @@ end
 --- Add an object to call back when going evasive.
 -- @param #SEAD self
 -- @param #table Object The object to call. Needs to have object functions as follows:
--- `:SeadSuppressionPlanned(Group, Name, SuppressionStartTime, SuppressionEndTime)` 
--- `:SeadSuppressionStart(Group, Name)`, 
--- `:SeadSuppressionEnd(Group, Name)`, 
+-- `:SeadSuppressionPlanned(Group, Name, SuppressionStartTime, SuppressionEndTime)`
+-- `:SeadSuppressionStart(Group, Name)`,
+-- `:SeadSuppressionEnd(Group, Name)`,
 -- @return #SEAD self
 function SEAD:AddCallBack(Object)
   self:T({Class=Object.ClassName})
@@ -270,22 +270,22 @@ end
 -- @param #number height Height when the missile was fired
 -- @param Wrapper.Group#GROUP SEADGroup Attacker group
 -- @param #string SEADWeaponName Weapon Name
--- @return #SEAD self 
+-- @return #SEAD self
 function SEAD:onafterCalculateHitZone(From,Event,To,SEADWeapon,pos0,height,SEADGroup,SEADWeaponName)
   self:T("**** Calculating hit zone for " .. (SEADWeaponName or "None"))
   if SEADWeapon and SEADWeapon:isExist() then
     --local pos = SEADWeapon:getPoint()
-    
+
     -- postion and height
     local position = SEADWeapon:getPosition()
     local mheight = height
     -- heading
-    local wph = math.atan2(position.x.z, position.x.x)      
+    local wph = math.atan2(position.x.z, position.x.x)
     if wph < 0 then
       wph=wph+2*math.pi
-    end   
+    end
     wph=math.deg(wph)
-    
+
     -- velocity
     local wpndata = SEAD.HarmData["AGM_88"]
     if string.find(SEADWeaponName,"154",1) then
@@ -294,30 +294,30 @@ function SEAD:onafterCalculateHitZone(From,Event,To,SEADWeapon,pos0,height,SEADG
     local mveloc = math.floor(wpndata[2] * 340.29)
     local c1 = (2*mheight*9.81)/(mveloc^2)
     local c2 = (mveloc^2) / 9.81
-    local Ropt = c2 * math.sqrt(c1+1) 
+    local Ropt = c2 * math.sqrt(c1+1)
     if height <= 5000 then
       Ropt = Ropt * 0.72
     elseif height <= 7500 then
-      Ropt = Ropt * 0.82  
+      Ropt = Ropt * 0.82
     elseif height <= 10000 then
       Ropt = Ropt * 0.87
     elseif height <= 12500 then
       Ropt = Ropt * 0.98
     end
-    
+
     -- look at a couple of zones across the trajectory
     for n=1,3 do
       local dist = Ropt - ((n-1)*20000)
       local predpos= pos0:Translate(dist,wph)
       if predpos then
-  
+
         local targetzone = ZONE_RADIUS:New("Target Zone",predpos:GetVec2(),20000)
-        
+
         if self.debug then
           predpos:MarkToAll(string.format("height=%dm | heading=%d | velocity=%ddeg | Ropt=%dm",mheight,wph,mveloc,Ropt),false)
           targetzone:DrawZone(coalition.side.BLUE,{0,0,1},0.2,nil,nil,3,true)
-        end  
-        
+        end
+
         local seadset = SET_GROUP:New():FilterPrefixes(self.SEADGroupPrefixes):FilterZones({targetzone}):FilterOnce()
         local tgtcoord = targetzone:GetRandomPointVec2()
         --if tgtcoord and tgtcoord.ClassName == "COORDINATE" then
@@ -335,7 +335,7 @@ function SEAD:onafterCalculateHitZone(From,Event,To,SEADWeapon,pos0,height,SEADG
           end
         --end
       end
-    end     
+    end
   end
   return self
 end
@@ -348,7 +348,7 @@ end
 -- @param #string SEADWeaponName
 -- @param Wrapper.Group#GROUP SEADGroup Attacker Group
 -- @param #number timeoffset Offset for tti calc
--- @return #SEAD self 
+-- @return #SEAD self
 function SEAD:onafterManageEvasion(From,Event,To,_targetskill,_targetgroup,SEADPlanePos,SEADWeaponName,SEADGroup,timeoffset)
   local timeoffset = timeoffset  or 0
   if _targetskill == "Random" then -- when skill is random, choose a skill
@@ -380,12 +380,12 @@ function SEAD:onafterManageEvasion(From,Event,To,_targetskill,_targetgroup,SEADP
       else
         _distance = 0
       end
-  
+
       self:T( string.format("*** SEAD - target skill %s, distance %dkm, reach %dkm, tti %dsec", _targetskill, _distance,reach,_tti ))
-  
+
       if reach >= _distance then
         self:T("*** SEAD - Shot in Reach")
-  
+
         local function SuppressionStart(args)
           self:T(string.format("*** SEAD - %s Radar Off & Relocating",args[2]))
           local grp = args[1] -- Wrapper.Group#GROUP
@@ -401,7 +401,7 @@ function SEAD:onafterManageEvasion(From,Event,To,_targetskill,_targetgroup,SEADP
             object:SeadSuppressionStart(grp,name,attacker)
           end
         end
-  
+
         local function SuppressionStop(args)
           self:T(string.format("*** SEAD - %s Radar On",args[2]))
           local grp = args[1]  -- Wrapper.Group#GROUP
@@ -417,12 +417,12 @@ function SEAD:onafterManageEvasion(From,Event,To,_targetskill,_targetgroup,SEADP
             object:SeadSuppressionEnd(grp,name)
           end
         end
-  
+
         -- randomize switch-on time
         local delay = math.random(self.TargetSkill[_targetskill].DelayOn[1], self.TargetSkill[_targetskill].DelayOn[2])
         if delay > _tti then delay = delay / 2 end -- speed up
         if _tti > 600 then delay =  _tti - 90 end -- shot from afar, 600 is default shorad ontime
-  
+
         local SuppressionStartTime = timer.getTime() + delay
         local SuppressionEndTime = timer.getTime() + _tti + self.Padding
         local _targetgroupname = _targetgroup:GetName()
@@ -436,7 +436,7 @@ function SEAD:onafterManageEvasion(From,Event,To,_targetskill,_targetgroup,SEADP
             object:SeadSuppressionPlanned(_targetgroup,_targetgroupname,SuppressionStartTime,SuppressionEndTime, SEADGroup)
           end
         end
-  
+
       end
     end
   end

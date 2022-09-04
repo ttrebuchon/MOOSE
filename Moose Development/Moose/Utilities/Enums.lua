@@ -1,18 +1,18 @@
 --- **Utilities** Enumerators.
--- 
+--
 -- An enumerator is a variable that holds a constant value. Enumerators are very useful because they make the code easier to read and to change in general.
--- 
+--
 -- For example, instead of using the same value at multiple different places in your code, you should use a variable set to that value.
 -- If, for whatever reason, the value needs to be changed, you only have to change the variable once and do not have to search through you code and reset
 -- every value by hand.
--- 
+--
 -- Another big advantage is that the LDT intellisense "knows" the enumerators. So you can use the autocompletion feature and do not have to keep all the
--- values in your head or look them up in the docs. 
--- 
+-- values in your head or look them up in the docs.
+--
 -- DCS itself provides a lot of enumerators for various things. See [Enumerators](https://wiki.hoggitworld.com/view/Category:Enumerators) on Hoggit.
--- 
+--
 -- Other Moose classes also have enumerators. For example, the AIRBASE class has enumerators for airbase names.
--- 
+--
 -- @module ENUMS
 -- @image MOOSE.JPG
 
@@ -20,7 +20,7 @@
 -- @type ENUMS
 
 --- Because ENUMS are just better practice.
--- 
+--
 --  The ENUMS class adds some handy variables, which help you to make your code better and more general.
 --
 -- @field #ENUMS
@@ -98,7 +98,7 @@ ENUMS.WeaponFlag={
   AntiRadarMissile2    = 1073741824,
   -- Air-To-Air Missiles
   SRAM                 =    4194304,
-  MRAAM                =    8388608, 
+  MRAAM                =    8388608,
   LRAAM                =   16777216,
   IR_AAM               =   33554432,
   SAR_AAM              =   67108864,
@@ -123,19 +123,19 @@ ENUMS.WeaponFlag={
   --- Air-To-Air Missiles
   AnyAAM               =  264241152, -- IR_AAM + SAR_AAM + AR_AAM + SRAAM + MRAAM + LRAAM
   AnyAutonomousMissile =   36012032, -- IR_AAM + AntiRadarMissile + AntiShipMissile + FireAndForgetASM + CruiseMissile
-  AnyMissile           =  268402688, -- AnyASM + AnyAAM   
+  AnyMissile           =  268402688, -- AnyASM + AnyAAM
   --- Guns
   Cannons              =  805306368, -- GUN_POD + BuiltInCannon
   --- Torpedo
   Torpedo              = 4294967296,
   ---
-  -- Even More Genral  
+  -- Even More Genral
   Auto                 = 3221225470, -- Any Weapon (AnyBomb + AnyRocket + AnyMissile + Cannons)
   AutoDCS              = 1073741822, -- Something if often see
   AnyAG                = 2956984318, -- Any Air-To-Ground Weapon
   AnyAA                =  264241152, -- Any Air-To-Air Weapon
   AnyUnguided          = 2952822768, -- Any Unguided Weapon
-  AnyGuided            =  268402702, -- Any Guided Weapon   
+  AnyGuided            =  268402702, -- Any Guided Weapon
 }
 
 --- Weapon types by category. See the [Weapon Flag](https://wiki.hoggitworld.com/view/DCS_enum_weapon_flag) enumerator on hoggit wiki.
@@ -164,7 +164,7 @@ ENUMS.WeaponType.Bomb={
   -- Combinations
   GuidedBomb           =         14, -- (LGB + TvGB + SNSGB)
   AnyUnguidedBomb      = 2147485680, -- (HeBomb + Penetrator + NapalmBomb + FAEBomb + ClusterBomb + Dispencer + CandleBomb + ParachuteBomb)
-  AnyBomb              = 2147485694, -- (GuidedBomb + AnyUnguidedBomb)  
+  AnyBomb              = 2147485694, -- (GuidedBomb + AnyUnguidedBomb)
 }
 ENUMS.WeaponType.Rocket={
   -- Rockets
@@ -198,12 +198,12 @@ ENUMS.WeaponType.Missile={
   AnyASM               =    4161536, -- (AntiRadarMissile + AntiShipMissile + AntiTankMissile + FireAndForgetASM + GuidedASM + CruiseMissile)
   AnyASM2              = 1077903360, -- 4161536+1073741824,
   AnyAutonomousMissile =   36012032, -- IR_AAM + AntiRadarMissile + AntiShipMissile + FireAndForgetASM + CruiseMissile
-  AnyMissile           =  268402688, -- AnyASM + AnyAAM       
+  AnyMissile           =  268402688, -- AnyASM + AnyAAM
 }
 ENUMS.WeaponType.AAM={
   -- Air-To-Air Missiles
   SRAM                 =    4194304,
-  MRAAM                =    8388608, 
+  MRAAM                =    8388608,
   LRAAM                =   16777216,
   IR_AAM               =   33554432,
   SAR_AAM              =   67108864,
@@ -216,12 +216,12 @@ ENUMS.WeaponType.Torpedo={
   Torpedo              = 4294967296,
 }
 ENUMS.WeaponType.Any={
-  -- General combinations  
+  -- General combinations
   Weapon               = 3221225470, -- Any Weapon (AnyBomb + AnyRocket + AnyMissile + Cannons)
   AG                   = 2956984318, -- Any Air-To-Ground Weapon
   AA                   =  264241152, -- Any Air-To-Air Weapon
   Unguided             = 2952822768, -- Any Unguided Weapon
-  Guided               =  268402702, -- Any Guided Weapon   
+  Guided               =  268402702, -- Any Guided Weapon
 }
 
 
@@ -355,12 +355,12 @@ ENUMS.FormationOld.RotaryWing.Column=11
 
 
 --- Morse Code. See the [Wikipedia](https://en.wikipedia.org/wiki/Morse_code).
--- 
+--
 -- * Short pulse "*"
 -- * Long pulse "-"
--- 
+--
 -- Pulses are separated by a blank character " ".
--- 
+--
 -- @type ENUMS.Morse
 ENUMS.Morse={}
 ENUMS.Morse.A="* -"
@@ -402,9 +402,9 @@ ENUMS.Morse.N0="- - - - -"
 ENUMS.Morse[" "]=" "
 
 --- ISO (639-1) 2-letter Language Codes. See the [Wikipedia](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
--- 
+--
 -- @type ENUMS.ISOLang
-ENUMS.ISOLang = 
+ENUMS.ISOLang =
 {
   Arabic    = 'AR',
   Chinese   = 'ZH',
@@ -418,7 +418,7 @@ ENUMS.ISOLang =
 }
 
 --- Phonetic Alphabet (NATO). See the [Wikipedia](https://en.wikipedia.org/wiki/NATO_phonetic_alphabet).
--- 
+--
 -- @type ENUMS.Phonetic
 ENUMS.Phonetic =
 {
@@ -452,7 +452,7 @@ ENUMS.Phonetic =
 
 --- Reporting Names (NATO). See the [Wikipedia](https://en.wikipedia.org/wiki/List_of_NATO_reporting_names_for_fighter_aircraft).
 -- DCS known aircraft types
--- 
+--
 -- @type ENUMS.ReportingName
 ENUMS.ReportingName =
 {
@@ -509,7 +509,7 @@ ENUMS.ReportingName =
     Atlas = "A400",
     Lancer = "B1-B",
     Stratofortress = "B-52H",
-    Hercules = "C-130", 
+    Hercules = "C-130",
     Super_Hercules = "Hercules",
     Globemaster = "C-17",
     Greyhound = "C-2A",
@@ -532,7 +532,7 @@ ENUMS.ReportingName =
     Curl = "An-26",
     Candid = "IL-76",
     Midas = "IL-78",
-    Mainstay = "A-50", 
+    Mainstay = "A-50",
     Mainring = "KJ-2000", -- A-50 China
     Yak = "Yak-52",
     -- Helos

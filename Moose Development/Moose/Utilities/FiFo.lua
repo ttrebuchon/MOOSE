@@ -58,7 +58,7 @@ function FIFO:New()
   self.uniquecounter = 0
   -- Set some string id for output to DCS.log file.
   self.lid=string.format("%s (%s) | ", "FiFo", self.version)
-  self:T(self.lid .."Created.") 
+  self:T(self.lid .."Created.")
   return self
 end
 
@@ -85,7 +85,7 @@ end
 function FIFO:Push(Object,UniqueID)
   self:T(self.lid.."Push")
   self:T({Object,UniqueID})
-  self.pointer = self.pointer + 1 
+  self.pointer = self.pointer + 1
   self.counter = self.counter + 1
   local uniID = UniqueID
   if not UniqueID then
@@ -269,21 +269,21 @@ end
 -- @return #table Table with index [1] to [n] of UniqueID entries
 function FIFO:GetIDStackSorted()
   self:T(self.lid.."GetIDStackSorted")
-  
+
   local stack = self:GetIDStack()
   local idstack = {}
   for _id,_entry in pairs(stack) do
     idstack[#idstack+1] = _id
-    
+
     self:T({"pre",_id})
   end
-  
+
   local function sortID(a, b)
       return a < b
   end
-  
+
   table.sort(idstack)
- 
+
   return idstack
 end
 
@@ -363,7 +363,7 @@ function FIFO:ForEach( IteratorFunction, Arg, Function, FunctionArguments )
 
   return self
 end
-   
+
 --- FIFO Print stacks to dcs.log
 -- @param #FIFO self
 -- @return #FIFO self
@@ -446,7 +446,7 @@ function LIFO:New()
   self.stackbyid = {}
   -- Set some string id for output to DCS.log file.
   self.lid=string.format("%s (%s) | ", "LiFo", self.version)
-  self:T(self.lid .."Created.") 
+  self:T(self.lid .."Created.")
   return self
 end
 
@@ -473,7 +473,7 @@ end
 function LIFO:Push(Object,UniqueID)
   self:T(self.lid.."Push")
   self:T({Object,UniqueID})
-  self.pointer = self.pointer + 1 
+  self.pointer = self.pointer + 1
   self.counter = self.counter + 1
   local uniID = UniqueID
   if not UniqueID then
@@ -644,21 +644,21 @@ end
 -- @return #table Table of #LIFO.IDEntry entries
 function LIFO:GetIDStackSorted()
   self:T(self.lid.."GetIDStackSorted")
-  
+
   local stack = self:GetIDStack()
   local idstack = {}
   for _id,_entry in pairs(stack) do
     idstack[#idstack+1] = _id
-    
+
     self:T({"pre",_id})
   end
-  
+
   local function sortID(a, b)
       return a < b
   end
-  
+
   table.sort(idstack)
- 
+
   return idstack
 end
 

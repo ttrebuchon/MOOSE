@@ -110,7 +110,7 @@
 -- ## A zone might have additional Properties created in the DCS Mission Editor, which can be accessed:
 --
 --   *@{#ZONE_BASE.GetProperty}(): Returns the Value of the zone with the given PropertyName, or nil if no matching property exists.
---   *@{#ZONE_BASE.GetAllProperties}(): Returns the zone Properties table.  
+--   *@{#ZONE_BASE.GetAllProperties}(): Returns the zone Properties table.
 --
 -- @field #ZONE_BASE
 ZONE_BASE = {
@@ -142,9 +142,9 @@ function ZONE_BASE:New( ZoneName )
   self:F( ZoneName )
 
   self.ZoneName = ZoneName
-  
+
   --_DATABASE:AddZone(ZoneName,self)
-  
+
   return self
 end
 
@@ -317,7 +317,7 @@ function ZONE_BASE:Get2DDistance(Coordinate)
   else
     b.x=Coordinate.x
     b.y=Coordinate.y
-  end  
+  end
   local dist=UTILS.VecDist2D(a,b)
   return dist
 end
@@ -569,7 +569,7 @@ end
 -- @param #string PropertyName The name of a the TriggerZone Property to be retrieved.
 -- @return #string The Value of the TriggerZone Property with the given PropertyName, or nil if absent.
 -- @usage
--- 
+--
 -- local PropertiesZone = ZONE:FindByName("Properties Zone")
 -- local Property = "ExampleProperty"
 -- local PropertyValue = PropertiesZone:GetProperty(Property)
@@ -1260,9 +1260,9 @@ end
 -- @return #boolean true if the location is within the zone.
 function ZONE_RADIUS:IsVec2InZone( Vec2 )
   self:F2( Vec2 )
-  
-  if not Vec2 then return false end 
-  
+
+  if not Vec2 then return false end
+
   local ZoneVec2 = self:GetVec2()
 
   if ZoneVec2 then
@@ -1280,7 +1280,7 @@ end
 -- @return #boolean true if the point is within the zone.
 function ZONE_RADIUS:IsVec3InZone( Vec3 )
   self:F2( Vec3 )
-  if not Vec3 then return false end  
+  if not Vec3 then return false end
   local InZone = self:IsVec2InZone( { x = Vec3.x, y = Vec3.z } )
 
   return InZone
@@ -1330,7 +1330,7 @@ function ZONE_RADIUS:GetRandomVec2(inner, outer, surfacetypes)
         --env.info(string.format("Got random coordinate with surface type %d after N=%d/%d iterations", land.getSurfaceType(point), N, Nmax))
       else
         point=_getpoint()
-        N=N+1      
+        N=N+1
       end
     end
   end
@@ -1400,7 +1400,7 @@ function ZONE_RADIUS:GetRandomCoordinate(inner, outer, surfacetypes)
   return Coordinate
 end
 
---- Returns a @{Core.Point#COORDINATE} object reflecting a random location within the zone where there are no **map objects** of type "Building". 
+--- Returns a @{Core.Point#COORDINATE} object reflecting a random location within the zone where there are no **map objects** of type "Building".
 -- Does not find statics you might have placed there. **Note** This might be quite CPU intensive, use with care.
 -- @param #ZONE_RADIUS self
 -- @param #number inner (Optional) Minimal distance from the center of the zone in meters. Default is 0m.
@@ -1410,22 +1410,22 @@ end
 -- @param #boolean markfinal (Optional) Place marker on the final coordinate (if any).
 -- @return Core.Point#COORDINATE The random coordinate or `nil` if cannot be found in 1000 iterations.
 function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,markbuildings,markfinal)
-  
+
   local dist = distance or 100
-  
+
   local objects = {}
-  
+
   if self.ScanData and self.ScanData.Scenery then
     objects = self:GetScannedScenery()
   else
     self:Scan({Object.Category.SCENERY})
     objects = self:GetScannedScenery()
   end
-  
+
   local T0 = timer.getTime()
   local T1 = timer.getTime()
-  
-  
+
+
   local buildings = {}
   if self.ScanData and self.ScanData.BuildingCoordinates then
     buildings = self.ScanData.BuildingCoordinates
@@ -1445,12 +1445,12 @@ function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,ma
     end
     self.ScanData.BuildingCoordinates = buildings
   end
-  
+
   -- max 1000 tries
-  local rcoord = nil  
+  local rcoord = nil
   local found = false
   local iterations = 0
-  
+
   for i=1,1000 do
     iterations = iterations + 1
     rcoord = self:GetRandomCoordinate(inner,outer)
@@ -1464,21 +1464,21 @@ function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,ma
         found = false
       end
     end
-    if found then 
+    if found then
       -- we have a winner!
       if markfinal then
         MARKER:New(rcoord,"FREE"):ToAll()
       end
-      break 
+      break
     end
   end
-  
+
   T1=timer.getTime()
-  
+
   self:T(string.format("Found a coordinate: %s | Iterations: %d | Time: %d",tostring(found),iterations,T1-T0))
-  
+
   if found then return rcoord else return nil end
-  
+
 end
 
 --- @type ZONE
@@ -2046,43 +2046,43 @@ function ZONE_POLYGON_BASE:DrawZone(Coalition, Color, Alpha, FillColor, FillAlph
   if self._.Polygon and #self._.Polygon>=3 then
 
     local coordinate=COORDINATE:NewFromVec2(self._.Polygon[1])
-    
+
     Coalition=Coalition or self:GetDrawCoalition()
-    
+
     -- Set draw coalition.
-    self:SetDrawCoalition(Coalition)  
-  
+    self:SetDrawCoalition(Coalition)
+
     Color=Color or self:GetColorRGB()
     Alpha=Alpha or 1
-    
+
     -- Set color.
     self:SetColor(Color, Alpha)
-    
+
     FillColor=FillColor or self:GetFillColorRGB()
     if not FillColor then UTILS.DeepCopy(Color) end
     FillAlpha=FillAlpha or self:GetFillColorAlpha()
     if not FillAlpha then FillAlpha=0.15 end
-    
+
     -- Set fill color.
     self:SetFillColor(FillColor, FillAlpha)
-  
+
     if #self._.Polygon==4 then
-  
+
       local Coord2=COORDINATE:NewFromVec2(self._.Polygon[2])
       local Coord3=COORDINATE:NewFromVec2(self._.Polygon[3])
       local Coord4=COORDINATE:NewFromVec2(self._.Polygon[4])
-  
+
       self.DrawID=coordinate:QuadToAll(Coord2, Coord3, Coord4, Coalition, Color, Alpha, FillColor, FillAlpha, LineType, ReadOnly)
-  
+
     else
-  
+
       local Coordinates=self:GetVerticiesCoordinates()
       table.remove(Coordinates, 1)
-  
+
       self.DrawID=coordinate:MarkupToAllFreeForm(Coordinates, Coalition, Color, Alpha, FillColor, FillAlpha, LineType, ReadOnly)
-  
+
     end
-    
+
   end
 
   return self
@@ -2165,7 +2165,7 @@ end
 -- @return #boolean true if the location is within the zone.
 function ZONE_POLYGON_BASE:IsVec2InZone( Vec2 )
   self:F2( Vec2 )
-  if not Vec2 then return false end 
+  if not Vec2 then return false end
   local Next
   local Prev
   local InPolygon = false
@@ -2195,9 +2195,9 @@ end
 -- @return #boolean true if the point is within the zone.
 function ZONE_POLYGON_BASE:IsVec3InZone( Vec3 )
   self:F2( Vec3 )
-  
-  if not Vec3 then return false end 
-    
+
+  if not Vec3 then return false end
+
   local InZone = self:IsVec2InZone( { x = Vec3.x, y = Vec3.z } )
 
   return InZone
@@ -2444,14 +2444,14 @@ do -- ZONE_ELASTIC
   function ZONE_ELASTIC:New(ZoneName, Points)
 
     local self=BASE:Inherit(self, ZONE_POLYGON_BASE:New(ZoneName, Points)) --#ZONE_ELASTIC
-  
+
     -- Zone objects are added to the _DATABASE and SET_ZONE objects.
     _EVENTDISPATCHER:CreateEventNewZone( self )
-  
+
     if Points then
       self.points=Points
     end
-  
+
     return self
   end
 
@@ -2460,10 +2460,10 @@ do -- ZONE_ELASTIC
   -- @param DCS#Vec2 Vec2 Point in 2D (with x and y coordinates).
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:AddVertex2D(Vec2)
-  
+
     -- Add vec2 to points.
     table.insert(self.points, Vec2)
-  
+
     return self
   end
 
@@ -2473,10 +2473,10 @@ do -- ZONE_ELASTIC
   -- @param DCS#Vec3 Vec3 Point in 3D (with x, y and z coordinates). Only the x and z coordinates are used.
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:AddVertex3D(Vec3)
-    
+
     -- Add vec2 from vec3 to points.
     table.insert(self.points, {x=Vec3.x, y=Vec3.z})
-  
+
     return self
   end
 
@@ -2486,10 +2486,10 @@ do -- ZONE_ELASTIC
   -- @param Core.Set#SET_GROUP SetGroup Set of groups.
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:AddSetGroup(GroupSet)
-  
+
     -- Add set to table.
     table.insert(self.setGroups, GroupSet)
-    
+
     return self
   end
 
@@ -2501,13 +2501,13 @@ do -- ZONE_ELASTIC
   -- @param #boolean Draw Draw the zone. Default `nil`.
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:Update(Delay, Draw)
-    
+
     -- Debug info.
     self:T(string.format("Updating ZONE_ELASTIC %s", tostring(self.ZoneName)))
-  
+
     -- Copy all points.
     local points=UTILS.DeepCopy(self.points or {})
-    
+
     if self.setGroups then
       for _,_setGroup in pairs(self.setGroups) do
         local setGroup=_setGroup --Core.Set#SET_GROUP
@@ -2522,7 +2522,7 @@ do -- ZONE_ELASTIC
 
     -- Update polygon verticies from points.
     self._.Polygon=self:_ConvexHull(points)
-    
+
     if Draw~=false then
       if self.DrawID or Draw==true then
         self:UndrawZone()
@@ -2532,7 +2532,7 @@ do -- ZONE_ELASTIC
 
     return self
   end
-  
+
   --- Start the updating scheduler.
   -- @param #ZONE_ELASTIC self
   -- @param #number Tstart Time in seconds before the updating starts.
@@ -2541,9 +2541,9 @@ do -- ZONE_ELASTIC
   -- @param #boolean Draw Draw the zone. Default `nil`.
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:StartUpdate(Tstart, dT, Tstop, Draw)
-  
+
     self.updateID=self:ScheduleRepeat(Tstart, dT, 0, Tstop, ZONE_ELASTIC.Update, self, 0, Draw)
-  
+
     return self
   end
 
@@ -2552,46 +2552,46 @@ do -- ZONE_ELASTIC
   -- @param #number Delay Delay in seconds before the scheduler will be stopped. Default 0.
   -- @return #ZONE_ELASTIC self
   function ZONE_ELASTIC:StopUpdate(Delay)
-  
+
     if Delay and Delay>0 then
       self:ScheduleOnce(Delay, ZONE_ELASTIC.StopUpdate, self)
     else
-  
+
       if self.updateID then
-      
+
         self:ScheduleStop(self.updateID)
-        
+
         self.updateID=nil
-        
+
       end
-      
+
     end
-  
+
     return self
   end
-  
+
 
   --- Create a convec hull.
   -- @param #ZONE_ELASTIC self
   -- @param #table pl Points
   -- @return #table Points
   function ZONE_ELASTIC:_ConvexHull(pl)
-  
+
     if #pl == 0 then
       return {}
     end
-    
+
     table.sort(pl, function(left,right)
       return left.x < right.x
     end)
- 
+
     local h = {}
-    
+
     -- Function: ccw > 0 if three points make a counter-clockwise turn, clockwise if ccw < 0, and collinear if ccw = 0.
     local function ccw(a,b,c)
       return (b.x - a.x) * (c.y - a.y) > (b.y - a.y) * (c.x - a.x)
     end
- 
+
     -- lower hull
     for i,pt in pairs(pl) do
       while #h >= 2 and not ccw(h[#h-1], h[#h], pt) do
@@ -2599,7 +2599,7 @@ do -- ZONE_ELASTIC
       end
       table.insert(h,pt)
     end
- 
+
     -- upper hull
     local t = #h + 1
     for i=#pl, 1, -1 do
@@ -2609,12 +2609,12 @@ do -- ZONE_ELASTIC
       end
       table.insert(h, pt)
     end
- 
+
     table.remove(h, #h)
-    
+
     return h
-  end  
-  
+  end
+
 end
 
 do -- ZONE_AIRBASE
@@ -2651,7 +2651,7 @@ do -- ZONE_AIRBASE
 
     self._.ZoneAirbase = Airbase
     self._.ZoneVec2Cache = self._.ZoneAirbase:GetVec2()
-    
+
     if Airbase:IsShip() then
       self.isShip=true
       self.isHelipad=false
@@ -2659,11 +2659,11 @@ do -- ZONE_AIRBASE
     elseif Airbase:IsHelipad() then
       self.isShip=false
       self.isHelipad=true
-      self.isAirdrome=false    
+      self.isAirdrome=false
     elseif Airbase:IsAirdrome() then
       self.isShip=false
       self.isHelipad=false
-      self.isAirdrome=true    
+      self.isAirdrome=true
     end
 
     -- Zone objects are added to the _DATABASE and SET_ZONE objects.

@@ -1456,17 +1456,17 @@ end
 -- @param #number Typename The type name.
 -- @return #string The Reporting name or "Bogey".
 function UTILS.GetReportingName(Typename)
-  
+
   local typename = string.lower(Typename)
-  
+
   for name, value in pairs(ENUMS.ReportingName.NATO) do
     local svalue = string.lower(value)
     if string.find(typename,svalue,1,true) then
       return name
     end
   end
-  
-  return "Bogey"  
+
+  return "Bogey"
 end
 
 --- Get the callsign name from its enumerator value
@@ -1497,49 +1497,49 @@ function UTILS.GetCallsignName(Callsign)
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.B1B) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.B52) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.F15E) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.F16) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.F18) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.FARP) do
     if value==Callsign then
       return name
     end
   end
-  
+
   for name, value in pairs(CALLSIGN.TransportAircraft) do
     if value==Callsign then
       return name
     end
   end
-  
+
   return "Ghostrider"
 end
 
@@ -1767,19 +1767,19 @@ function UTILS.GetRandomTableElement(t, replace)
     BASE:I("Error in ShuffleTable: Missing or wrong type of Argument")
     return
   end
-  
+
   math.random()
   math.random()
   math.random()
-  
+
   local r=math.random(#t)
-  
+
   local element=t[r]
-  
+
   if not replace then
     table.remove(t, r)
   end
-  
+
   return element
 end
 
@@ -1808,7 +1808,7 @@ function UTILS.IsLoadingDoorOpen( unit_name )
           BASE:T(unit_name .. " a side door is open ")
           return true
       end
-    
+
       if string.find(type_name, "SA342" ) and (unit:getDrawArgumentValue(34) == 1) then
           BASE:T(unit_name .. " front door(s) are open or doors removed")
           return true
@@ -1833,7 +1833,7 @@ function UTILS.IsLoadingDoorOpen( unit_name )
           BASE:T(unit_name .. " door is open")
           return true
       end
-      
+
       if string.find(type_name, "UH-60L") and (unit:getDrawArgumentValue(401) == 1 or unit:getDrawArgumentValue(402) == 1) then
           BASE:T(unit_name .. " cargo door is open")
           return true
@@ -1843,12 +1843,12 @@ function UTILS.IsLoadingDoorOpen( unit_name )
           BASE:T(unit_name .. " front door(s) are open")
           return true
       end
-      
+
       if type_name == "AH-64D_BLK_II" then
          BASE:T(unit_name .. " front door(s) are open")
          return true -- no doors on this one ;)
       end
-      
+
       return false
 
   end -- nil
@@ -2007,30 +2007,30 @@ end
 -- @param #table Data The LUA data structure to save. This will be e.g. a table of text lines with an \\n at the end of each line.
 -- @return #boolean outcome True if saving is possible, else false.
 function UTILS.SaveToFile(Path,Filename,Data)
-  -- Thanks to @FunkyFranky 
+  -- Thanks to @FunkyFranky
   -- Check io module is available.
   if not io then
     BASE:E("ERROR: io not desanitized. Can't save current file.")
     return false
   end
-  
+
   -- Check default path.
   if Path==nil and not lfs then
     BASE:E("WARNING: lfs not desanitized. File will be saved in DCS installation root directory rather than your \"Saved Games\\DCS\" folder.")
   end
-  
+
   -- Set path or default.
   local path = nil
   if lfs then
     path=Path or lfs.writedir()
   end
-  
+
   -- Set file name.
   local filename=Filename
   if path~=nil then
     filename=path.."\\"..filename
   end
-  
+
   -- write
   local f = assert(io.open(filename, "wb"))
   f:write(Data)
@@ -2044,37 +2044,37 @@ end
 -- @return #boolean outcome True if reading is possible and successful, else false.
 -- @return #table data The data read from the filesystem (table of lines of text). Each line is one single #string!
 function UTILS.LoadFromFile(Path,Filename)
-  -- Thanks to @FunkyFranky    
+  -- Thanks to @FunkyFranky
   -- Check io module is available.
   if not io then
     BASE:E("ERROR: io not desanitized. Can't save current state.")
     return false
   end
-  
+
   -- Check default path.
   if Path==nil and not lfs then
     BASE:E("WARNING: lfs not desanitized. Loading will look into your DCS installation root directory rather than your \"Saved Games\\DCS\" folder.")
   end
-  
+
   -- Set path or default.
   local path = nil
   if lfs then
     path=Path or lfs.writedir()
   end
-  
+
   -- Set file name.
   local filename=Filename
   if path~=nil then
     filename=path.."\\"..filename
   end
-  
+
   -- Check if file exists.
   local exists=UTILS.CheckFileExists(Path,Filename)
   if not exists then
     BASE:E(string.format("ERROR: File %s does not exist!",filename))
     return false
   end
-    
+
   -- read
   local file=assert(io.open(filename, "rb"))
   local loadeddata = {}
@@ -2101,30 +2101,30 @@ function UTILS.CheckFileExists(Path,Filename)
       return false
     end
   end
-     
+
   -- Check io module is available.
   if not io then
     BASE:E("ERROR: io not desanitized. Can't save current state.")
     return false
   end
-  
+
   -- Check default path.
   if Path==nil and not lfs then
     BASE:E("WARNING: lfs not desanitized. Loading will look into your DCS installation root directory rather than your \"Saved Games\\DCS\" folder.")
   end
-  
+
   -- Set path or default.
   local path = nil
   if lfs then
     path=Path or lfs.writedir()
   end
-  
+
   -- Set file name.
   local filename=Filename
   if path~=nil then
     filename=path.."\\"..filename
   end
-  
+
   -- Check if file exists.
   local exists=_fileexists(filename)
   if not exists then
@@ -2142,7 +2142,7 @@ end
 -- @return #boolean outcome True if saving is successful, else false.
 -- @usage
 -- We will go through the list and find the corresponding group and save the current group size (0 when dead).
--- These groups are supposed to be put on the map in the ME and have *not* moved (e.g. stationary SAM sites). 
+-- These groups are supposed to be put on the map in the ME and have *not* moved (e.g. stationary SAM sites).
 -- Position is still saved for your usage.
 -- The idea is to reduce the number of units when reloading the data again to restart the saved mission.
 -- The data will be a simple comma separated list of groupname and size, with one header line.
@@ -2171,12 +2171,12 @@ end
 -- @return #boolean outcome True if saving is successful, else false.
 -- @usage
 -- We will go through the set and find the corresponding group and save the current group size and current position.
--- The idea is to respawn the groups **spawned during an earlier run of the mission** at the given location and reduce 
--- the number of units in the group when reloading the data again to restart the saved mission. Note that *dead* groups 
+-- The idea is to respawn the groups **spawned during an earlier run of the mission** at the given location and reduce
+-- the number of units in the group when reloading the data again to restart the saved mission. Note that *dead* groups
 -- cannot be covered with this.
 -- **Note** Do NOT use dashes or hashes in group template names (-,#)!
 -- The data will be a simple comma separated list of groupname and size, with one header line.
--- The current task/waypoint/etc cannot be restored. 
+-- The current task/waypoint/etc cannot be restored.
 function UTILS.SaveSetOfGroups(Set,Path,Filename)
   local filename = Filename or "SetOfGroups"
   local data = "--Save SET of groups: "..Filename .."\n"
@@ -2188,7 +2188,7 @@ function UTILS.SaveSetOfGroups(Set,Path,Filename)
       local template = string.gsub(name,"-(.+)$","")
       if string.find(template,"#") then
        template = string.gsub(name,"#(%d+)$","")
-      end 
+      end
       local units = group:CountAliveUnits()
       local position = group:GetVec3()
       data = string.format("%s%s,%s,%d,%d,%d,%d\n",data,name,template,units,position.x,position.y,position.z)
@@ -2289,7 +2289,7 @@ function UTILS.LoadStationaryListOfGroups(Path,Filename,Reduce)
         end
       end
       table.insert(datatable,data)
-    end 
+    end
   else
     return nil
   end
@@ -2300,7 +2300,7 @@ end
 -- @param #string Path The path to use. Use double backslashes \\\\ on Windows filesystems.
 -- @param #string Filename The name of the file.
 -- @param #boolean Spawn If set to false, do not re-spawn the groups loaded in location and reduce to size.
--- @return Core.Set#SET_GROUP Set of GROUP objects. 
+-- @return Core.Set#SET_GROUP Set of GROUP objects.
 -- Returns nil when file cannot be read. Returns a table of data entries if Spawn is false: `{ groupname=groupname, size=size, coordinate=coordinate }`
 function UTILS.LoadSetOfGroups(Path,Filename,Spawn)
   local spawn = true
@@ -2346,7 +2346,7 @@ function UTILS.LoadSetOfGroups(Path,Filename,Spawn)
           )
           :SpawnFromCoordinate(coordinate)
       end
-    end 
+    end
   else
     return nil
   end
@@ -2377,7 +2377,7 @@ function UTILS.LoadSetOfStatics(Path,Filename)
       local posz = tonumber(dataset[4])
       local coordinate = COORDINATE:NewFromVec3({x=posx, y=posy, z=posz})
       datatable:AddObject(STATIC:FindByName(staticname,false))
-    end 
+    end
   else
     return nil
   end
@@ -2388,7 +2388,7 @@ end
 -- @param #string Path The path to use. Use double backslashes \\\\ on Windows filesystems.
 -- @param #string Filename The name of the file.
 -- @param #boolean Reduce If false, do not destroy the units with size=0.
--- @return #table Table of data objects (tables) containing staticname, size (0=dead else 1), coordinate and the static object. 
+-- @return #table Table of data objects (tables) containing staticname, size (0=dead else 1), coordinate and the static object.
 -- Returns nil when file cannot be read.
 function UTILS.LoadStationaryListOfStatics(Path,Filename,Reduce)
   local reduce = true
@@ -2416,7 +2416,7 @@ function UTILS.LoadStationaryListOfStatics(Path,Filename,Reduce)
           static:Destroy(false)
         end
       end
-    end 
+    end
   else
     return nil
   end
@@ -2464,8 +2464,8 @@ function UTILS.ToStringBRAANATO(FromGrp,ToGrp)
       if aspect == "" then
         BRAANATO = string.format("%s, BRA, %03d, %d miles, Angels %d, Track %s",GroupWords,bearing, rangeNM, alt, track)
       else
-        BRAANATO = string.format("%s, BRAA, %03d, %d miles, Angels %d, %s, Track %s",GroupWords, bearing, rangeNM, alt, aspect, track)      
+        BRAANATO = string.format("%s, BRAA, %03d, %d miles, Angels %d, %s, Track %s",GroupWords, bearing, rangeNM, alt, aspect, track)
       end
   end
-  return BRAANATO 
+  return BRAANATO
 end

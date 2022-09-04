@@ -3,9 +3,9 @@
 -- ===
 --
 -- **MANTIS** - Moose derived  Modular, Automatic and Network capable Targeting and Interception System
--- Controls a network of SAM sites. Uses detection to switch on the AA site closest to the enemy.   
--- Automatic mode (default since 0.8) can set-up your SAM site network automatically for you.   
--- Leverage evasiveness from SEAD, leverage attack range setting.   
+-- Controls a network of SAM sites. Uses detection to switch on the AA site closest to the enemy.
+-- Automatic mode (default since 0.8) can set-up your SAM site network automatically for you.
+-- Leverage evasiveness from SEAD, leverage attack range setting.
 --
 -- ===
 --
@@ -72,24 +72,24 @@
 -- * Automatic setup of SHORAD based on groups of the class "short-range"
 --
 -- # 0. Base considerations and naming conventions
--- 
+--
 -- **Before** you start to set up your SAM sites in the mission editor, please think of naming conventions. This is especially critical to make
 -- eveything work as intended, also if you have both a blue and a red installation!
--- 
+--
 -- You need three **non-overlapping** "name spaces" for everything to work properly:
--- 
+--
 -- * SAM sites, e.g. each **group name** begins with "Red SAM"
 -- * EWR network and AWACS, e.g. each **group name** begins with "Red EWR" and *not* e.g. "Red SAM EWR" (overlap with  "Red SAM"), "Red EWR Awacs" will be found by "Red EWR"
 -- * SHORAD, e.g. each **group name** begins with "Red SHORAD" and *not" e.g. just "SHORAD" because you might also have "Blue SHORAD"
--- 
+--
 -- It's important to get this right because of the nature of the filter-system in @{Core.Set#SET_GROUP}. Filters are "greedy", that is they
 -- will match *any* string that contains the search string - hence we need to avoid that SAMs, EWR and SHORAD step on each other\'s toes.
--- 
+--
 -- Second, for auto-mode to work, the SAMs need the **SAM Type Name** in their group name, as MANTIS will determine their capabilities from this.
 -- This is case-sensitive, so "sa-11" is not equal to "SA-11" is not equal to "Sa-11"!
--- 
+--
 -- Known SAM types at the time of writing are:
--- 
+--
 -- * Avenger
 -- * Chaparrel
 -- * Hawk
@@ -101,29 +101,29 @@
 -- * Silkworm (though strictly speaking this is a surface to ship missile)
 -- * SA-2, SA-3, SA-5, SA-6, SA-7, SA-8, SA-9, SA-10, SA-11, SA-13, SA-15, SA-19
 -- * and from HDS (see note below): SA-2, SA-3, SA-10B, SA-10C, SA-12, SA-17, SA-20A, SA-20B, SA-23, HQ-2
--- 
--- Following the example started above, an SA-6 site group name should start with "Red SAM SA-6" then, or a blue Patriot installation with e.g. "Blue SAM Patriot".   
+--
+-- Following the example started above, an SA-6 site group name should start with "Red SAM SA-6" then, or a blue Patriot installation with e.g. "Blue SAM Patriot".
 -- **NOTE** If you are using the High-Digit-Sam Mod, please note that the **group name** for the following SAM types also needs to contain the keyword "HDS":
--- 
+--
 -- * SA-2 (with V759 missile, e.g. "Red SAM SA-2 HDS")
 -- * SA-2 (with HQ-2 launcher, use HQ-2 in the group name, e.g. "Red SAM HQ-2" )
 -- * SA-3 (with V601P missile, e.g. "Red SAM SA-3 HDS")
 -- * SA-10B (overlap with other SA-10 types, e.g. "Red SAM SA-10B HDS")
 -- * SA-10C (overlap with other SA-10 types, e.g. "Red SAM SA-10C HDS")
 -- * SA-12 (launcher dependent range, e.g. "Red SAM SA-12 HDS")
--- * SA-23 (launcher dependent range, e.g. "Red SAM SA-23 HDS") 
--- 
+-- * SA-23 (launcher dependent range, e.g. "Red SAM SA-23 HDS")
+--
 -- The other HDS types work like the rest of the known SAM systems.
--- 
+--
 -- # 0.1 Set-up in the mission editor
--- 
+--
 -- Set up your SAM sites in the mission editor. Name the groups using a systematic approach like above.
--- Set up your EWR system in the mission editor. Name the groups using a systematic approach like above. Can be e.g. AWACS or a combination of AWACS and Search Radars like e.g. EWR 1L13 etc. 
+-- Set up your EWR system in the mission editor. Name the groups using a systematic approach like above. Can be e.g. AWACS or a combination of AWACS and Search Radars like e.g. EWR 1L13 etc.
 -- Search Radars usually have "SR" or "STR" in their names. Use the encyclopedia in the mission editor to inform yourself.
 -- Set up your SHORAD systems. They need to be **close** to (i.e. around) the SAM sites to be effective. Use **one** group per SAM location. SA-15 TOR systems offer a good missile defense.
--- 
+--
 -- [optional] Set up your HQ. Can be any group, e.g. a command vehicle.
--- 
+--
 -- # 1. Basic tactical considerations when setting up your SAM sites
 --
 -- ## 1.1 Radar systems and AWACS
@@ -168,39 +168,39 @@
 --
 --        mybluemantis = MANTIS:New("bluemantis","Blue SAM","Blue EWR",nil,"blue",false,"Blue Awacs")
 --        mybluemantis:Start()
--- 
+--
 -- ## 2.1 Auto mode features
--- 
--- ### 2.1.1 You can now add Accept-, Reject- and Conflict-Zones to your setup, e.g. to consider borders or de-militarized zones:   
--- 
---        -- Parameters are tables of Core.Zone#ZONE objects!   
---        -- This is effectively a 3-stage filter allowing for zone overlap. A coordinate is accepted first when   
---        -- it is inside any AcceptZone. Then RejectZones are checked, which enforces both borders, but also overlaps of   
---        -- Accept- and RejectZones. Last, if it is inside a conflict zone, it is accepted.   
---        `mybluemantis:AddZones(AcceptZones,RejectZones,ConflictZones)`   
---        
---        
--- ### 2.1.2 Change the number of long-, mid- and short-range systems going live on a detected target:   
--- 
+--
+-- ### 2.1.1 You can now add Accept-, Reject- and Conflict-Zones to your setup, e.g. to consider borders or de-militarized zones:
+--
+--        -- Parameters are tables of Core.Zone#ZONE objects!
+--        -- This is effectively a 3-stage filter allowing for zone overlap. A coordinate is accepted first when
+--        -- it is inside any AcceptZone. Then RejectZones are checked, which enforces both borders, but also overlaps of
+--        -- Accept- and RejectZones. Last, if it is inside a conflict zone, it is accepted.
+--        `mybluemantis:AddZones(AcceptZones,RejectZones,ConflictZones)`
+--
+--
+-- ### 2.1.2 Change the number of long-, mid- and short-range systems going live on a detected target:
+--
 --        -- parameters are numbers. Defaults are 1,2,2,6 respectively
 --        `mybluemantis:SetMaxActiveSAMs(Short,Mid,Long,Classic)`
--- 
--- ### 2.1.3 SHORAD will automatically be added from SAM sites of type "short-range"   
---        
--- ### 2.1.4 Advanced features   
--- 
---        -- switch off auto mode **before** you start MANTIS.   
+--
+-- ### 2.1.3 SHORAD will automatically be added from SAM sites of type "short-range"
+--
+-- ### 2.1.4 Advanced features
+--
+--        -- switch off auto mode **before** you start MANTIS.
 --        `mybluemantis.automode = false`
---        
---        -- switch off auto shorad **before** you start MANTIS.   
+--
+--        -- switch off auto shorad **before** you start MANTIS.
 --        `mybluemantis.autoshorad = false`
---        
---        -- scale of the activation range, i.e. don't activate at the fringes of max range, defaults below.   
---        -- also see engagerange below.   
---        `    self.radiusscale[MANTIS.SamType.LONG] = 1.1`   
---        `    self.radiusscale[MANTIS.SamType.MEDIUM] = 1.2`   
---        `    self.radiusscale[MANTIS.SamType.SHORT] = 1.3`   
--- 
+--
+--        -- scale of the activation range, i.e. don't activate at the fringes of max range, defaults below.
+--        -- also see engagerange below.
+--        `    self.radiusscale[MANTIS.SamType.LONG] = 1.1`
+--        `    self.radiusscale[MANTIS.SamType.MEDIUM] = 1.2`
+--        `    self.radiusscale[MANTIS.SamType.SHORT] = 1.3`
+--
 -- # 3. Default settings [both modes unless stated otherwise]
 --
 -- By default, the following settings are active:
@@ -234,36 +234,36 @@
 --          mymantis = MANTIS:New("BlueMantis","Blue SAM","Blue EWR",nil,"blue",false,"Blue Awacs")
 --          mymantis:AddShorad(myshorad,720)
 --          mymantis:Start()
---  
+--
 --  If you systematically name your SHORAD groups starting with "Blue SHORAD" you'll need exactly **one** SHORAD instance to manage all SHORAD groups.
---  
+--
 --  (Optionally) you can remove the link later on with
 --
 --          mymantis:RemoveShorad()
 --
 -- # 6. Integrated SEAD
---  
---  MANTIS is using @{Functional.Sead#SEAD} internally to both detect and evade HARM attacks. No extra efforts needed to set this up! 
+--
+--  MANTIS is using @{Functional.Sead#SEAD} internally to both detect and evade HARM attacks. No extra efforts needed to set this up!
 --  Once a HARM attack is detected, MANTIS (via SEAD) will shut down the radars of the attacked SAM site and take evasive action by moving the SAM
 --  vehicles around (*if they are __drivable__*, that is). There's a component of randomness in detection and evasion, which is based on the
---  skill set of the SAM set (the higher the skill, the more likely). When a missile is fired from far away, the SAM will stay active for a 
+--  skill set of the SAM set (the higher the skill, the more likely). When a missile is fired from far away, the SAM will stay active for a
 --  period of time to stay defensive, before it takes evasive actions.
---  
+--
 --  You can link into the SEAD driven events of MANTIS like so:
---  
+--
 --        function mymantis:OnAfterSeadSuppressionPlanned(From, Event, To, Group, Name, SuppressionStartTime, SuppressionEndTime)
 --          -- your code here - SAM site shutdown and evasion planned, but not yet executed
 --          -- Time entries relate to timer.getTime() - see https://wiki.hoggitworld.com/view/DCS_func_getTime
 --        end
---        
+--
 --        function mymantis:OnAfterSeadSuppressionStart(From, Event, To, Group, Name)
 --          -- your code here - SAM site is emissions off and possibly moving
 --        end
---        
+--
 --        function mymantis:OnAfterSeadSuppressionEnd(From, Event, To, Group, Name)
 --          -- your code here - SAM site is back online
 --        end
---  
+--
 -- @field #MANTIS
 MANTIS = {
   ClassName             = "MANTIS",
@@ -376,8 +376,8 @@ MANTIS.SamData = {
 MANTIS.SamDataHDS = {
   -- units from HDS Mod, multi launcher options is tricky
   -- group name MUST contain HDS to ID launcher type correctly!
-  ["SA-2 HDS"] = { Range=56, Blindspot=7, Height=30, Type="Medium", Radar="V759" }, 
-  ["SA-3 HDS"] = { Range=20, Blindspot=6, Height=30, Type="Short", Radar="V-601P" },  
+  ["SA-2 HDS"] = { Range=56, Blindspot=7, Height=30, Type="Medium", Radar="V759" },
+  ["SA-3 HDS"] = { Range=20, Blindspot=6, Height=30, Type="Short", Radar="V-601P" },
   ["SA-10C HDS 2"] = { Range=90, Blindspot=5, Height=25, Type="Long" , Radar="5P85DE ln"}, -- V55RUD
   ["SA-10C HDS 1"] = { Range=90, Blindspot=5, Height=25, Type="Long" , Radar="5P85CE ln"}, -- V55RUD
   ["SA-12 HDS 2"] = { Range=100, Blindspot=10, Height=25, Type="Long" , Radar="S-300V 9A82 l"},
@@ -482,7 +482,7 @@ do
     self.maxclassic = 6
     self.autoshorad = true
     self.ShoradGroupSet = SET_GROUP:New() -- Core.Set#SET_GROUP
-    
+
     self.UseEmOnOff = true
     if EmOnOff == false then
       self.UseEmOnOff = false
@@ -507,30 +507,30 @@ do
       --BASE:TraceClass("SEAD")
       BASE:TraceLevel(1)
     end
-    
+
     self.ewr_templates = {}
     if type(samprefix) ~= "table" then
       self.SAM_Templates_Prefix = {samprefix}
     end
-    
+
     if type(ewrprefix) ~= "table" then
       self.EWR_Templates_Prefix = {ewrprefix}
     end
-    
+
     for _,_group in pairs (self.SAM_Templates_Prefix) do
       table.insert(self.ewr_templates,_group)
     end
-    
+
     for _,_group in pairs (self.EWR_Templates_Prefix) do
       table.insert(self.ewr_templates,_group)
     end
-    
+
     if self.advAwacs then
       table.insert(self.ewr_templates,awacs)
     end
-    
+
     self:T({self.ewr_templates})
-    
+
     if self.dynamic then
       -- Set SAM SET_GROUP
       self.SAM_Group = SET_GROUP:New():FilterPrefixes(self.SAM_Templates_Prefix):FilterCoalitions(self.Coalition):FilterStart()
@@ -547,7 +547,7 @@ do
     if self.HQ_Template_CC then
       self.HQ_CC = GROUP:FindByName(self.HQ_Template_CC)
     end
-    
+
     -- TODO Version
     -- @field #string version
     self.version="0.8.8"
@@ -679,7 +679,7 @@ do
   -- @param #string To The To State
   -- @param Wrapper.Group#GROUP Group The suppressed GROUP object
   -- @param #string Name Name of the suppressed group
-  
+
   return self
  end
 
@@ -713,7 +713,7 @@ do
     self.grouping = radius
     return self
   end
-  
+
   --- Function to set accept and reject zones.
   -- @param #MANTIS self
   -- @param #table AcceptZones Table of @{Core.Zone#ZONE} objects
@@ -721,10 +721,10 @@ do
   -- @param #table ConflictZones Table of @{Core.Zone#ZONE} objects
   -- @return #MANTIS self
   -- @usage
-  -- Parameters are **tables of Core.Zone#ZONE** objects!   
-  -- This is effectively a 3-stage filter allowing for zone overlap. A coordinate is accepted first when   
-  -- it is inside any AcceptZone. Then RejectZones are checked, which enforces both borders, but also overlaps of   
-  -- Accept- and RejectZones. Last, if it is inside a conflict zone, it is accepted.   
+  -- Parameters are **tables of Core.Zone#ZONE** objects!
+  -- This is effectively a 3-stage filter allowing for zone overlap. A coordinate is accepted first when
+  -- it is inside any AcceptZone. Then RejectZones are checked, which enforces both borders, but also overlaps of
+  -- Accept- and RejectZones. Last, if it is inside a conflict zone, it is accepted.
   function MANTIS:AddZones(AcceptZones,RejectZones, ConflictZones)
     self:T(self.lid .. "AddZones")
     self.AcceptZones = AcceptZones or {}
@@ -735,7 +735,7 @@ do
     end
     return self
   end
-  
+
   --- Function to set the detection radius of the EWR in meters. (Deprecated, SAM range is used)
   -- @param #MANTIS self
   -- @param #number radius Radius of the EWR detection zone
@@ -768,7 +768,7 @@ do
     self.engagerange = range
     return self
   end
-  
+
     --- Function to set number of SAMs going active on a valid, detected thread
     -- @param #MANTIS self
     -- @param #number Short Number of short-range systems activated, defaults to 1.
@@ -1037,7 +1037,7 @@ do
 
   --- [Internal] Function to execute the relocation
   -- @param #MANTIS self
-  -- @return #MANTIS self 
+  -- @return #MANTIS self
   function MANTIS:_RelocateGroups()
     self:T(self.lid .. "RelocateGroups")
     local text = self.lid.." Relocating Groups"
@@ -1072,7 +1072,7 @@ do
     end
     return self
   end
-  
+
   --- [Internal] Function to check accept and reject zones
   -- @param #MANTIS self
   -- @param Core.Point#COORDINATE coord The coordinate to check
@@ -1113,16 +1113,16 @@ do
           break
         end
       end
-    end   
+    end
     return inzone
   end
-  
+
   --- [Internal] Function to prefilter height based
   -- @param #MANTIS self
   -- @param #number height
   -- @return #table set
   function MANTIS:_PreFilterHeight(height)
-    self:T(self.lid.."_PreFilterHeight")   
+    self:T(self.lid.."_PreFilterHeight")
     local set = {}
     local dlink = self.Detection -- Ops.Intelligence#INTEL_DLINK
     local detectedgroups = dlink:GetContactTable()
@@ -1138,7 +1138,7 @@ do
     end
     return set
   end
-  
+
   --- [Internal] Function to check if any object is in the given SAM zone
   -- @param #MANTIS self
   -- @param #table dectset Table of coordinates of detected items
@@ -1200,7 +1200,7 @@ do
     local grouping = self.grouping or 5000
     --local acceptrange = self.acceptrange or 80000
     local interval = self.detectinterval or 20
-    
+
     local MANTISdetection = DETECTION_AREAS:New( groupset, grouping ) --[Internal] Grouping detected objects to 5000m zones
     MANTISdetection:FilterCategories({ Unit.Category.AIRPLANE, Unit.Category.HELICOPTER })
     --MANTISdetection:SetAcceptRange(acceptrange) -- deprecated - in range of SAMs is used anyway
@@ -1209,7 +1209,7 @@ do
 
     return MANTISdetection
   end
-  
+
   --- [Internal] Function to start the detection with INTEL via EWR groups
   -- @param #MANTIS self
   -- @return Ops.Intel#INTEL_DLINK The running detection set
@@ -1219,30 +1219,30 @@ do
     -- start detection
     local groupset = self.EWR_Group
     local samset = self.SAM_Group
-    
+
     self.intelset = {}
-    
+
     local IntelOne = INTEL:New(groupset,self.Coalition,self.name.." IntelOne")
     --IntelOne:SetClusterAnalysis(true,true)
     --IntelOne:SetClusterRadius(5000)
     IntelOne:Start()
-    
+
     local IntelTwo = INTEL:New(samset,self.Coalition,self.name.." IntelTwo")
     --IntelTwo:SetClusterAnalysis(true,true)
     --IntelTwo:SetClusterRadius(5000)
     IntelTwo:Start()
-    
+
     local IntelDlink = INTEL_DLINK:New({IntelOne,IntelTwo},self.name.." DLINK",22,300)
     IntelDlink:__Start(1)
-    
+
     self:SetUsingDLink(IntelDlink)
-    
+
     table.insert(self.intelset, IntelOne)
     table.insert(self.intelset, IntelTwo)
-    
+
     return IntelDlink
   end
-  
+
   --- [Internal] Function to start the detection via AWACS if defined as separate (classic)
   -- @param #MANTIS self
   -- @return Functional.Detection #DETECTION_AREAS The running detection set
@@ -1265,7 +1265,7 @@ do
 
     return MANTISAwacs
   end
-  
+
    --- [Internal] Function to get SAM firing data from units types.
   -- @param #MANTIS self
   -- @param #string grpname Name of the group
@@ -1302,7 +1302,7 @@ do
           radiusscale = self.radiusscale[type]
           range = _entry.Range * 1000 * radiusscale -- max firing range used as switch-on
           height = _entry.Height * 1000 -- max firing height
-          blind = _entry.Blindspot * 100 -- blind spot range 
+          blind = _entry.Blindspot * 100 -- blind spot range
           --self:I(string.format("Match: %s - %s",_radar,type))
           found = true
           break
@@ -1315,7 +1315,7 @@ do
     end
     return range, height, type, blind
   end
-  
+
   --- [Internal] Function to get SAM firing data
   -- @param #MANTIS self
   -- @param #string grpname Name of the group
@@ -1343,8 +1343,8 @@ do
           type = _entry.Type
           radiusscale = self.radiusscale[type]
           range = _entry.Range * 1000 * radiusscale -- max firing range
-          height = _entry.Height * 1000 -- max firing height        
-          blind = _entry.Blindspot 
+          height = _entry.Height * 1000 -- max firing height
+          blind = _entry.Blindspot
           --self:I("Matching Groupname = " .. grpname .. " Range= " .. range)
           found = true
           break
@@ -1359,7 +1359,7 @@ do
     end
     return range, height, type, blind
   end
-  
+
   --- [Internal] Function to set the SAM start state
   -- @param #MANTIS self
   -- @return #MANTIS self
@@ -1509,7 +1509,7 @@ do
 -----------------------------------------------------------------------
 -- MANTIS main functions
 -----------------------------------------------------------------------
-  
+
   --- [Internal] Check detection function
   -- @param #MANTIS self
   -- @param #table samset Table of SAM data
@@ -1586,7 +1586,7 @@ do
     end --for for loop
     return self
   end
-  
+
   --- [Internal] Check detection function
   -- @param #MANTIS self
   -- @param Functional.Detection#DETECTION_AREAS detection Detection object
@@ -1724,7 +1724,7 @@ do
       self:_Check(self.AWACS_Detection,false)
     end
     --]]
-    
+
     -- relocate HQ and EWR
     if self.autorelocate then
       local relointerval = self.relointerval
@@ -1847,7 +1847,7 @@ do
     self:T({From, Event, To, Name, Radius, Ontime})
     return self
   end
-  
+
     --- [Internal] Function triggered by Event SeadSuppressionStart
   -- @param #MANTIS self
   -- @param #string From The From State
@@ -1868,7 +1868,7 @@ do
     end
     return self
   end
-  
+
     --- [Internal] Function triggered by Event SeadSuppressionEnd
   -- @param #MANTIS self
   -- @param #string From The From State
@@ -1881,7 +1881,7 @@ do
     self.SuppressedGroups[Name] = false
     return self
   end
-  
+
     --- [Internal] Function triggered by Event SeadSuppressionPlanned
   -- @param #MANTIS self
   -- @param #string From The From State
@@ -1896,7 +1896,7 @@ do
     self:T({From, Event, To, Name})
     return self
   end
-  
+
 end
 -----------------------------------------------------------------------
 -- MANTIS end

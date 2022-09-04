@@ -9,10 +9,9 @@
 -- ===
 --
 -- ### Author: **Applevangelist**
--- 
+--
 -- Date: 5 May 2021
--- Last Update: Sep 2022
--- 
+--
 -- ===
 ---
 -- @module Core.MarkerOps_Base
@@ -36,9 +35,9 @@
 -- ===
 --
 -- # The MARKEROPS_BASE Concept
--- 
+--
 -- This class enable scripting text-based actions from markers.
--- 
+--
 -- @field #MARKEROPS_BASE
 MARKEROPS_BASE = {
   ClassName = "MARKEROPS",
@@ -58,23 +57,23 @@ MARKEROPS_BASE = {
 function MARKEROPS_BASE:New(Tagname,Keywords,Casesensitive)
    -- Inherit FSM
   local self=BASE:Inherit(self, FSM:New()) -- #MARKEROPS_BASE
-  
+
     -- Set some string id for output to DCS.log file.
   self.lid=string.format("MARKEROPS_BASE %s | ", tostring(self.version))
-  
+
   self.Tag = Tagname or "mytag"-- #string
   self.Keywords = Keywords or {} -- #table - might want to use lua regex here, too
   self.debug = false
   self.Casesensitive = true
-  
+
   if Casesensitive and Casesensitive == false then
     self.Casesensitive = false
   end
-  
+
   -----------------------
   --- FSM Transitions ---
   -----------------------
-  
+
   -- Start State.
   self:SetStartState("Stopped")
 
@@ -85,20 +84,20 @@ function MARKEROPS_BASE:New(Tagname,Keywords,Casesensitive)
   self:AddTransition("*",       "MarkChanged",   "*")        -- Start the FSM.
   self:AddTransition("*",       "MarkDeleted",  "*")        -- Start the FSM.
   self:AddTransition("Running", "Stop",         "Stopped")        -- Stop the FSM.
-  
+
   self:HandleEvent(EVENTS.MarkAdded, self.OnEventMark)
   self:HandleEvent(EVENTS.MarkChange, self.OnEventMark)
   self:HandleEvent(EVENTS.MarkRemoved, self.OnEventMark)
-  
+
   -- start
   self:I(self.lid..string.format("started for %s",self.Tag))
   self:__Start(1)
   return self
-  
+
   -------------------
   -- PSEUDO Functions
   -------------------
-  
+
    --- On after "MarkAdded" event. Triggered when a Marker is added to the F10 map.
    -- @function [parent=#MARKEROPS_BASE] OnAfterMarkAdded
    -- @param #MARKEROPS_BASE self
@@ -108,7 +107,7 @@ function MARKEROPS_BASE:New(Tagname,Keywords,Casesensitive)
    -- @param #string Text The text on the marker
    -- @param #table Keywords Table of matching keywords found in the Event text
    -- @param Core.Point#COORDINATE Coord Coordinate of the marker.
-   
+
    --- On after "MarkChanged" event. Triggered when a Marker is changed on the F10 map.
    -- @function [parent=#MARKEROPS_BASE] OnAfterMarkChanged
    -- @param #MARKEROPS_BASE self
@@ -118,14 +117,14 @@ function MARKEROPS_BASE:New(Tagname,Keywords,Casesensitive)
    -- @param #string Text The text on the marker
    -- @param #table Keywords Table of matching keywords found in the Event text
    -- @param Core.Point#COORDINATE Coord Coordinate of the marker.
-  
+
    --- On after "MarkDeleted" event. Triggered when a Marker is deleted from the F10 map.
    -- @function [parent=#MARKEROPS_BASE] OnAfterMarkDeleted
    -- @param #MARKEROPS_BASE self
    -- @param #string From The From state
    -- @param #string Event The Event called
    -- @param #string To The To state
-   
+
       --- "Stop" trigger. Used to stop the function an unhandle events
    -- @function [parent=#MARKEROPS_BASE] Stop
 
