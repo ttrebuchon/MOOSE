@@ -193,10 +193,6 @@ end
 -- @param #number Delay Delay before stop in seconds.
 function PROFILER.Stop( Delay )
 
-  if Delay and Delay > 0 then
-
-    BASE:ScheduleOnce( Delay, PROFILER.Stop )
-
   if Delay and Delay>0 then
 
     BASE:ScheduleOnce(Delay, PROFILER.Stop)
@@ -366,10 +362,6 @@ function PROFILER.getfilename( ext )
   if not UTILS.FileExists(file) then
     return file
   end
-
-  for i=1,999 do
-
-    local file=string.format("%s%s-%03d.%s", dir,PROFILER.fileNamePrefix, i, ext)
 
   for i = 1, 999 do
 

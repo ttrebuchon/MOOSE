@@ -593,23 +593,23 @@ do -- DETECTION_BASE
     -- @param #string To The To State string.
     -- @param Wrapper.Group#GROUP Detection The Group detecting.
     -- @param #number DetectionTimeStamp Time stamp of detection event.
-    function DETECTION_BASE:onafterDetection( From, Event, To, Detection, DetectionTimeStamp )
-
-      -- self:F( { DetectedObjects = self.DetectedObjects } )
-
+    function DETECTION_BASE:onafterDetection( From, Event, To, Detection, DetectionTimeStamp  )
+      
+      --self:F( { DetectedObjects = self.DetectedObjects } )
+      
       self.DetectionRun = self.DetectionRun + 1
-
+      
       local HasDetectedObjects = false
-
+      
       if Detection and Detection:IsAlive() then
-
-        -- self:T( { "DetectionGroup is Alive", DetectionGroup:GetName() } )
-
+    
+        --self:T( { "DetectionGroup is Alive", DetectionGroup:GetName() } )
+        
         local DetectionGroupName = Detection:GetName()
-        local DetectionUnit = Detection:GetUnit( 1 )
-
+        local DetectionUnit = Detection:GetUnit(1)
+        
         local DetectedUnits = {}
-
+        
         local DetectedTargets = Detection:GetDetectedTargets(
           self.DetectVisual,
           self.DetectOptical,
@@ -618,29 +618,29 @@ do -- DETECTION_BASE
           self.DetectRWR,
           self.DetectDLINK
         )
-
+        
         self:F( { DetectedTargets = DetectedTargets } )
-
+        
         for DetectionObjectID, Detection in pairs( DetectedTargets ) do
           local DetectedObject = Detection.object -- DCS#Object
-
+          
           if DetectedObject and DetectedObject:isExist() and DetectedObject.id_ < 50000000 then -- and ( DetectedObject:getCategory() == Object.Category.UNIT or DetectedObject:getCategory() == Object.Category.STATIC ) then
             local DetectedObjectName = DetectedObject:getName()
             if not self.DetectedObjects[DetectedObjectName] then
-              self.DetectedObjects[DetectedObjectName] = self.DetectedObjects[DetectedObjectName] or {}
+              self.DetectedObjects[DetectedObjectName] = self.DetectedObjects[DetectedObjectName] or {} 
               self.DetectedObjects[DetectedObjectName].Name = DetectedObjectName
               self.DetectedObjects[DetectedObjectName].Object = DetectedObject
             end
           end
         end
-
+        
         for DetectionObjectName, DetectedObjectData in pairs( self.DetectedObjects ) do
-
+        
           local DetectedObject = DetectedObjectData.Object
-
+          
           if DetectedObject:isExist() then
-
-            local TargetIsDetected, TargetIsVisible, TargetLastTime, TargetKnowType, TargetKnowDistance, TargetLastPos, TargetLastVelocity = DetectionUnit:IsTargetDetected(
+  
+            local TargetIsDetected, TargetIsVisible, TargetLastTime, TargetKnowType, TargetKnowDistance, TargetLastPos, TargetLastVelocity = DetectionUnit:IsTargetDetected( 
               DetectedObject,
               self.DetectVisual,
               self.DetectOptical,
@@ -649,35 +649,35 @@ do -- DETECTION_BASE
               self.DetectRWR,
               self.DetectDLINK
             )
-
-            -- self:T2( { TargetIsDetected = TargetIsDetected, TargetIsVisible = TargetIsVisible, TargetLastTime = TargetLastTime, TargetKnowType = TargetKnowType, TargetKnowDistance = TargetKnowDistance, TargetLastPos = TargetLastPos, TargetLastVelocity = TargetLastVelocity } )
-
+            
+            --self:T2( { TargetIsDetected = TargetIsDetected, TargetIsVisible = TargetIsVisible, TargetLastTime = TargetLastTime, TargetKnowType = TargetKnowType, TargetKnowDistance = TargetKnowDistance, TargetLastPos = TargetLastPos, TargetLastVelocity = TargetLastVelocity } )
+  
             -- Only process if the target is visible. Detection also returns invisible units.
             --if Detection.visible == true then
-
+            
               local DetectionAccepted = true
-
+              
               local DetectedObjectName = DetectedObject:getName()
               local DetectedObjectType = DetectedObject:getTypeName()
-
+      
               local DetectedObjectVec3 = DetectedObject:getPoint()
               local DetectedObjectVec2 = { x = DetectedObjectVec3.x, y = DetectedObjectVec3.z }
               local DetectionGroupVec3 = Detection:GetVec3() or {x=0,y=0,z=0}
               local DetectionGroupVec2 = { x = DetectionGroupVec3.x, y = DetectionGroupVec3.z }
-
+      
               local Distance = ( ( DetectedObjectVec3.x - DetectionGroupVec3.x )^2 +
                 ( DetectedObjectVec3.y - DetectionGroupVec3.y )^2 +
                 ( DetectedObjectVec3.z - DetectionGroupVec3.z )^2
                 ) ^ 0.5 / 1000
-
+  
               local DetectedUnitCategory = DetectedObject:getDesc().category
-
+      
               --self:F( { "Detected Target:", DetectionGroupName, DetectedObjectName, DetectedObjectType, Distance, DetectedUnitCategory } )
-
+  
               -- Calculate Acceptance
-
+              
               DetectionAccepted = self._.FilterCategories[DetectedUnitCategory] ~= nil and DetectionAccepted or false
-
+      
   --            if Distance > 15000 then
   --              if DetectedUnitCategory == Unit.Category.GROUND_UNIT or DetectedUnitCategory == Unit.Category.SHIP then
   --                if DetectedObject:hasSensors( Unit.SensorType.RADAR, Unit.RadarType.AS ) == false then
@@ -685,54 +685,72 @@ do -- DETECTION_BASE
   --                end
   --              end
   --            end
-
+      
               if self.AcceptRange and Distance * 1000 > self.AcceptRange then
                 DetectionAccepted = false
               end
-            end
-
-            if self.RejectZones then
-              for RejectZoneID, RejectZone in pairs( self.RejectZones ) do
-                local RejectZone = RejectZone -- Core.Zone#ZONE_BASE
-                if RejectZone:IsVec2InZone( DetectedObjectVec2 ) == true then
-                  DetectionAccepted = false
+              
+              if self.AcceptZones then
+                local AnyZoneDetection = false
+                for AcceptZoneID, AcceptZone in pairs( self.AcceptZones ) do
+                  local AcceptZone = AcceptZone -- Core.Zone#ZONE_BASE
+                  if AcceptZone:IsVec2InZone( DetectedObjectVec2 ) then
+                    AnyZoneDetection = true
+                  end
+                end
+                if not AnyZoneDetection then
+                  DetectionAccepted = false            
                 end
               end
-
+  
               if self.RejectZones then
                 for RejectZoneID, RejectZone in pairs( self.RejectZones ) do
                   local RejectZone = RejectZone -- Core.Zone#ZONE_BASE
                   if RejectZone:IsVec2InZone( DetectedObjectVec2 ) == true then
                     DetectionAccepted = false
-                    break
                   end
                 end
               end
-            end
-
-            if DetectionAccepted then
-
-              HasDetectedObjects = true
-
-              self.DetectedObjects[DetectedObjectName] = self.DetectedObjects[DetectedObjectName] or {}
-              self.DetectedObjects[DetectedObjectName].Name = DetectedObjectName
-
-              if TargetIsDetected and TargetIsDetected == true then
-                self.DetectedObjects[DetectedObjectName].IsDetected = TargetIsDetected
+              
+              -- Calculate additional probabilities
+              
+              if not self.DetectedObjects[DetectedObjectName] and TargetIsVisible and self.DistanceProbability then
+                local DistanceFactor = Distance / 4
+                local DistanceProbabilityReversed = ( 1 - self.DistanceProbability ) * DistanceFactor
+                local DistanceProbability = 1 - DistanceProbabilityReversed
+                DistanceProbability = DistanceProbability * 30 / 300
+                local Probability = math.random() -- Selects a number between 0 and 1
+                --self:T( { Probability, DistanceProbability } )
+                if Probability > DistanceProbability then
+                  DetectionAccepted = false
+                end
               end
-
-              if TargetIsDetected and TargetIsVisible and TargetIsVisible == true then
-                self.DetectedObjects[DetectedObjectName].IsVisible = TargetIsDetected and TargetIsVisible
+              
+              if not self.DetectedObjects[DetectedObjectName] and TargetIsVisible and self.AlphaAngleProbability then
+                local NormalVec2 = { x = DetectedObjectVec2.x - DetectionGroupVec2.x, y = DetectedObjectVec2.y - DetectionGroupVec2.y }
+                local AlphaAngle = math.atan2( NormalVec2.y, NormalVec2.x )
+                local Sinus = math.sin( AlphaAngle )
+                local AlphaAngleProbabilityReversed = ( 1 - self.AlphaAngleProbability ) * ( 1 - Sinus )
+                local AlphaAngleProbability = 1 - AlphaAngleProbabilityReversed
+                
+                AlphaAngleProbability = AlphaAngleProbability * 30 / 300
+                
+                local Probability =  math.random() -- Selects a number between 0 and 1
+                --self:T( { Probability, AlphaAngleProbability } )
+                if Probability > AlphaAngleProbability then
+                  DetectionAccepted = false
+                end
+                 
               end
-
+              
               if not self.DetectedObjects[DetectedObjectName] and TargetIsVisible and self.ZoneProbability then
-
+              
                 for ZoneDataID, ZoneData in pairs( self.ZoneProbability ) do
                   self:F({ZoneData})
                   local ZoneObject = ZoneData[1] -- Core.Zone#ZONE_BASE
                   local ZoneProbability = ZoneData[2] -- #number
                   ZoneProbability = ZoneProbability * 30 / 300
-
+                  
                   if ZoneObject:IsVec2InZone( DetectedObjectVec2 ) == true then
                     local Probability =  math.random() -- Selects a number between 0 and 1
                     --self:T( { Probability, ZoneProbability } )
@@ -743,46 +761,65 @@ do -- DETECTION_BASE
                   end
                 end
               end
-              self.DetectedObjects[DetectedObjectName].KnowDistance = TargetKnowDistance -- Detection.distance   -- TargetKnowDistance
-              self.DetectedObjects[DetectedObjectName].LastTime = (TargetIsDetected and TargetIsVisible == false) and TargetLastTime
-              self.DetectedObjects[DetectedObjectName].LastPos = (TargetIsDetected and TargetIsVisible == false) and TargetLastPos
-              self.DetectedObjects[DetectedObjectName].LastVelocity = (TargetIsDetected and TargetIsVisible == false) and TargetLastVelocity
-
-              if not self.DetectedObjects[DetectedObjectName].Distance or (Distance and self.DetectedObjects[DetectedObjectName].Distance > Distance) then
-                self.DetectedObjects[DetectedObjectName].Distance = Distance
+              
+              if DetectionAccepted then
+                
+                HasDetectedObjects = true
+      
+                self.DetectedObjects[DetectedObjectName] = self.DetectedObjects[DetectedObjectName] or {}
+                self.DetectedObjects[DetectedObjectName].Name = DetectedObjectName
+  
+                if TargetIsDetected and TargetIsDetected == true then
+                  self.DetectedObjects[DetectedObjectName].IsDetected = TargetIsDetected
+                end
+                
+                if TargetIsDetected and TargetIsVisible and TargetIsVisible == true then
+                  self.DetectedObjects[DetectedObjectName].IsVisible = TargetIsDetected and TargetIsVisible
+                end
+                
+                if TargetIsDetected and not self.DetectedObjects[DetectedObjectName].KnowType then
+                  self.DetectedObjects[DetectedObjectName].KnowType = TargetIsDetected and TargetKnowType
+                end
+                self.DetectedObjects[DetectedObjectName].KnowDistance = TargetKnowDistance -- Detection.distance   -- TargetKnowDistance
+                self.DetectedObjects[DetectedObjectName].LastTime = ( TargetIsDetected and TargetIsVisible == false )  and TargetLastTime
+                self.DetectedObjects[DetectedObjectName].LastPos = ( TargetIsDetected and TargetIsVisible == false )  and TargetLastPos
+                self.DetectedObjects[DetectedObjectName].LastVelocity = ( TargetIsDetected and TargetIsVisible == false )  and TargetLastVelocity
+                
+                if not self.DetectedObjects[DetectedObjectName].Distance or ( Distance and self.DetectedObjects[DetectedObjectName].Distance > Distance ) then
+                  self.DetectedObjects[DetectedObjectName].Distance = Distance
+                end
+  
+                self.DetectedObjects[DetectedObjectName].DetectionTimeStamp = DetectionTimeStamp
+                
+                self:F( { DetectedObject = self.DetectedObjects[DetectedObjectName] } )
+                
+                local DetectedUnit = UNIT:FindByName( DetectedObjectName )
+                
+                DetectedUnits[DetectedObjectName] = DetectedUnit
+              else
+                -- if beyond the DetectionRange then nullify...
+                self:F( { DetectedObject = "No more detection for " .. DetectedObjectName } )
+                if self.DetectedObjects[DetectedObjectName] then
+                  self.DetectedObjects[DetectedObjectName] = nil
+                end
               end
-
-              self.DetectedObjects[DetectedObjectName].DetectionTimeStamp = DetectionTimeStamp
-
-              self:F( { DetectedObject = self.DetectedObjects[DetectedObjectName] } )
-
-              local DetectedUnit = UNIT:FindByName( DetectedObjectName )
-
-              DetectedUnits[DetectedObjectName] = DetectedUnit
-            else
-              -- if beyond the DetectionRange then nullify...
-              self:F( { DetectedObject = "No more detection for " .. DetectedObjectName } )
-              if self.DetectedObjects[DetectedObjectName] then
-                self.DetectedObjects[DetectedObjectName] = nil
-              end
-            end
-
-            -- self:T2( self.DetectedObjects )
+            
+            --self:T2( self.DetectedObjects )
           else
             -- The previously detected object does not exist anymore, delete from the cache.
             self:F( "Removing from DetectedObjects: " .. DetectionObjectName )
             self.DetectedObjects[DetectionObjectName] = nil
           end
         end
-
+        
         if HasDetectedObjects then
           self:__Detected( 0.1, DetectedUnits )
         end
-
+        
       end
-
+      
       if self.DetectionCount > 0 and self.DetectionRun == self.DetectionCount then
-
+        
         -- First check if all DetectedObjects were detected.
         -- This is important. When there are DetectedObjects in the list, but were not detected,
         -- And these remain undetected for more than 60 seconds, then these DetectedObjects will be flagged as not Detected.
@@ -795,24 +832,26 @@ do -- DETECTION_BASE
         end
 
         self:CreateDetectionItems() -- Polymorphic call to Create/Update the DetectionItems list for the DETECTION_ class grouping method.
-
+        
         for DetectedItemID, DetectedItem in pairs( self.DetectedItems ) do
-
+        
           self:UpdateDetectedItemDetection( DetectedItem )
-
+          
           self:CleanDetectionItem( DetectedItem, DetectedItemID ) -- Any DetectionItem that has a Set with zero elements in it, must be removed from the DetectionItems list.
-
+          
           if DetectedItem then
             self:__DetectedItem( 0.1, DetectedItem )
           end
-
+          
         end
       end
 
+
     end
-
+  
+  
   end
-
+  
   do -- DetectionItems Creation
 
     --- Clean the DetectedItem table.
