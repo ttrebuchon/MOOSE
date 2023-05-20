@@ -4097,8 +4097,65 @@ function FLIGHTGROUP:GetParkingSpot(element, maxdist, airbase)
 
   -- If airbase is ship, translate parking coords. Alternatively, we just move the coordinate of the unit to the origin of the map, which is way more efficient.
   if airbase and airbase:IsShip() then
-    coord.x=0
-    coord.z=0
+    local base = airbase:GetPosition();
+    local pos = coord:GetVec3()
+    
+
+    local off = {x = pos.x - base.p.x, y = pos.y - base.p.y, z = pos.z - base.p.z}
+    local mat = {{base.x.x, base.y.x, base.z.x, off.x}, {base.x.y, base.y.y, base.z.y, off.y}, {base.x.z, base.y.z, base.z.z, off.z}}
+    local m = 3
+    local n = 4
+    local h = 0
+    local k = 0
+    local result = {x = 0, y = 0, z = 0}
+    while h < m and k < n do
+        local v_max = math.abs(mat[h + 1][k + 1])
+        local i_max = h
+        do
+            local i = h
+            while i < m do
+                local value = math.abs(mat[i + 1][k + 1])
+                if value > v_max then
+                    i_max = i
+                end
+                i = i + 1
+            end
+        end
+        if mat[i_max + 1][k + 1] == 0 then
+            k = k + 1
+        else
+            do
+                local tmp = mat[h + 1]
+                mat[h + 1] = mat[i_max + 1]
+                mat[i_max + 1] = tmp
+            end
+            do
+                local i = h + 1
+                while i < m do
+                    local f = mat[i + 1][k + 1] / mat[h + 1][k + 1]
+                    mat[i + 1][k + 1] = 0
+                    do
+                        local j = k + 1
+                        while j < n do
+                            mat[i + 1][j + 1] = mat[i + 1][j + 1] - f * mat[h + 1][j + 1]
+                            j = j + 1
+                        end
+                    end
+                    i = i + 1
+                end
+            end
+            h = h + 1
+            k = k + 1
+        end
+    end
+    result.z = mat[3][4] / mat[3][3]
+    result.y = (mat[2][4] - result.z * mat[2][3]) / mat[2][2]
+    result.x = (mat[1][4] - result.y * mat[1][2] - result.z * mat[1][3]) / mat[1][1]
+
+
+    coord.x=result.x
+    coord.z=result.z
+    coord.y=result.y
     maxdist=500 -- 100 meters was not enough, e.g. on the Seawise Giant, where the spot is 139 meters from the "center".
   end
 
