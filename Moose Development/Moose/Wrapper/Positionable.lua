@@ -153,7 +153,7 @@ function POSITIONABLE:GetPosition()
   return nil
 end
 
---- Returns a {@DCS#Vec3} table of the objects current orientation in 3D space. X, Y, Z values are unit vectors defining the objects orientation.
+--- Returns a @{DCS#Vec3} table of the objects current orientation in 3D space. X, Y, Z values are unit vectors defining the objects orientation.
 -- X is the orientation parallel to the movement of the object, Z perpendicular and Y vertical orientation.
 -- @param #POSITIONABLE self
 -- @return DCS#Vec3 X orientation, i.e. parallel to the direction of movement.
@@ -184,7 +184,7 @@ function POSITIONABLE:GetOrientationX()
   end
 end
 
---- Returns a {@DCS#Vec3} table of the objects current Y orientation in 3D space, i.e. vertical orientation.
+--- Returns a @{DCS#Vec3} table of the objects current Y orientation in 3D space, i.e. vertical orientation.
 -- @param #POSITIONABLE self
 -- @return DCS#Vec3 Y orientation, i.e. vertical.
 -- @return #nil The POSITIONABLE is not existing or alive.
@@ -198,7 +198,7 @@ function POSITIONABLE:GetOrientationY()
   end
 end
 
---- Returns a {@DCS#Vec3} table of the objects current Z orientation in 3D space, i.e. perpendicular to direction of movement.
+--- Returns a @{DCS#Vec3} table of the objects current Z orientation in 3D space, i.e. perpendicular to direction of movement.
 -- @param #POSITIONABLE self
 -- @return DCS#Vec3 Z orientation, i.e. perpendicular to movement.
 -- @return #nil The POSITIONABLE is not existing or alive.
