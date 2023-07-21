@@ -3169,8 +3169,24 @@ function CHIEF:RecruitAssetsForZone(StratZone, Resource)
       ---
       -- AMMO SUPPLY
       ---    
-    
+      
       mission=AUFTRAG:NewAMMOSUPPLY(TargetZone)
+      
+    elseif MissionType==AUFTRAG.Type.CAP then
+
+        ---
+        -- CAP
+        ---    
+        
+      mission=AUFTRAG:NewCAP(TargetZone)
+        
+    elseif MissionType==AUFTRAG.Type.GCICAP then
+
+      ---
+      -- GCICAP
+      ---    
+    
+      mission=AUFTRAG:NewGCICAP(TargetZone:GetCoordinate())
 
     end
     
