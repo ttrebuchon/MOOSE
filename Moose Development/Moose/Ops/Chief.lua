@@ -2984,7 +2984,7 @@ function CHIEF:RecruitAssetsForZone(StratZone, Resource)
   local RangeMax=nil
   
   -- Set max range to 250 NM because we use helos as transport for the infantry.
-  if MissionType==AUFTRAG.Type.PATROLZONE or MissionType==AUFTRAG.Type.ONGUARD then
+  if Resource.carrierNmin ~= nil and (MissionType==AUFTRAG.Type.PATROLZONE or MissionType==AUFTRAG.Type.ONGUARD) then
     RangeMax=UTILS.NMToMeters(250)
   end
   
@@ -3012,9 +3012,18 @@ function CHIEF:RecruitAssetsForZone(StratZone, Resource)
     local TargetZone  = StratZone.opszone.zone
     local TargetCoord = TargetZone:GetCoordinate()
 
+    local close = true
+    for _,_legion in pairs(legions) do
+      local dist = _legion:GetCoordinate():Get2DDistance(TargetCoord)
+      if dist >= 1000 then 
+        close = false
+        break
+      end
+    end
+
     -- First check if we need a transportation.
     local transport=nil    
-    if Resource.carrierNmin and Resource.carrierNmax and Resource.carrierNmax>0 then
+    if not close and Resource.carrierNmin and Resource.carrierNmax and Resource.carrierNmax>0 then
     
       -- Filter only those assets that shall be transported.
       local cargoassets=CHIEF._FilterAssets(assets, Resource.Categories, Resource.Attributes, Resource.Properties)
