@@ -1336,6 +1336,7 @@ AIRBOSS.CarrierType = {
   JCARLOS = "L61",
   CANBERRA = "L02",
   KUZNETSOV = "KUZNECOW",
+  KUZNETSOV_2017 = "CV_1143_5",
 }
 
 --- Carrier specific parameters.
