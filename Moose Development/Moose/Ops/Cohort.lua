@@ -1195,11 +1195,11 @@ function COHORT:RecruitAssets(MissionType, Npayloads)
                    combatready=true 
                 end  
               else
-                combatready=false
+                --combatready=false
               end
 
               -- Not ready when rearming, retreating or returning!
-              if flightgroup:IsRearming() or flightgroup:IsRetreating() or flightgroup:IsReturning() then
+              if flightgroup:IsRearming() or flightgroup:IsRetreating() then -- or flightgroup:IsReturning() then
                 combatready=false
               end
               
