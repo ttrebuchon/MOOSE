@@ -2036,6 +2036,9 @@ function AIRBOSS:New( carriername, alias )
   elseif self.carriertype == AIRBOSS.CarrierType.KUZNETSOV then
     -- Kusnetsov parameters - maybe...
     self:_InitStennis()
+  elseif self.carriertype == AIRBOSS.CarrierType.KUZNETSOV_2017 then
+    -- Kusnetsov parameters - maybe...
+    self:_InitStennis()
   else
     self:E( self.lid .. string.format( "ERROR: Unknown carrier type %s!", tostring( self.carriertype ) ) )
     return nil
