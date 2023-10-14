@@ -3063,7 +3063,7 @@ function CHIEF:RecruitAssetsForZone(StratZone, Resource)
       if #cargoassets>0 then
 
         -- Recruit transport carrier assets.
-        recruited, transport=LEGION.AssignAssetsForTransport(self.commander, self.commander.legions, cargoassets, 
+        recruited, transport=LEGION.AssignAssetsForTransport(self.commander, self.commander.legions, nil, cargoassets, 
         Resource.carrierNmin, Resource.carrierNmax, TargetZone, nil, Resource.carrierCategories, Resource.carrierAttributes, Resource.carrierProperties)
         
       end

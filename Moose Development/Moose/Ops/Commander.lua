@@ -1567,8 +1567,9 @@ function COMMANDER:CheckMissionQueue()
             -- Recruit carrier assets for transport.
             local Transport=nil
             local Legions=mission.transportLegions or self.legions
+            local Cohorts=mission.transportCohorts
             
-            TransportAvail, Transport=LEGION.AssignAssetsForTransport(self, Legions, assets, mission.NcarriersMin, mission.NcarriersMax, mission.transportDeployZone, mission.transportDisembarkZone, mission.carrierCategories, mission.carrierAttributes, mission.carrierProperties)
+            TransportAvail, Transport=LEGION.AssignAssetsForTransport(self, Legions, Cohorts, assets, mission.NcarriersMin, mission.NcarriersMax, mission.transportDeployZone, mission.transportDisembarkZone, mission.carrierCategories, mission.carrierAttributes, mission.carrierProperties)
             
             -- Add opstransport to mission.
             if TransportAvail and Transport then

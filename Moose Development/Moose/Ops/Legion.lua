@@ -712,9 +712,10 @@ function LEGION:CheckMissionQueue()
           
             -- Transport legions.
             local Legions=mission.transportLegions or {self}
+            local Cohorts=mission.transportCohorts
                         
             -- Assign carrier assets for transport.
-            TransportAvail, Transport=self:AssignAssetsForTransport(Legions, assets, mission.NcarriersMin, mission.NcarriersMax, mission.transportDeployZone, mission.transportDisembarkZone, mission.carrierCategories, mission.carrierAttributes, mission.carrierProperties)
+            TransportAvail, Transport=self:AssignAssetsForTransport(Legions, Cohorts, assets, mission.NcarriersMin, mission.NcarriersMax, mission.transportDeployZone, mission.transportDisembarkZone, mission.carrierCategories, mission.carrierAttributes, mission.carrierProperties)
           end
           
           -- Add opstransport to mission.
@@ -2998,6 +2999,7 @@ end
 --- Recruit and assign assets performing an OPSTRANSPORT for a given asset list.
 -- @param #LEGION self
 -- @param #table Legions Transport legions.
+-- @param #table Cohorts (Optional) Transport cohorts.
 -- @param #table CargoAssets Weight of the heaviest cargo group to be transported.
 -- @param #number NcarriersMin Min number of carrier assets.
 -- @param #number NcarriersMax Max number of carrier assets.
@@ -3008,13 +3010,13 @@ end
 -- @param #table Properties DCS attributes.
 -- @return #boolean If `true`, enough assets could be recruited and an OPSTRANSPORT object was created.
 -- @return Ops.OpsTransport#OPSTRANSPORT Transport The transport.
-function LEGION:AssignAssetsForTransport(Legions, CargoAssets, NcarriersMin, NcarriersMax, DeployZone, DisembarkZone, Categories, Attributes, Properties)
+function LEGION:AssignAssetsForTransport(Legions, Cohorts, CargoAssets, NcarriersMin, NcarriersMax, DeployZone, DisembarkZone, Categories, Attributes, Properties)
 
   -- Is an escort requested in the first place?
   if NcarriersMin and NcarriersMax and (NcarriersMin>0 or NcarriersMax>0) then
   
     -- Get cohorts.
-    local Cohorts=LEGION._GetCohorts(Legions)
+    Cohorts=LEGION._GetCohorts(Legions, Cohorts)
     
     -- Get all legions and heaviest cargo group weight
     local CargoLegions={} ; local CargoWeight=nil ; local TotalWeight=0
