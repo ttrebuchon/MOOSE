@@ -29,6 +29,7 @@
 -- @field #boolean isNavygroup Is a NAVYGROUP.
 -- @field #boolean isHelo If true, this is a helicopter group.
 -- @field #boolean isVTOL If true, this is capable of Vertical TakeOff and Landing (VTOL).
+-- @field #boolean isAmphibious If true, this is an amphibious group.
 -- @field #boolean isSubmarine If true, this is a submarine group.
 -- @field #boolean isAI If true, group is purely AI.
 -- @field #boolean isDestroyed If true, the whole group was destroyed.

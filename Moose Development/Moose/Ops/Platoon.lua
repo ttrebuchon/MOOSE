@@ -36,6 +36,7 @@ PLATOON = {
   ClassName      = "PLATOON",
   verbose        =     0,
   weaponData     =    {},
+  isAmphibious   =   false,
 }
 
 --- PLATOON class version.
@@ -95,6 +96,19 @@ end
 -- @return Ops.Brigade#BRIGADE The brigade.
 function PLATOON:GetBrigade()
   return self.legion
+end
+
+--- Set whether the groups of this platoon are amphibious.
+-- @param #PLATOON self
+-- @param #boolean switch If true or nil, platoon is amphibious. If false, it does not.
+-- @return #PLATOON self
+function PLATOON:SetAmphibious(switch)
+  if switch==false then
+    self.isAmphibious = false
+  else
+    self.isAmphibious = true
+  end
+  return self
 end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Start & Status

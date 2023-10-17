@@ -668,6 +668,14 @@ function ARMYGROUP:IsCombatReady()
   return combatready
 end
 
+--- Set if entire group has amphibious capabilities. Unfortunately, there is no reliable DCS way to determine this via scripting.
+-- @param #ARMYGROUP self
+-- @return #ARMYGROUP self
+function ARMYGROUP:SetAmphibious()
+    self.isAmphibious=true
+  return self
+end
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Status

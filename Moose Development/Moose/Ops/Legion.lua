@@ -1302,7 +1302,7 @@ function LEGION:onafterOpsOnMission(From, Event, To, OpsGroup, Mission)
   end
   
   -- Load group as cargo because it cannot swim! We pause the mission.
-  if self:IsBrigade() and self:IsShip() then
+  if self:IsBrigade() and self:IsShip() and OpsGroup.isAmphibious ~= true then
     OpsGroup:PauseMission()
     self.warehouseOpsGroup:Load(OpsGroup, self.warehouseOpsElement)
   end
@@ -1826,7 +1826,11 @@ function LEGION:_CreateFlightGroup(asset)
       text=text..string.format("\n- Bit=%s: Rmin=%.1f km, Rmax=%.1f km", bittype, weapondata.RangeMin/1000, weapondata.RangeMax/1000)
     end
     self:T3(self.lid..text)
-  end      
+  end
+
+  if opsgroup.cohort.isAmphibious==true then
+    opsgroup:SetAmphibious(true)
+  end
 
   return opsgroup
 end
