@@ -53,7 +53,8 @@
 -- @module Core.Zone
 -- @image Core_Zones.JPG
 
---- @type ZONE_BASE
+---
+-- @type ZONE_BASE
 -- @field #string ZoneName Name of the zone.
 -- @field #number ZoneProbability A value between 0 and 1. 0 = 0% and 1 = 100% probability.
 -- @field #number DrawID Unique ID of the drawn zone on the F10 map.
@@ -63,6 +64,7 @@
 -- @field #number ZoneID ID of zone. Only zones defined in the ME have an ID!
 -- @field #table Table of any trigger zone properties from the ME. The key is the Name of the property, and the value is the property's Value.
 -- @field #number Surface Type of surface. Only determined at the center of the zone!
+-- @field #number Checktime Check every Checktime seconds, used for ZONE:Trigger()
 -- @extends Core.Fsm#FSM
 
 
@@ -121,6 +123,7 @@ ZONE_BASE = {
   ZoneID=nil,
   Properties={},
   Surface=nil,
+  Checktime = 5,
 }
 
 --- The ZONE_BASE.BoundingSquare
@@ -189,13 +192,14 @@ end
 -- @param Core.Point#COORDINATE Coordinate The coordinate to test.
 -- @return #boolean true if the coordinate is within the zone.
 function ZONE_BASE:IsCoordinateInZone( Coordinate )
+  if not Coordinate then return false end
   local InZone = self:IsVec2InZone( Coordinate:GetVec2() )
   return InZone
 end
 
 --- Returns if a PointVec2 is within the zone. (Name is misleading, actually takes a #COORDINATE)
 -- @param #ZONE_BASE self
--- @param Core.Point#COORDINATE PointVec2 The coordinate to test.
+-- @param Core.Point#COORDINATE Coordinate The coordinate to test.
 -- @return #boolean true if the PointVec2 is within the zone.
 function ZONE_BASE:IsPointVec2InZone( Coordinate )
   local InZone = self:IsVec2InZone( Coordinate:GetVec2() )
@@ -554,6 +558,154 @@ function ZONE_BASE:GetZoneMaybe()
     return nil
   end
 end
+
+--- Set the check time for ZONE:Trigger()
+-- @param #ZONE_BASE self
+-- @param #number seconds Check every seconds for objects entering or leaving the zone. Defaults to 5 secs.
+-- @return #ZONE_BASE self
+function ZONE_BASE:SetCheckTime(seconds)
+  self.Checktime = seconds or 5
+  return self
+end
+
+--- Start watching if the Object or Objects move into or out of a zone.
+-- @param #ZONE_BASE self
+-- @param Wrappe.Controllable#CONTROLLABLE Objects Object or Objects to watch, can be of type UNIT, GROUP, CLIENT, or SET\_UNIT, SET\_GROUP, SET\_CLIENT
+-- @return #ZONE_BASE self
+-- @usage
+--            -- Create a new zone and start watching it every 5 secs for a defined GROUP entering or leaving
+--            local triggerzone = ZONE:New("ZonetoWatch"):Trigger(GROUP:FindByName("Aerial-1"))
+--            
+--            -- This FSM function will be called when the group enters the zone
+--            function triggerzone:OnAfterEnteredZone(From,Event,To,Group)
+--              MESSAGE:New("Group has entered zone!",15):ToAll()
+--            end
+--            
+--            -- This FSM function will be called when the group leaves the zone
+--            function triggerzone:OnAfterLeftZone(From,Event,To,Group)
+--              MESSAGE:New("Group has left zone!",15):ToAll()
+--            end
+--            
+--            -- Stop watching the zone after 1 hour
+--           triggerzone:__TriggerStop(3600)
+function ZONE_BASE:Trigger(Objects)
+  --self:I("Added Zone Trigger")
+  self:SetStartState("TriggerStopped")
+  self:AddTransition("TriggerStopped","TriggerStart","TriggerRunning")
+  self:AddTransition("*","EnteredZone","*")
+  self:AddTransition("*","LeftZone","*")
+  self:AddTransition("*","TriggerRunCheck","*")
+  self:AddTransition("*","TriggerStop","TriggerStopped")
+  self:TriggerStart()
+  self.checkobjects = Objects
+  if UTILS.IsInstanceOf(Objects,"SET_BASE") then
+    self.objectset = Objects.Set
+  else
+    self.objectset = {Objects}
+  end
+  self:_TriggerCheck(true)
+  self:__TriggerRunCheck(self.Checktime)
+  return self
+  
+  ------------------------
+  --- Pseudo Functions ---
+  ------------------------
+  
+  --- Triggers the FSM event "TriggerStop". Stops the ZONE_BASE Trigger.
+  -- @function [parent=#ZONE_BASE] TriggerStop
+  -- @param #ZONE_BASE self
+
+  --- Triggers the FSM event "TriggerStop" after a delay. 
+  -- @function [parent=#ZONE_BASE] __TriggerStop
+  -- @param #ZONE_BASE self
+  -- @param #number delay Delay in seconds.
+  
+  --- On After "EnteredZone" event. An observed object has entered the zone.
+  -- @function [parent=#ZONE_BASE] OnAfterEnteredZone
+  -- @param #ZONE_BASE self
+  -- @param #string From From state.
+  -- @param #string Event Event.
+  -- @param #string To To state.
+  -- @param Wrapper.Controllable#CONTROLLABLE Controllable The controllable entering the zone.
+
+  --- On After "LeftZone" event. An observed object has left the zone.
+  -- @function [parent=#ZONE_BASE] OnAfterLeftZone
+  -- @param #ZONE_BASE self
+  -- @param #string From From state.
+  -- @param #string Event Event.
+  -- @param #string To To state.
+  -- @param Wrapper.Controllable#CONTROLLABLE Controllable The controllable leaving the zone.
+end
+
+--- (Internal) Check the assigned objects for being in/out of the zone
+-- @param #ZONE_BASE self
+-- @param #boolean fromstart If true, do the init of the objects
+-- @return #ZONE_BASE self
+function ZONE_BASE:_TriggerCheck(fromstart)
+  --self:I("_TriggerCheck | FromStart = "..tostring(fromstart))
+  local objectset = self.objectset or {}
+  if fromstart then
+    -- just earmark everyone in/out
+    for _,_object in pairs(objectset) do
+      local obj = _object -- Wrapper.Controllable#CONTROLLABLE
+      if not obj.TriggerInZone then obj.TriggerInZone = {} end
+      if obj and obj:IsAlive() and self:IsCoordinateInZone(obj:GetCoordinate()) then
+        obj.TriggerInZone[self.ZoneName] = true
+      else
+        obj.TriggerInZone[self.ZoneName] = false
+      end
+      --self:I("Object "..obj:GetName().." is in zone = "..tostring(obj.TriggerInZone[self.ZoneName]))
+    end
+  else
+    -- Check for changes
+    for _,_object in pairs(objectset) do
+      local obj = _object -- Wrapper.Controllable#CONTROLLABLE
+      if obj and obj:IsAlive() then
+        if not obj.TriggerInZone then
+          -- has not been tagged previously - wasn't in set! 
+          obj.TriggerInZone = {}
+        end
+        if not obj.TriggerInZone[self.ZoneName] then
+          -- has not been tagged previously - wasn't in set! 
+          obj.TriggerInZone[self.ZoneName] = false 
+        end
+        -- is obj in zone?
+        local inzone = self:IsCoordinateInZone(obj:GetCoordinate())
+        --self:I("Object "..obj:GetName().." is in zone: "..tostring(inzone))
+        if inzone and not obj.TriggerInZone[self.ZoneName] then
+          -- wasn't in zone before
+          --self:I("Newly entered")
+          self:__EnteredZone(0.5,obj)
+          obj.TriggerInZone[self.ZoneName] = true
+        elseif (not inzone) and obj.TriggerInZone[self.ZoneName] then
+          -- has left the zone
+          --self:I("Newly left")
+          self:__LeftZone(0.5,obj)
+          obj.TriggerInZone[self.ZoneName] = false
+        else
+          --self:I("Not left or not entered, or something went wrong!")
+        end
+      end
+    end
+  end  
+  return self
+end
+
+--- (Internal) Check the assigned objects for being in/out of the zone
+-- @param #ZONE_BASE self
+-- @param #string From
+-- @param #string Event
+-- @param #string to
+-- @return #ZONE_BASE self
+function ZONE_BASE:onafterTriggerRunCheck(From,Event,To)
+  if self:GetState() ~= "TriggerStopped" then
+    self:_TriggerCheck()
+    self:__TriggerRunCheck(self.Checktime)
+  end
+  return self
+end
+
+
 
 --- Returns the Value of the zone with the given PropertyName, or nil if no matching property exists.
 -- @param #ZONE_BASE self
@@ -953,7 +1105,7 @@ function ZONE_RADIUS:Scan( ObjectCategories, UnitCategories )
 
         local Include = false
         if not UnitCategories then
-          -- Anythink found is included.
+          -- Anything found is included.
           Include = true
         else
           -- Check if found object is in specified categories.
@@ -984,9 +1136,9 @@ function ZONE_RADIUS:Scan( ObjectCategories, UnitCategories )
       if ObjectCategory == Object.Category.SCENERY then
         local SceneryType = ZoneObject:getTypeName()
         local SceneryName = ZoneObject:getName()
-        --BASE:I("SceneryType "..SceneryType.."SceneryName"..SceneryName)
+        --BASE:I("SceneryType "..SceneryType.." SceneryName "..tostring(SceneryName))
         self.ScanData.Scenery[SceneryType] = self.ScanData.Scenery[SceneryType] or {}
-        self.ScanData.Scenery[SceneryType][SceneryName] = SCENERY:Register( SceneryName, ZoneObject )
+        self.ScanData.Scenery[SceneryType][SceneryName] = SCENERY:Register( tostring(SceneryName), ZoneObject)
         table.insert(self.ScanData.SceneryTable,self.ScanData.Scenery[SceneryType][SceneryName] )
         self:T( { SCENERY =  self.ScanData.Scenery[SceneryType][SceneryName] } )
       end
@@ -1442,8 +1594,11 @@ function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,ma
   local T1 = timer.getTime()
 
   local buildings = {}
+  local buildingzones = {}
+  
   if self.ScanData and self.ScanData.BuildingCoordinates then
     buildings = self.ScanData.BuildingCoordinates
+    buildingzones = self.ScanData.BuildingZones
   else
     -- build table of buildings coordinates
     for _,_object in pairs (objects) do
@@ -1455,28 +1610,32 @@ function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,ma
             MARKER:New(scenery:GetCoordinate(),"Building"):ToAll()
           end
           buildings[#buildings+1] = scenery:GetCoordinate()
+          local bradius = scenery:GetBoundingRadius() or dist
+          local bzone = ZONE_RADIUS:New("Building-"..math.random(1,100000),scenery:GetVec2(),bradius,false)
+          buildingzones[#buildingzones+1] = bzone
+          --bzone:DrawZone(-1,{1,0,0},Alpha,FillColor,FillAlpha,1,ReadOnly)
          end
       end
     end
     self.ScanData.BuildingCoordinates = buildings
+    self.ScanData.BuildingZones = buildingzones
   end
 
   -- max 1000 tries
   local rcoord = nil  
-  local found = false
+  local found = true
   local iterations = 0
 
   for i=1,1000 do
     iterations = iterations + 1
     rcoord = self:GetRandomCoordinate(inner,outer)
-    found = false
-    for _,_coord in pairs (buildings) do
-      local coord = _coord -- Core.Point#COORDINATE
+    found = true
+    for _,_coord in pairs (buildingzones) do
+      local zone = _coord -- Core.Zone#ZONE_RADIUS
       -- keep >50m dist from buildings
-      if coord:Get3DDistance(rcoord) > dist then
-        found = true
-      else
+      if zone:IsPointVec2InZone(rcoord) then
         found = false
+        break
       end
     end
     if found then 
@@ -1488,15 +1647,43 @@ function ZONE_RADIUS:GetRandomCoordinateWithoutBuildings(inner,outer,distance,ma
     end
   end
   
+  if not found then
+    -- max 1000 tries
+    local rcoord = nil  
+    local found = true
+    local iterations = 0
+  
+    for i=1,1000 do
+      iterations = iterations + 1
+      rcoord = self:GetRandomCoordinate(inner,outer)
+      found = true
+      for _,_coord in pairs (buildings) do
+        local coord = _coord -- Core.Point#COORDINATE
+        -- keep >50m dist from buildings
+        if coord:Get3DDistance(rcoord) < dist then
+          found = false
+        end
+      end
+      if found then 
+        -- we have a winner!
+        if markfinal then
+          MARKER:New(rcoord,"FREE"):ToAll()
+        end
+        break 
+      end
+    end
+  end
+  
   T1=timer.getTime()
   
-  self:T(string.format("Found a coordinate: %s | Iterations: %d | Time: %d",tostring(found),iterations,T1-T0))
+  self:T(string.format("Found a coordinate: %s | Iterations: %d | Time: %.3f",tostring(found),iterations,T1-T0))
   
   if found then return rcoord else return nil end
   
 end
 
---- @type ZONE
+---
+-- @type ZONE
 -- @extends #ZONE_RADIUS
 
 
@@ -1580,8 +1767,8 @@ function ZONE:FindByName( ZoneName )
 end
 
 
-
---- @type ZONE_UNIT
+---
+-- @type ZONE_UNIT
 -- @field Wrapper.Unit#UNIT ZoneUNIT
 -- @extends Core.Zone#ZONE_RADIUS
 
@@ -1723,7 +1910,8 @@ function ZONE_UNIT:GetVec3( Height )
   return Vec3
 end
 
---- @type ZONE_GROUP
+---
+-- @type ZONE_GROUP
 -- @extends #ZONE_RADIUS
 
 
@@ -1809,7 +1997,8 @@ function ZONE_GROUP:GetRandomPointVec2( inner, outer )
 end
 
 
---- @type ZONE_POLYGON_BASE
+---
+-- @type ZONE_POLYGON_BASE
 -- @field #ZONE_POLYGON_BASE.ListVec2 Polygon The polygon defined by an array of @{DCS#Vec2}.
 -- @extends #ZONE_BASE
 
@@ -2458,7 +2647,8 @@ function ZONE_POLYGON_BASE:Boundary(Coalition, Color, Radius, Alpha, Segments, C
     return self
 end
 
---- @type ZONE_POLYGON
+---
+-- @type ZONE_POLYGON
 -- @extends #ZONE_POLYGON_BASE
 
 
@@ -2586,7 +2776,7 @@ function ZONE_POLYGON:Scan( ObjectCategories, UnitCategories )
   local minmarkcoord = COORDINATE:NewFromVec3(minVec3)
   local maxmarkcoord = COORDINATE:NewFromVec3(maxVec3)
   local ZoneRadius = minmarkcoord:Get2DDistance(maxmarkcoord)/2
-  
+--  self:I("Scan Radius:" ..ZoneRadius)
   local CenterVec3 = self:GetCoordinate():GetVec3()
   
  --[[ this a bit shaky in functionality it seems
@@ -2909,7 +3099,7 @@ end
 
 do -- ZONE_ELASTIC
 
-  --- @type ZONE_ELASTIC
+  -- @type ZONE_ELASTIC
   -- @field #table points Points in 2D.
   -- @field #table setGroups Set of GROUPs.
   -- @field #table setOpsGroups Set of OPSGROUPS.
@@ -3109,7 +3299,7 @@ end
 
 do -- ZONE_AIRBASE
 
-  --- @type ZONE_AIRBASE
+  -- @type ZONE_AIRBASE
   -- @field #boolean isShip If `true`, airbase is a ship.
   -- @field #boolean isHelipad If `true`, airbase is a helipad.
   -- @field #boolean isAirdrome If `true`, airbase is an airdrome.
