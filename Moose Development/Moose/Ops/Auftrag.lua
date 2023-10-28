@@ -5018,6 +5018,11 @@ function AUFTRAG:onafterDone(From, Event, To)
   -- Trigger relocated event.
   if self.type==AUFTRAG.Type.RELOCATECOHORT then
     local cohort=self.DCStask.params.cohort --Ops.Cohort#COHORT
+    local newLegion = self.DCStask.params.legion --Ops.Legion#LEGION
+    cohort:SetLegion(newLegion)
+    for _,asset in pairs(cohort.assets) do
+      asset.legion = newLegion
+    end
     cohort:Relocated()
   end
 end
