@@ -58,7 +58,7 @@
 -- @field #SPAWN.SpawnZoneTable SpawnZoneTable
 -- @extends Core.Base#BASE
 
---- Allows to spawn dynamically new @{Core.Group}s.
+--- Allows to spawn dynamically new @{Wrapper.Group}s.
 --
 -- Each SPAWN object needs to be have related **template groups** setup in the Mission Editor (ME),
 -- which is a normal group with the **Late Activation** flag set.
@@ -320,7 +320,7 @@ function SPAWN:New( SpawnTemplatePrefix )
     self.AIOnOff = true -- The AI is on by default when spawning a group.
     self.SpawnUnControlled = false
     self.SpawnInitKeepUnitNames = false -- Overwrite unit names by default with group name.
-    self.DelayOnOff = false -- No intial delay when spawning the first group.
+    self.DelayOnOff = false -- No initial delay when spawning the first group.
     self.SpawnGrouping = nil -- No grouping.
     self.SpawnInitLivery = nil -- No special livery.
     self.SpawnInitSkill = nil -- No special skill.
@@ -332,6 +332,7 @@ function SPAWN:New( SpawnTemplatePrefix )
     self.SpawnInitModexPostfix = nil
     self.SpawnInitAirbase = nil
     self.TweakedTemplate = false -- Check if the user is using self made template.
+    self.SpawnRandomCallsign = false
 
     self.SpawnGroups = {} -- Array containing the descriptions of each Group to be Spawned.
   else
@@ -1099,6 +1100,14 @@ function SPAWN:InitRandomizeZones( SpawnZoneTable )
   return self
 end
 
+--- [AIR/Fighter only!] This method randomizes the callsign for a new group.
+-- @param #SPAWN self
+-- @return #SPAWN self
+function SPAWN:InitRandomizeCallsign()
+  self.SpawnRandomCallsign = true
+  return self
+end
+
 --- This method sets a spawn position for the group that is different from the location of the template.
 -- @param #SPAWN self
 -- @param Core.Point#COORDINATE Coordinate The position to spawn from
@@ -1331,7 +1340,7 @@ do -- Delay methods
     return self
   end
 
-  --- Turns the Delay On for the @{Wrapper.Group} when spawning with @{SpawnScheduled}(). In effect then the 1st group will only be spawned
+  --- Turns the Delay On for the @{Wrapper.Group} when spawning with @{#SpawnScheduled}(). In effect then the 1st group will only be spawned
   -- after the number of seconds given in SpawnScheduled as arguments, and not immediately.
   -- @param #SPAWN self
   -- @return #SPAWN The SPAWN object
@@ -1669,7 +1678,7 @@ end
 -- @param #number SpawnTimeVariation The variation to be applied on the defined time interval between each new spawn.
 -- The variation is a number between 0 and 1, representing the % of variation to be applied on the time interval.
 -- @param #boolean WithDelay Do not spawn the **first** group immediately, but delay the spawn as per the calculation below.
--- Effectively the same as @{InitDelayOn}().
+-- Effectively the same as @{#InitDelayOn}().
 -- @return #SPAWN self
 -- @usage
 -- -- NATO helicopters engaging in the battle field.
@@ -2783,7 +2792,7 @@ end
 -- @return Wrapper.Group#GROUP that was spawned or #nil if nothing was spawned.
 -- @usage
 --
---   local SpawnPointVec2 = ZONE:New( ZoneName ):GetPointVec2()
+--   local SpawnPointVec2 = ZONE:New( ZoneName ):GetPointVec2() 
 --
 --   -- Spawn at the zone center position at the height specified in the ME of the group template!
 --   SpawnAirplanes:SpawnFromPointVec2( SpawnPointVec2 )
@@ -3275,18 +3284,122 @@ function SPAWN:_Prepare( SpawnTemplatePrefix, SpawnIndex ) -- R2.2
   end
 
   -- Callsign
+  
+  if self.SpawnRandomCallsign and SpawnTemplate.units[1].callsign then
+    if type( SpawnTemplate.units[1].callsign ) ~= "number" then
+      -- change callsign
+      local min = 1
+      local max = 8
+      local ctable = CALLSIGN.Aircraft
+      if string.find(SpawnTemplate.units[1].type, "A-10",1,true) then 
+        max = 12
+      end
+      if string.find(SpawnTemplate.units[1].type, "18",1,true) then
+        min = 9 
+        max = 20 
+        ctable = CALLSIGN.F18
+      end
+      if string.find(SpawnTemplate.units[1].type, "16",1,true) then
+        min = 9 
+        max = 20 
+        ctable = CALLSIGN.F16
+      end
+      if SpawnTemplate.units[1].type == "F-15E" then
+        min = 9 
+        max = 18 
+        ctable = CALLSIGN.F15E
+      end
+      local callsignnr = math.random(min,max)
+      local callsignname = "Enfield"
+      for name, value in pairs(ctable) do
+        if value==callsignnr then
+          callsignname = name
+        end
+      end
+      for UnitID = 1, #SpawnTemplate.units do
+        SpawnTemplate.units[UnitID].callsign[1] = callsignnr
+        SpawnTemplate.units[UnitID].callsign[2] = UnitID
+        SpawnTemplate.units[UnitID].callsign[3] = "1"
+        SpawnTemplate.units[UnitID].callsign["name"] = tostring(callsignname)..tostring(UnitID).."1"
+        -- UTILS.PrintTableToLog(SpawnTemplate.units[UnitID].callsign,1) 
+      end         
+    else
+      -- Ruskis
+      for UnitID = 1, #SpawnTemplate.units do
+        SpawnTemplate.units[UnitID].callsign = math.random(1,999)
+      end
+    end
+  end
+  
   for UnitID = 1, #SpawnTemplate.units do
     local Callsign = SpawnTemplate.units[UnitID].callsign
     if Callsign then
       if type( Callsign ) ~= "number" then -- blue callsign
+        -- UTILS.PrintTableToLog(Callsign,1)
         Callsign[2] = ((SpawnIndex - 1) % 10) + 1
         local CallsignName = SpawnTemplate.units[UnitID].callsign["name"] -- #string
         CallsignName = string.match(CallsignName,"^(%a+)") -- 2.8 - only the part w/o numbers
         local CallsignLen = CallsignName:len()
+        SpawnTemplate.units[UnitID].callsign[2] = UnitID
         SpawnTemplate.units[UnitID].callsign["name"] = CallsignName:sub( 1, CallsignLen ) .. SpawnTemplate.units[UnitID].callsign[2] .. SpawnTemplate.units[UnitID].callsign[3]
       else
         SpawnTemplate.units[UnitID].callsign = Callsign + SpawnIndex
       end
+    end
+    -- Link16
+    local AddProps = SpawnTemplate.units[UnitID].AddPropAircraft
+    if AddProps then
+      if SpawnTemplate.units[UnitID].AddPropAircraft.STN_L16 then
+        -- 4 digit octal with leading 0
+        if tonumber(SpawnTemplate.units[UnitID].AddPropAircraft.STN_L16) ~= nil then
+          local octal = SpawnTemplate.units[UnitID].AddPropAircraft.STN_L16
+          local decimal = UTILS.OctalToDecimal(octal)+UnitID-1
+          SpawnTemplate.units[UnitID].AddPropAircraft.STN_L16 = string.format("%05d",UTILS.DecimalToOctal(decimal))
+        else -- ED bug - chars in here
+          local STN = math.floor(UTILS.RandomGaussian(4088/2,nil,1000,4088))
+          STN = STN+UnitID-1
+          local OSTN = UTILS.DecimalToOctal(STN)
+          SpawnTemplate.units[UnitID].AddPropAircraft.STN_L16 = string.format("%05d",OSTN)
+        end
+      end
+      -- A10CII
+      if SpawnTemplate.units[UnitID].AddPropAircraft.SADL_TN then
+        -- 3 digit octal with leading 0
+        if tonumber(SpawnTemplate.units[UnitID].AddPropAircraft.SADL_TN) ~= nil then
+          local octal = SpawnTemplate.units[UnitID].AddPropAircraft.SADL_TN
+          local decimal = UTILS.OctalToDecimal(octal)+UnitID-1
+          SpawnTemplate.units[UnitID].AddPropAircraft.SADL_TN = string.format("%04d",UTILS.DecimalToOctal(decimal))
+        else -- ED bug - chars in here
+          local STN = math.floor(UTILS.RandomGaussian(504/2,nil,100,504))
+          STN = STN+UnitID-1
+          local OSTN = UTILS.DecimalToOctal(STN)
+          SpawnTemplate.units[UnitID].AddPropAircraft.SADL_TN = string.format("%04d",OSTN)
+        end
+      end
+      -- VoiceCallsignNumber
+      if SpawnTemplate.units[UnitID].AddPropAircraft.VoiceCallsignNumber then
+        SpawnTemplate.units[UnitID].AddPropAircraft.VoiceCallsignNumber = SpawnTemplate.units[UnitID].callsign[2] .. SpawnTemplate.units[UnitID].callsign[3]
+      end
+      -- VoiceCallsignLabel
+      if SpawnTemplate.units[UnitID].AddPropAircraft.VoiceCallsignLabel then
+        local CallsignName = SpawnTemplate.units[UnitID].callsign["name"] -- #string
+        CallsignName = string.match(CallsignName,"^(%a+)") -- 2.8 - only the part w/o numbers
+        local label = "NY" -- Navy One exception
+        if not string.find(CallsignName," ") then
+          label = string.upper(string.match(CallsignName,"^%a")..string.match(CallsignName,"%a$"))
+        end
+        SpawnTemplate.units[UnitID].AddPropAircraft.VoiceCallsignLabel = label
+      end
+      -- UTILS.PrintTableToLog(SpawnTemplate.units[UnitID].AddPropAircraft,1)
+      -- FlightLead
+      if SpawnTemplate.units[UnitID].datalinks and SpawnTemplate.units[UnitID].datalinks.Link16 and SpawnTemplate.units[UnitID].datalinks.Link16.settings then
+        SpawnTemplate.units[UnitID].datalinks.Link16.settings.flightLead = UnitID == 1 and true or false
+      end
+      -- A10CII
+      if SpawnTemplate.units[UnitID].datalinks and SpawnTemplate.units[UnitID].datalinks.SADL and SpawnTemplate.units[UnitID].datalinks.SADL.settings then
+        SpawnTemplate.units[UnitID].datalinks.SADL.settings.flightLead = UnitID == 1 and true or false
+      end
+      -- UTILS.PrintTableToLog(SpawnTemplate.units[UnitID].datalinks,1)   
     end
   end
 
@@ -3622,7 +3735,7 @@ function SPAWN:_OnLand( EventData )
 end
 
 --- Will detect AIR Units shutting down their engines ...
--- When the event takes place, and the method @{RepeatOnEngineShutDown} was called, the spawned Group will Re-SPAWN.
+-- When the event takes place, and the method @{#InitRepeatOnEngineShutDown} was called, the spawned Group will Re-SPAWN.
 -- But only when the Unit was registered to have landed.
 -- @param #SPAWN self
 -- @param Core.Event#EVENTDATA EventData

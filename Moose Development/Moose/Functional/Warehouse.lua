@@ -742,7 +742,7 @@
 --
 -- ## Save Assets
 --
--- Saving asset data to file is achieved by the @{WAREHOUSE.Save}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
+-- Saving asset data to file is achieved by the @{#WAREHOUSE.Save}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
 -- warehouse data is saved. If you do not specify a path, the file is saved your the DCS installation root directory.
 -- The parameter *filename* is optional and defines the name of the saved file. By default this is automatically created from the warehouse id and name, for example
 -- "Warehouse-1234_Batumi.txt".
@@ -753,13 +753,13 @@
 --
 -- ### Automatic Save at Mission End
 --
--- The assets can be saved automatically when the mission is ended via the @{WAREHOUSE.SetSaveOnMissionEnd}(*path*, *filename*) function, i.e.
+-- The assets can be saved automatically when the mission is ended via the @{#WAREHOUSE.SetSaveOnMissionEnd}(*path*, *filename*) function, i.e.
 --
 --     warehouseBatumi:SetSaveOnMissionEnd("D:\\My Warehouse Data\\")
 --
 -- ## Load Assets
 --
--- Loading assets data from file is achieved by the @{WAREHOUSE.Load}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
+-- Loading assets data from file is achieved by the @{#WAREHOUSE.Load}(*path*, *filename*) function. The parameter *path* specifies the path on the file system where the
 -- warehouse data is loaded from. If you do not specify a path, the file is loaded from your the DCS installation root directory.
 -- The parameter *filename* is optional and defines the name of the file to load. By default this is automatically generated from the warehouse id and name, for example
 -- "Warehouse-1234_Batumi.txt".
@@ -7870,7 +7870,7 @@ function WAREHOUSE:_GetTerminal(_attribute, _category)
   -- Default terminal is "large".
   local _terminal=AIRBASE.TerminalType.OpenBig
 
-  if _attribute==WAREHOUSE.Attribute.AIR_FIGHTER then
+  if _attribute==WAREHOUSE.Attribute.AIR_FIGHTER or _attribute==WAREHOUSE.Attribute.AIR_UAV then
     -- Fighter ==> small.
     _terminal=AIRBASE.TerminalType.FighterAircraft
   elseif _attribute==WAREHOUSE.Attribute.AIR_BOMBER or _attribute==WAREHOUSE.Attribute.AIR_TRANSPORTPLANE or _attribute==WAREHOUSE.Attribute.AIR_TANKER or _attribute==WAREHOUSE.Attribute.AIR_AWACS then

@@ -22,7 +22,7 @@
 -- @module Functional.Mantis
 -- @image Functional.Mantis.jpg
 --
--- Last Update: Sept 2023
+-- Last Update: Nov 2023
 
 -------------------------------------------------------------------------
 --- **MANTIS** class, extends Core.Base#BASE
@@ -103,6 +103,7 @@
 -- * Roland
 -- * Silkworm (though strictly speaking this is a surface to ship missile)
 -- * SA-2, SA-3, SA-5, SA-6, SA-7, SA-8, SA-9, SA-10, SA-11, SA-13, SA-15, SA-19
+-- * From IDF mod: STUNNER IDFA, TAMIR IDFA (Note all caps!)
 -- * From HDS (see note on HDS below): SA-2, SA-3, SA-10B, SA-10C, SA-12, SA-17, SA-20A, SA-20B, SA-23, HQ-2
 -- 
 -- * From SMA: RBS98M, RBS70, RBS90, RBS90M, RBS103A, RBS103B, RBS103AM, RBS103BM, Lvkv9040M 
@@ -373,7 +374,9 @@ MANTIS.SamData = {
   ["SA-20A"] = { Range=150, Blindspot=5, Height=27, Type="Long" , Radar="S-300PMU1"},
   ["SA-20B"] = { Range=200, Blindspot=4, Height=27, Type="Long" , Radar="S-300PMU2"},
   ["HQ-2"] = { Range=50, Blindspot=6, Height=35, Type="Medium", Radar="HQ_2_Guideline_LN" },
-  ["SHORAD"] = { Range=3, Blindspot=0, Height=3, Type="Short", Radar="Igla" }
+  ["SHORAD"] = { Range=3, Blindspot=0, Height=3, Type="Short", Radar="Igla" },
+  ["TAMIR IDFA"] = { Range=20, Blindspot=0.6, Height=12.3, Type="Short", Radar="IRON_DOME_LN" },
+  ["STUNNER IDFA"] = { Range=250, Blindspot=1, Height=45, Type="Long", Radar="DAVID_SLING_LN" },  
 }
 
 --- SAM data HDS
@@ -487,7 +490,11 @@ do
   --        mybluemantis:Start()
   --
   function MANTIS:New(name,samprefix,ewrprefix,hq,coalition,dynamic,awacs, EmOnOff, Padding, Zones)
-
+    
+    
+    -- Inherit everything from BASE class.
+    local self = BASE:Inherit(self, FSM:New()) -- #MANTIS
+    
     -- DONE: Create some user functions for these
     -- DONE: Make HQ useful
     -- DONE: Set SAMs to auto if EWR dies
@@ -549,6 +556,10 @@ do
     self.ShoradGroupSet = SET_GROUP:New() -- Core.Set#SET_GROUP
     self.FilterZones = Zones
     
+    self.SkateZones = nil
+    self.SkateNumber =  3
+    self.shootandscoot = false   
+    
     self.UseEmOnOff = true
     if EmOnOff == false then
       self.UseEmOnOff = false
@@ -559,9 +570,6 @@ do
     else
       self.advAwacs = false
     end
-
-    -- Inherit everything from BASE class.
-    local self = BASE:Inherit(self, FSM:New()) -- #MANTIS
 
     -- Set the string id for output to DCS.log file.
     self.lid=string.format("MANTIS %s | ", self.name)
@@ -623,7 +631,7 @@ do
     
     -- TODO Version
     -- @field #string version
-    self.version="0.8.14"
+    self.version="0.8.15"
     self:I(string.format("***** Starting MANTIS Version %s *****", self.version))
 
     --- FSM Functions ---
@@ -787,6 +795,23 @@ do
     return self
   end
   
+  --- Add a SET_ZONE of zones for Shoot&Scoot - SHORAD units will move around
+  -- @param #MANTIS self
+  -- @param Core.Set#SET_ZONE ZoneSet Set of zones to be used. Units will move around to the next (random) zone between 100m and 3000m away.
+  -- @param #number Number Number of closest zones to be considered, defaults to 3.
+  -- @param #boolean Random If true, use a random coordinate inside the next zone to scoot to.
+  -- @param #string Formation Formation to use, defaults to "Cone". See mission editor dropdown for options.
+  -- @return #MANTIS self
+  function MANTIS:AddScootZones(ZoneSet, Number, Random, Formation)
+    self:T(self.lid .. " AddScootZones")
+    self.SkateZones = ZoneSet
+    self.SkateNumber = Number or 3
+    self.shootandscoot = true
+    self.ScootRandom = Random
+    self.ScootFormation = Formation or "Cone"    
+    return self
+  end
+  
   --- Function to set accept and reject zones.
   -- @param #MANTIS self
   -- @param #table AcceptZones Table of @{Core.Zone#ZONE} objects
@@ -893,7 +918,7 @@ do
 
   --- Function to get the HQ object for further use
   -- @param #MANTIS self
-  -- @return Wrapper.GROUP#GROUP The HQ #GROUP object or *nil* if it doesn't exist
+  -- @return Wrapper.Group#GROUP The HQ #GROUP object or *nil* if it doesn't exist
   function MANTIS:GetCommandCenter()
     self:T(self.lid .. "GetCommandCenter")
     if self.HQ_CC then
@@ -929,7 +954,7 @@ do
 
   --- Function to set the HQ object for further use
   -- @param #MANTIS self
-  -- @param Wrapper.GROUP#GROUP group The #GROUP object to be set as HQ
+  -- @param Wrapper.Group#GROUP group The #GROUP object to be set as HQ
   function MANTIS:SetCommandCenter(group)
     self:T(self.lid .. "SetCommandCenter")
     local group = group or nil
@@ -991,7 +1016,7 @@ do
 
   --- Set using your own #INTEL_DLINK object instead of #DETECTION
   -- @param #MANTIS self
-  -- @param Ops.Intelligence#INTEL_DLINK DLink The data link object to be used.
+  -- @param Ops.Intel#INTEL_DLINK DLink The data link object to be used.
   function MANTIS:SetUsingDLink(DLink)
     self:T(self.lid .. "SetUsingDLink")
     self.DLink = true
@@ -1786,6 +1811,10 @@ do
       self.Shorad:SetDefenseLimits(80,95)
       self.ShoradLink = true
       self.Shorad.Groupset=self.ShoradGroupSet
+      self.Shorad.debug = self.debug
+    end
+    if self.shootandscoot and self.SkateZones and self.Shorad then
+      self.Shorad:AddScootZones(self.SkateZones,self.SkateNumber or 3,self.ScootRandom,self.ScootFormation)
     end
     self:__Status(-math.random(1,10))
     return self

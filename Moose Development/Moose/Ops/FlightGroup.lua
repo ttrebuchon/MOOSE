@@ -216,7 +216,7 @@ FLIGHTGROUP.Players={}
 
 --- FLIGHTGROUP class version.
 -- @field #string version
-FLIGHTGROUP.version="1.0.1"
+FLIGHTGROUP.version="1.0.2"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO list
@@ -1256,20 +1256,20 @@ function FLIGHTGROUP:Status()
     
       -- Check damage.
     self:_CheckDamage()
- 
+    
+    -- Get current mission (if any).
+    local mission=self:GetMissionCurrent()
+    
      -- TODO: Check if group is waiting?
     if self:IsWaiting() then
       if self.Twaiting and self.dTwait then
         if timer.getAbsTime()>self.Twaiting+self.dTwait then
           --self.Twaiting=nil
           --self.dTwait=nil
-          --self:Cruise()
+          --self:_CheckGroupDone()
         end
       end
     end
-    
-    -- Get current mission (if any).
-    local mission=self:GetMissionCurrent()
     
     -- If mission, check if DCS task needs to be updated.
     if mission and mission.updateDCSTask then
@@ -1363,7 +1363,7 @@ function FLIGHTGROUP:Status()
 
   else
     -- Check damage.
-    self:_CheckDamage()      
+    self:_CheckDamage()   
   end
     
   ---
@@ -1617,9 +1617,15 @@ function FLIGHTGROUP:Status()
   ---
 
   self:_PrintTaskAndMissionStatus()
-  
-  -- Current mission.
+
+  -- All done?
+  -- Get current mission (if any).
   local mission=self:GetMissionCurrent()
+  if not mission then
+    self.Twaiting=nil
+    self.dTwait=nil
+    self:_CheckGroupDone()
+  end
 
 end
 
@@ -4791,7 +4797,7 @@ function FLIGHTGROUP:_GetTerminal(_attribute, _category)
   -- Default terminal is "large".
   local _terminal=AIRBASE.TerminalType.OpenBig
 
-  if _attribute==FLIGHTGROUP.Attribute.AIR_FIGHTER then
+  if _attribute==FLIGHTGROUP.Attribute.AIR_FIGHTER or _attribute==FLIGHTGROUP.Attribute.AIR_UAV then
     -- Fighter ==> small.
     _terminal=AIRBASE.TerminalType.FighterAircraft
   elseif _attribute==FLIGHTGROUP.Attribute.AIR_BOMBER or _attribute==FLIGHTGROUP.Attribute.AIR_TRANSPORTPLANE or _attribute==FLIGHTGROUP.Attribute.AIR_TANKER or _attribute==FLIGHTGROUP.Attribute.AIR_AWACS then

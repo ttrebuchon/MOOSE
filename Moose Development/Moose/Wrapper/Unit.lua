@@ -13,7 +13,7 @@
 -- 
 -- ### Author: **FlightControl**
 -- 
--- ### Contributions: **funkyfranky**
+-- ### Contributions: **funkyfranky**, **Applevangelist**
 -- 
 -- ===
 -- 
@@ -42,6 +42,8 @@
 -- 
 --  * @{#UNIT.Find}(): Find a UNIT instance from the global _DATABASE object (an instance of @{Core.Database#DATABASE}) using a DCS Unit object.
 --  * @{#UNIT.FindByName}(): Find a UNIT instance from the global _DATABASE object (an instance of @{Core.Database#DATABASE}) using a DCS Unit name.
+--  * @{#UNIT.FindByMatching}(): Find a UNIT instance from the global _DATABASE object (an instance of @{Core.Database#DATABASE}) using a pattern.
+--  * @{#UNIT.FindAllByMatching}(): Find all UNIT instances from the global _DATABASE object (an instance of @{Core.Database#DATABASE}) using a pattern.
 --  
 -- IMPORTANT: ONE SHOULD NEVER SANITIZE these UNIT OBJECT REFERENCES! (make the UNIT object references nil).
 -- 
@@ -158,6 +160,55 @@ function UNIT:FindByName( UnitName )
   
   local UnitFound = _DATABASE:FindUnit( UnitName )
   return UnitFound
+end
+
+--- Find the first(!) UNIT matching using patterns. Note that this is **a lot** slower than `:FindByName()`!
+-- @param #UNIT self
+-- @param #string Pattern The pattern to look for. Refer to [LUA patterns](http://www.easyuo.com/openeuo/wiki/index.php/Lua_Patterns_and_Captures_(Regular_Expressions)) for regular expressions in LUA.
+-- @return #UNIT The UNIT.
+-- @usage
+--          -- Find a group with a partial group name
+--          local unit = UNIT:FindByMatching( "Apple" )
+--          -- will return e.g. a group named "Apple-1-1"
+--          
+--          -- using a pattern
+--          local unit = UNIT:FindByMatching( ".%d.%d$" )
+--          -- will return the first group found ending in "-1-1" to "-9-9", but not e.g. "-10-1"
+function UNIT:FindByMatching( Pattern )
+  local GroupFound = nil
+  
+  for name,group in pairs(_DATABASE.UNITS) do
+    if string.match(name, Pattern ) then
+      GroupFound = group
+      break
+    end
+  end
+  
+  return GroupFound
+end
+
+--- Find all UNIT objects matching using patterns. Note that this is **a lot** slower than `:FindByName()`!
+-- @param #UNIT self
+-- @param #string Pattern The pattern to look for. Refer to [LUA patterns](http://www.easyuo.com/openeuo/wiki/index.php/Lua_Patterns_and_Captures_(Regular_Expressions)) for regular expressions in LUA.
+-- @return #table Units Table of matching #UNIT objects found
+-- @usage
+--          -- Find all group with a partial group name
+--          local unittable = UNIT:FindAllByMatching( "Apple" )
+--          -- will return all units with "Apple" in the name
+--          
+--          -- using a pattern
+--          local unittable = UNIT:FindAllByMatching( ".%d.%d$" )
+--          -- will return the all units found ending in "-1-1" to "-9-9", but not e.g. "-10-1" or "-1-10"
+function UNIT:FindAllByMatching( Pattern )
+  local GroupsFound = {}
+  
+  for name,group in pairs(_DATABASE.UNITS) do
+    if string.match(name, Pattern ) then
+      GroupsFound[#GroupsFound+1] = group
+    end
+  end
+  
+  return GroupsFound
 end
 
 --- Return the name of the UNIT.
@@ -1607,4 +1658,37 @@ function UNIT:GetSkill()
   local name = self.UnitName
   local skill = _DATABASE.Templates.Units[name].Template.skill or "Random"
   return skill
+end
+
+--- Get Link16 STN or SADL TN and other datalink info from Unit, if any.
+-- @param #UNIT self
+-- @return #string STN STN or TN Octal as string, or nil if not set/capable.
+-- @return #string VCL Voice Callsign Label or nil if not set/capable.
+-- @return #string VCN Voice Callsign Number or nil if not set/capable.
+-- @return #string Lead If true, unit is Flight Lead, else false or nil.
+function UNIT:GetSTN()
+  self:F2(self.UnitName)
+  local STN = nil -- STN/TN
+  local VCL = nil -- VoiceCallsignLabel
+  local VCN = nil -- VoiceCallsignNumber
+  local FGL = false -- FlightGroupLeader
+  local template = self:GetTemplate()
+  if template.AddPropAircraft then
+    if template.AddPropAircraft.STN_L16 then
+      STN = template.AddPropAircraft.STN_L16
+    elseif template.AddPropAircraft.SADL_TN then
+      STN = template.AddPropAircraft.SADL_TN
+    end
+    VCN = template.AddPropAircraft.VoiceCallsignNumber
+    VCL = template.AddPropAircraft.VoiceCallsignLabel    
+  end
+  if template.datalinks and template.datalinks.Link16 and template.datalinks.Link16.settings then
+    FGL = template.datalinks.Link16.settings.flightLead
+  end
+  -- A10CII
+  if template.datalinks and template.datalinks.SADL and template.datalinks.SADL.settings then
+    FGL = template.datalinks.SADL.settings.flightLead
+  end
+  
+  return STN, VCL, VCN, FGL
 end

@@ -27,17 +27,17 @@
 -- **Supported Carriers:**
 --
 --    * [USS John C. Stennis](https://en.wikipedia.org/wiki/USS_John_C._Stennis) (CVN-74)
---    * [USS Theodore Roosevelt](https://en.wikipedia.org/wiki/USS_Theodore_Roosevelt_(CVN-71\)) (CVN-71) [Super Carrier Module]
---    * [USS Abraham Lincoln](https://en.wikipedia.org/wiki/USS_Abraham_Lincoln_(CVN-72\)) (CVN-72) [Super Carrier Module]
---    * [USS George Washington](https://en.wikipedia.org/wiki/USS_George_Washington_(CVN-73\)) (CVN-73) [Super Carrier Module]
+--    * [USS Theodore Roosevelt](https://en.wikipedia.org/wiki/USS_Theodore_Roosevelt_\(CVN-71\)) (CVN-71) [Super Carrier Module]
+--    * [USS Abraham Lincoln](https://en.wikipedia.org/wiki/USS_Abraham_Lincoln_\(CVN-72\)) (CVN-72) [Super Carrier Module]
+--    * [USS George Washington](https://en.wikipedia.org/wiki/USS_George_Washington_\(CVN-73\)) (CVN-73) [Super Carrier Module]
 --    * [USS Harry S. Truman](https://en.wikipedia.org/wiki/USS_Harry_S._Truman) (CVN-75) [Super Carrier Module]
---    * [USS Forrestal](https://en.wikipedia.org/wiki/USS_Forrestal_(CV-59\)) (CV-59) [Heatblur Carrier Module]
---    * [HMS Hermes](https://en.wikipedia.org/wiki/HMS_Hermes_(R12\)) (R12)
---    * [HMS Invincible](https://en.wikipedia.org/wiki/HMS_Invincible_(R05\)) (R05)
---    * [USS Tarawa](https://en.wikipedia.org/wiki/USS_Tarawa_(LHA-1\)) (LHA-1)
---    * [USS America](https://en.wikipedia.org/wiki/USS_America_(LHA-6\)) (LHA-6)
+--    * [USS Forrestal](https://en.wikipedia.org/wiki/USS_Forrestal_\(CV-59\)) (CV-59) [Heatblur Carrier Module]
+--    * [HMS Hermes](https://en.wikipedia.org/wiki/HMS_Hermes_\(R12\)) (R12)
+--    * [HMS Invincible](https://en.wikipedia.org/wiki/HMS_Invincible_\(R05\)) (R05)
+--    * [USS Tarawa](https://en.wikipedia.org/wiki/USS_Tarawa_\(LHA-1\)) (LHA-1)
+--    * [USS America](https://en.wikipedia.org/wiki/USS_America_\(LHA-6\)) (LHA-6)
 --    * [Juan Carlos I](https://en.wikipedia.org/wiki/Spanish_amphibious_assault_ship_Juan_Carlos_I) (L61)
---    * [HMAS Canberra](https://en.wikipedia.org/wiki/HMAS_Canberra_(L02\)) (L02)
+--    * [HMAS Canberra](https://en.wikipedia.org/wiki/HMAS_Canberra_\(L02\)) (L02)
 --
 -- **Supported Aircraft:**
 --
@@ -45,7 +45,7 @@
 --    * [F-14A/B Tomcat](https://forums.eagle.ru/forumdisplay.php?f=395) (Player & AI)
 --    * [A-4E Skyhawk Community Mod](https://forums.eagle.ru/showthread.php?t=224989) (Player & AI)
 --    * [AV-8B N/A Harrier](https://forums.eagle.ru/forumdisplay.php?f=555) (Player & AI)
---    * [T-45C Goshawk](https://www.vnao-cvw-7.com/t-45-goshawk) (VNAO mod) (Player & AI)
+--    * [T-45C Goshawk](https://forum.dcs.world/topic/203816-vnao-t-45-goshawk/) (VNAO mod) (Player & AI)
 --    * [FE/A-18E/F/G Superhornet](https://forum.dcs.world/topic/316971-cjs-super-hornet-community-mod-v20-official-thread/) (CJS mod) (Player & AI)
 --    * F/A-18C Hornet (AI)
 --    * F-14A Tomcat (AI)
@@ -61,7 +61,7 @@
 --
 -- Heatblur's mighty F-14B Tomcat has been added (March 13th 2019) as well. Same goes for the A version.
 --
--- The [DCS Supercarriers](https://forums.eagle.ru/forum/151-dcs-supercarrier/) are also supported.
+-- The [DCS Supercarriers](https://www.digitalcombatsimulator.com/de/shop/modules/supercarrier/) are also supported.
 --
 -- ## Discussion
 --
@@ -94,11 +94,6 @@
 --    * [[MOOSE] Airboss - New LSO/Marshal Voice Overs by Raynor](https://www.youtube.com/watch?v=_Suo68bRu8k)
 --    * [[MOOSE] Airboss - CASE I, "Until We Go Down" featuring the F-14B by Pikes](https://www.youtube.com/watch?v=ojgHDSw3Doc)
 --    * [[MOOSE] Airboss - Skipper Menu](https://youtu.be/awnecCxRoNQ)
---
--- ### Lex explaining Boat Ops:
---
---    * [( DCS HORNET ) Some boat ops basics VID 1](https://www.youtube.com/watch?v=LvGQS-3AzMc)
---    * [( DCS HORNET ) Some boat ops basics VID 2](https://www.youtube.com/watch?v=bN44wvtRsw0)
 --
 -- ### Jabbers Case I and III Recovery Tutorials:
 --
@@ -1736,10 +1731,10 @@ AIRBOSS.Difficulty = {
 -- @field #table trapsheet Groove data table recorded every 0.5 seconds.
 -- @field #boolean trapon If true, save trap sheets.
 -- @field #string debriefschedulerID Debrief scheduler ID.
---
+-- 
 -- @field Sound.SRS#MSRS SRS
 -- @field Sound.SRS#MSRSQUEUE SRSQ
---
+-- 
 -- @extends #AIRBOSS.FlightGroup
 
 --- Main group level radio menu: F10 Other/Airboss.
@@ -1752,7 +1747,7 @@ AIRBOSS.MenuF10Root = nil
 
 --- Airboss class version.
 -- @field #string version
-AIRBOSS.version = "1.3.2"
+AIRBOSS.version = "1.3.3"
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- TODO list
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3062,7 +3057,7 @@ end
 -- @param #number Port Port of the SRS server, defaults to 5002.
 -- @param #string Culture (Optional, Airboss Culture)  Culture, defaults to "en-US".
 -- @param #string Gender (Optional, Airboss Gender)  Gender, e.g. "male" or "female". Defaults to "male".
--- @param #string Voice (Optional, Airboss Voice) Set to use a specific voice. Will **override gender and culture** settings.
+-- @param #string Voice (Optional, Airboss Voice) Set to use a specific voice. Will **override gender and culture** settings.  
 -- @param #string GoogleCreds (Optional) Path to Google credentials, e.g. "C:\\Program Files\\DCS-SimpleRadio-Standalone\\yourgooglekey.json".
 -- @param #number Volume (Optional) E.g. 0.75. Defaults to 1.0 (loudest).
 -- @param #table AltBackend (Optional) See MSRS for details.
@@ -3080,6 +3075,7 @@ function AIRBOSS:EnableSRS(PathToSRS,Port,Culture,Gender,Voice,GoogleCreds,Volum
   self.SRS:SetPath(PathToSRS)
   self.SRS:SetPort(Port or 5002)
   self.SRS:SetLabel(self.AirbossRadio.alias or "AIRBOSS")
+  self.SRS:SetCoordinate(self.carrier:GetCoordinate())
   --self.SRS:SetModulations(Modulations)
   if GoogleCreds then
     self.SRS:SetGoogle(GoogleCreds)
@@ -3091,10 +3087,10 @@ function AIRBOSS:EnableSRS(PathToSRS,Port,Culture,Gender,Voice,GoogleCreds,Volum
   -- SRSQUEUE
   self.SRSQ = MSRSQUEUE:New("AIRBOSS")
   self.SRSQ:SetTransmitOnlyWithPlayers(true)
-  if not self.PilotRadio then
+  if not self.PilotRadio then 
     self:SetSRSPilotVoice()
   end
-  return self
+  return self  
 end
 
 --- Set LSO radio frequency and modulation. Default frequency is 264 MHz AM.
@@ -10275,7 +10271,7 @@ function AIRBOSS:_GetSternCoord()
     elseif case==2 or case==1 then
     -- V/Stol: Translate 8 meters port.
     self.sterncoord:Translate(self.carrierparam.sterndist, hdg, true, true):Translate(8, FB-90, true, true)
-	end
+  end
   elseif self.carriertype==AIRBOSS.CarrierType.STENNIS then
     -- Stennis: translate 7 meters starboard wrt Final bearing.
     self.sterncoord:Translate( self.carrierparam.sterndist, hdg, true, true ):Translate( 7, FB + 90, true, true )
@@ -11562,7 +11558,7 @@ function AIRBOSS:GetHeadingIntoWind_old( magnetic, coord )
   local function adjustDegreesForWindSpeed(windSpeed)
     local degreesAdjustment = 0
   -- the windspeeds are in m/s
-
+  
   -- +0 degrees at 15m/s = 37kts
   -- +0 degrees at 14m/s = 35kts
   -- +0 degrees at 13m/s = 33kts
@@ -11577,7 +11573,7 @@ function AIRBOSS:GetHeadingIntoWind_old( magnetic, coord )
   -- +20 degrees at 4m/s = 26kts
   -- +20 degrees at 3m/s = 26kts
   -- +30 degrees at 2m/s = 26kts 1s
-
+  
     if windSpeed > 0 and windSpeed < 3 then
       degreesAdjustment = 30
     elseif windSpeed >= 3 and windSpeed < 5 then
@@ -11589,7 +11585,7 @@ function AIRBOSS:GetHeadingIntoWind_old( magnetic, coord )
     elseif windSpeed >= 13 then
       degreesAdjustment = 0
     end
-
+  
     return degreesAdjustment
   end
 
@@ -14833,12 +14829,12 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
   if radio == nil or call == nil then
     return
   end
-
+  
   if not self.SRS then
-
+  
     -- Create a new radio transmission item.
     local transmission = {} -- #AIRBOSS.Radioitem
-
+  
     transmission.radio = radio
     transmission.call = call
     transmission.Tplay = timer.getAbsTime() + (delay or 0)
@@ -14846,12 +14842,12 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
     transmission.isplaying = false
     transmission.Tstarted = nil
     transmission.loud = loud and call.loud
-
+  
     -- Player onboard number if sender has one.
     if self:_IsOnboard( call.modexsender ) then
       self:_Number2Radio( radio, call.modexsender, delay, 0.3, pilotcall )
     end
-
+  
     -- Play onboard number if receiver has one.
     if self:_IsOnboard( call.modexreceiver ) then
       self:_Number2Radio( radio, call.modexreceiver, delay, 0.3, pilotcall )
@@ -14894,16 +14890,12 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
     -- SRS transmission
     if call.subtitle ~= nil and string.len(call.subtitle) > 1  then
 
-
-    else
-      -- SRS transmission
-
       local frequency = self.MarshalRadio.frequency
       local modulation = self.MarshalRadio.modulation
       local voice = nil
       local gender = nil
       local culture = nil
-
+      
       if radio.alias == "AIRBOSS" then
         frequency = self.AirbossRadio.frequency
         modulation = self.AirbossRadio.modulation
@@ -14911,13 +14903,13 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
         gender = self.AirbossRadio.gender
         culture = self.AirbossRadio.culture
       end
-
+      
       if radio.alias == "MARSHAL" then
         voice = self.MarshalRadio.voice
         gender = self.MarshalRadio.gender
         culture = self.MarshalRadio.culture
       end
-
+      
       if radio.alias == "LSO" then
         frequency = self.LSORadio.frequency
         modulation = self.LSORadio.modulation
@@ -14925,7 +14917,7 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
         gender = self.LSORadio.gender
         culture = self.LSORadio.culture
       end
-
+      
       if pilotcall then
         voice = self.PilotRadio.voice
         gender = self.PilotRadio.gender
@@ -14939,18 +14931,18 @@ function AIRBOSS:RadioTransmission( radio, call, loud, delay, interval, click, p
         modulation = self.AirbossRadio.modulation
         radio.alias = "AIRBOSS"
       end
-
+      
       local volume = nil
-
+      
       if loud then
         volume = 1.0
       end
-
+      
       --local text = tostring(call.modexreceiver).."; "..radio.alias.."; "..call.subtitle
       local text = call.subtitle
-      self:I(self.lid..text)
+      self:T(self.lid..text) 
       local srstext = self:_GetNiceSRSText(text)
-      self.SRSQ:NewTransmission(srstext, call.duration, self.SRS, tstart, 0.1, subgroups, call.subtitle, call.subduration, frequency, modulation, gender, culture, voice, volume, radio.alias)
+      self.SRSQ:NewTransmission(srstext, call.duration, self.SRS, nil, 0.1, nil, call.subtitle, call.subduration, frequency, modulation, gender, culture, voice, volume, radio.alias)
     end
   end
 end
@@ -15263,7 +15255,7 @@ end
 -- @param #boolean clear If true, clear screen from previous messages.
 -- @param #number delay Delay in seconds, before the message is displayed.
 function AIRBOSS:MessageToPlayer( playerData, message, sender, receiver, duration, clear, delay )
-  self:I({sender,receiver,message})
+  self:T({sender,receiver,message})
   if playerData and message and message ~= "" then
 
     -- Default duration.
@@ -15286,44 +15278,44 @@ function AIRBOSS:MessageToPlayer( playerData, message, sender, receiver, duratio
       -- SCHEDULER:New(nil, self.MessageToPlayer, {self, playerData, message, sender, receiver, duration, clear}, delay)
       self:ScheduleOnce( delay, self.MessageToPlayer, self, playerData, message, sender, receiver, duration, clear )
     else
-
+      
       if not self.SRS then
         -- Wait until previous sound finished.
         local wait = 0
-
+  
         -- Onboard number to get the attention.
         if receiver == playerData.onboard then
-
+  
           -- Which voice over number to use.
           if sender and (sender == "LSO" or sender == "MARSHAL" or sender == "AIRBOSS") then
-
+  
             -- User sound of board number.
             wait = wait + self:_Number2Sound( playerData, sender, receiver )
-
+  
           end
         end
-
+  
         -- Negative.
         if string.find( text:lower(), "negative" ) then
           local filename = self:_RadioFilename( self.MarshalCall.NEGATIVE, false, "MARSHAL" )
           USERSOUND:New( filename ):ToGroup( playerData.group, wait )
           wait = wait + self.MarshalCall.NEGATIVE.duration
         end
-
+  
         -- Affirm.
         if string.find( text:lower(), "affirm" ) then
           local filename = self:_RadioFilename( self.MarshalCall.AFFIRMATIVE, false, "MARSHAL" )
           USERSOUND:New( filename ):ToGroup( playerData.group, wait )
           wait = wait + self.MarshalCall.AFFIRMATIVE.duration
         end
-
+  
         -- Roger.
         if string.find( text:lower(), "roger" ) then
           local filename = self:_RadioFilename( self.MarshalCall.ROGER, false, "MARSHAL" )
           USERSOUND:New( filename ):ToGroup( playerData.group, wait )
           wait = wait + self.MarshalCall.ROGER.duration
         end
-
+  
         -- Play click sound to end message.
         if wait > 0 then
           local filename = self:_RadioFilename( self.MarshalCall.CLICK )
@@ -15336,7 +15328,7 @@ function AIRBOSS:MessageToPlayer( playerData, message, sender, receiver, duratio
         local voice = self.MarshalRadio.voice
         local gender = self.MarshalRadio.gender
         local culture = self.MarshalRadio.culture
-
+        
         if not sender then sender = "AIRBOSS" end
 
         if string.find(sender,"AIRBOSS" ) then
@@ -15366,10 +15358,10 @@ function AIRBOSS:MessageToPlayer( playerData, message, sender, receiver, duratio
           --sender = "AIRBOSS"
         end
 
-        self:I(self.lid..text)
-        self:I({sender,frequency,modulation,voice})
+        self:T(self.lid..text)
+        self:T({sender,frequency,modulation,voice})
         local srstext = self:_GetNiceSRSText(text)
-        self.SRSQ:NewTransmission(srstext,duration,self.SRS,tstart,0.1,subgroups,subtitle,subduration,frequency,modulation,gender,culture,voice,volume,sender)
+        self.SRSQ:NewTransmission(srstext,duration,self.SRS,nil,0.1,nil,nil,nil,frequency,modulation,gender,culture,voice,nil,sender)
       end
       -- Text message to player client.
       if playerData.client then
