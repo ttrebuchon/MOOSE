@@ -79,6 +79,7 @@
 -- @field Utilities.FiFo#FIFO TargetCache
 -- @field #boolean smokeownposition
 -- @field #table SmokeOwn
+-- @field #boolean smokeaveragetargetpos
 -- @extends Core.Fsm#FSM
 
 ---
@@ -104,7 +105,7 @@ PLAYERRECCE = {
   ClassName          =   "PLAYERRECCE",
   verbose            =   true,
   lid                =   nil,
-  version            =   "0.0.21",
+  version            =   "0.1.23",
   ViewZone           =   {},
   ViewZoneVisual     =   {},
   ViewZoneLaser      =   {},
@@ -130,8 +131,9 @@ PLAYERRECCE = {
   ReferencePoint     =   nil,
   TForget            =   600,
   TargetCache        =   nil,
-  smokeownposition   =   true,
+  smokeownposition   =   false,
   SmokeOwn           =   {},
+  smokeaveragetargetpos = false,
 }
 
 --- 
@@ -469,8 +471,10 @@ function PLAYERRECCE:_GetClockDirection(unit, target)
   local _playerPosition = unit:GetCoordinate() -- get position of helicopter
   local _targetpostions = target:GetCoordinate() -- get position of downed pilot
   local _heading = unit:GetHeading() -- heading
+  --self:I("Heading = ".._heading)
   local DirectionVec3 = _playerPosition:GetDirectionVec3( _targetpostions )
   local Angle = _playerPosition:GetAngleDegrees( DirectionVec3 )
+  --self:I("Angle = "..Angle)
   local clock = 12
   local hours = 0   
   if _heading and Angle then
@@ -478,10 +482,13 @@ function PLAYERRECCE:_GetClockDirection(unit, target)
     --if angle == 0 then angle = 360 end
     clock = _heading-Angle  
     hours = (clock/30)*-1
+    --self:I("hours = "..hours)
     clock = 12+hours
     clock = UTILS.Round(clock,0)
     if clock > 12 then clock = clock-12 end
-  end    
+    if clock == 0 then clock = 12 end
+  end
+  --self:I("Clock ="..clock)    
   return clock
 end
 
@@ -709,8 +716,8 @@ function PLAYERRECCE:_GetViewZone(unit, vheading, minview, maxview, angle, camon
       local heading2 = (vheading-90)%360
       self:T({heading1,heading2})
       local startpos = startp:Translate(minview,vheading)
-      local pos1 = startpos:Translate(10,heading1)
-      local pos2 = startpos:Translate(10,heading2)
+      local pos1 = startpos:Translate(12.5,heading1)
+      local pos2 = startpos:Translate(12.5,heading2)
       local pos3 = pos1:Translate(maxview,vheading)
       local pos4 = pos2:Translate(maxview,vheading)
       local array = {}
@@ -912,32 +919,41 @@ function PLAYERRECCE:_LaseTarget(client,targetset)
   else
     laser = self.LaserSpots[playername]
   end
+  -- old target
   if self.LaserTarget[playername] then
     -- still looking at target?
     local target=self.LaserTarget[playername] -- Ops.Target#TARGET
     local oldtarget = target:GetObject() --or laser.Target
-    --self:I("Targetstate: "..target:GetState())
-    --self:I("Laser State: "..tostring(laser:IsLasing()))
-    if not oldtarget or targetset:IsNotInSet(oldtarget) or target:IsDead() or target:IsDestroyed() then
+    self:T("Targetstate: "..target:GetState())
+    self:T("Laser State: "..tostring(laser:IsLasing()))
+    if (not oldtarget) or targetset:IsNotInSet(oldtarget) or target:IsDead() or target:IsDestroyed() then
       -- lost LOS or dead
       laser:LaseOff()
       if target:IsDead() or target:IsDestroyed() or target:GetLife() < 2 then
         self:__Shack(-1,client,oldtarget)
-        self.LaserTarget[playername] = nil
+        --self.LaserTarget[playername] = nil
       else
         self:__TargetLOSLost(-1,client,oldtarget)
-        self.LaserTarget[playername] = nil
+        --self.LaserTarget[playername] = nil
       end
-    end
-    if oldtarget and (not laser:IsLasing()) then
-      --self:I("Switching laser back on ..")
+      self.LaserTarget[playername] = nil
+      oldtarget = nil
+      self.LaserSpots[playername] = nil
+    elseif oldtarget and laser and (not laser:IsLasing()) then
+      --laser:LaseOff()
+      self:T("Switching laser back on ..")
       local lasercode = self.UnitLaserCodes[playername] or laser.LaserCode or 1688
       local lasingtime = self.lasingtime or 60
       --local targettype = target:GetTypeName()
       laser:LaseOn(oldtarget,lasercode,lasingtime)
       --self:__TargetLasing(-1,client,oldtarget,lasercode,lasingtime) 
+    else
+      -- we should not be here...
+      self:T("Target alive and laser is on!")
+      --self.LaserSpots[playername] = nil
     end
-  elseif not laser:IsLasing() and target then
+  -- new target
+  elseif (not laser:IsLasing()) and target then
     local relativecam = self.LaserRelativePos[client:GetTypeName()]
     laser:SetRelativeStartPosition(relativecam)
     local lasercode = self.UnitLaserCodes[playername] or laser.LaserCode or 1688
@@ -945,7 +961,7 @@ function PLAYERRECCE:_LaseTarget(client,targetset)
     --local targettype = target:GetTypeName()
     laser:LaseOn(target,lasercode,lasingtime) 
     self.LaserTarget[playername] = TARGET:New(target)
-    self.LaserTarget[playername].TStatus = 9
+    --self.LaserTarget[playername].TStatus = 9
     self:__TargetLasing(-1,client,target,lasercode,lasingtime)
   end
   return self
@@ -1027,6 +1043,13 @@ function PLAYERRECCE:_SwitchLasing(client,group,playername)
     MESSAGE:New("Lasing is now ON",10,self.Name or "FACA"):ToClient(client)
   else
     self.AutoLase[playername] = false
+    if self.LaserSpots[playername] then 
+      local laser = self.LaserSpots[playername] -- Core.Spot#SPOT
+      if laser:IsLasing() then
+        laser:LaseOff()
+      end
+      self.LaserSpots[playername] = nil
+    end
     MESSAGE:New("Lasing is now OFF",10,self.Name or "FACA"):ToClient(client)
   end
   if self.ClientMenus[playername] then
@@ -1088,9 +1111,8 @@ function PLAYERRECCE:_SmokeTargets(client,group,playername)
   self:T(self.lid.."_SmokeTargets")
   local cameraset = self:_GetTargetSet(client,true) -- Core.Set#SET_UNIT
   local visualset = self:_GetTargetSet(client,false) -- Core.Set#SET_UNIT
-  cameraset:AddSet(visualset)
   
-  if cameraset:CountAlive() > 0 then
+  if cameraset:CountAlive() > 0 or visualset:CountAlive() > 0 then
     self:__TargetsSmoked(-1,client,playername,cameraset)
   else
     return self
@@ -1105,29 +1127,31 @@ function PLAYERRECCE:_SmokeTargets(client,group,playername)
   -- laser targer gets extra smoke
   if laser and laser.Target and laser.Target:IsAlive() then
     laser.Target:GetCoordinate():Smoke(lasersmoke)
-    if cameraset:IsInSet(laser.Target) then
-      cameraset:Remove(laser.Target:GetName(),true)
+  end
+  
+  local coord = visualset:GetCoordinate()
+  if coord and self.smokeaveragetargetpos then
+    coord:SetAtLandheight()
+    coord:Smoke(medsmoke)
+  else
+    -- smoke everything 
+    for _,_unit in pairs(visualset.Set) do
+      local unit = _unit --Wrapper.Unit#UNIT
+      if unit and unit:IsAlive() then
+        local coord = unit:GetCoordinate()
+        local threat = unit:GetThreatLevel()
+        if coord then
+          local color = lowsmoke
+          if threat > 7 then
+            color = highsmoke
+          elseif threat > 2 then
+            color = medsmoke
+          end
+          coord:Smoke(color)
+        end
+      end
     end
   end
-  
-  local coordinate = nil
-  local setthreat = 0
-  -- smoke everything else
-  if cameraset:CountAlive() > 1 then
-    local coordinate = cameraset:GetCoordinate()
-    local setthreat = cameraset:CalculateThreatLevelA2G()
-  end
-  
-  if coordinate then
-    local color = lowsmoke
-    if setthreat > 7 then
-      color = medsmoke
-    elseif setthreat > 2 then
-      color = lowsmoke
-    end
-    coordinate:Smoke(color)
-  end
-  
   if self.SmokeOwn[playername] then
     local cc = client:GetVec2()
     -- don't smoke mid-air
@@ -1168,15 +1192,15 @@ function PLAYERRECCE:_FlareTargets(client,group,playername)
   -- smoke everything else
   for _,_unit in pairs(cameraset.Set) do
     local unit = _unit --Wrapper.Unit#UNIT
-    if unit then
+    if unit and unit:IsAlive() then
       local coord = unit:GetCoordinate()
       local threat = unit:GetThreatLevel()
       if coord then
         local color = lowsmoke
         if threat > 7 then
-          color = medsmoke
+          color = highsmoke
         elseif threat > 2 then
-          color = lowsmoke
+          color = medsmoke
         end
         coord:Flare(color)
       end
@@ -1525,7 +1549,7 @@ end
 -- @param #PLAYERRECCE self
 -- @return #PLAYERRECCE self
 function PLAYERRECCE:EnableSmokeOwnPosition()
-  self:T(self.lid.."ENableSmokeOwnPosition")
+  self:T(self.lid.."EnableSmokeOwnPosition")
   self.smokeownposition = true
   return self
 end
@@ -1536,6 +1560,24 @@ end
 function PLAYERRECCE:DisableSmokeOwnPosition()
   self:T(self.lid.."DisableSmokeOwnPosition")
   self.smokeownposition = false
+  return self
+end
+
+--- [User] Enable smoking of average target positions, instead of all targets visible. Loses smoke per threatlevel -- each is med threat. Default is - smoke all positions.
+-- @param #PLAYERRECCE self
+-- @return #PLAYERRECCE self
+function PLAYERRECCE:EnableSmokeAverageTargetPosition()
+  self:T(self.lid.."ENableSmokeOwnPosition")
+  self.smokeaveragetargetpos = true
+  return self
+end
+
+--- [User] Disable smoking of average target positions, instead of all targets visible. Default is - smoke all positions.
+-- @param #PLAYERRECCE self
+-- @return #PLAYERRECCE 
+function PLAYERRECCE:DisableSmokeAverageTargetPosition()
+  self:T(self.lid.."DisableSmokeAverageTargetPosition")
+  self.smokeaveragetargetpos = false
   return self
 end
 
@@ -1681,7 +1723,7 @@ function PLAYERRECCE:onafterRecceOnStation(From, Event, To, Client, Playername)
   local text2tts = string.format("All stations, FACA %s on station at %s!",callsign, coordtext)
   text2tts = self:_GetTextForSpeech(text2tts)
   if self.debug then
-  self:I(text2.."\n"..text2tts)
+  self:T(text2.."\n"..text2tts)
   end
   if self.UseSRS then
     local grp = Client:GetGroup()
@@ -1720,7 +1762,7 @@ function PLAYERRECCE:onafterRecceOffStation(From, Event, To, Client, Playername)
   local texttts = string.format("All stations, FACA %s leaving station at %s, good bye!",callsign, coordtext)
   texttts = self:_GetTextForSpeech(texttts)
   if self.debug then
-    self:I(text.."\n"..texttts)
+    self:T(text.."\n"..texttts)
   end
   local text1 = "Going home!"
   if self.UseSRS then
